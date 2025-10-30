@@ -85,6 +85,24 @@ def convert_time_to_seconds(time_str):
         print(f"Warning: Could not convert time '{time_str}' to seconds")
         return None
 
+def calculate_avg_speed(distance_meters, lap_time_seconds):
+    """Calculate average speed in km/h from distance and lap time
+    
+    Args:
+        distance_meters: Track distance in meters
+        lap_time_seconds: Lap time in seconds
+    
+    Returns:
+        Average speed in km/h, or 0 if calculation fails
+    """
+    try:
+        if lap_time_seconds > 0 and distance_meters > 0:
+            # Speed (km/h) = (distance_m / time_s) * 3.6
+            return round((distance_meters / lap_time_seconds) * 3.6, 2)
+        return 0
+    except (ValueError, TypeError, ZeroDivisionError):
+        return 0
+
 def extract_experience_factory_html_data(content, file_path, track_name):
     """Extract data from Experience Factory HTML email format"""
     import base64
@@ -975,12 +993,16 @@ def add_session_to_csv(session_data, csv_file, track_name, source='SMS Timing'):
     next_row_id = get_next_row_id(csv_file)
     rows_added = 0
     track_id = TRACK_IDS.get(track_name, TRACK_IDS['default'])
-    track_config = TRACK_CONFIGS.get(track_name, {})
+    track_config = TRACK_CONFIGS.get(track_name, TRACK_CONFIGS.get('Default Track', {}))
     
     # Get track environment and heat number
     indoor_outdoor = 'Indoor' if track_config.get('indoor', True) else 'Outdoor'
     weather = get_weather_data(track_name, session_data['date'], session_data.get('time', ''), session_data)
     heat_number = get_heat_number(session_data, track_name, session_data['date'], csv_file)
+    
+    # Get track metadata
+    track_distance = track_config.get('distance', 400)  # Default 400m
+    track_corners = track_config.get('corners', 10)     # Default 10 corners
     
     try:
         with open(csv_file, 'a', newline='', encoding='utf-8') as f:
@@ -1026,6 +1048,9 @@ def add_session_to_csv(session_data, csv_file, track_name, source='SMS Timing'):
                             # Fallback to best lap sector times if individual lap sectors not available
                             lap_sectors = driver_info['sector_times']
                         
+                        # Calculate average speed for this lap
+                        avg_speed = calculate_avg_speed(track_distance, lap_time)
+                        
                         row_data = [
                             next_row_id,                                    # RowID
                             session_data['date'],                           # Date
@@ -1056,6 +1081,9 @@ def add_session_to_csv(session_data, csv_file, track_name, source='SMS Timing'):
                             '',                                             # CostPerLap (will be filled by pricing script)
                             '',                                             # HeatPrice (will be filled by pricing script)
                             session_data['date'],                           # SessionDate (day identifier)
+                            track_distance,                                 # TrackDistance (meters)
+                            track_corners,                                  # Corners (count)
+                            avg_speed,                                      # AvgSpeed (km/h)
                             f"Session: {session_data['session']} - Lap {lap_num}" # Notes
                         ]
                         
@@ -1064,6 +1092,9 @@ def add_session_to_csv(session_data, csv_file, track_name, source='SMS Timing'):
                         rows_added += 1
                 else:
                     # Fallback: Create single entry with best lap time
+                    # Calculate average speed for best lap
+                    avg_speed = calculate_avg_speed(track_distance, driver_info['best_time'])
+                    
                     row_data = [
                         next_row_id,                                    # RowID
                         session_data['date'],                           # Date
@@ -1094,6 +1125,9 @@ def add_session_to_csv(session_data, csv_file, track_name, source='SMS Timing'):
                         '',                                             # CostPerLap (will be filled by pricing script)
                         '',                                             # HeatPrice (will be filled by pricing script)
                         session_data['date'],                           # SessionDate (day identifier)
+                        track_distance,                                 # TrackDistance (meters)
+                        track_corners,                                  # Corners (count)
+                        avg_speed,                                      # AvgSpeed (km/h)
                         f"Session: {session_data['session']}"          # Notes
                     ]
                     
@@ -1116,11 +1150,11 @@ def process_all_sessions():
     print("Clearing CSV file and starting fresh...")
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        # Write header row with better organization (27-column format with SessionDate and pricing)
+        # Write header row with better organization (30-column format with SessionDate, pricing, and track metadata)
         writer.writerow([
             'RowID', 'Date', 'Time', 'SessionType', 'Heat', 'Track', 'TrackID', 'InOrOutdoor', 'Weather', 'Source',
             'Driver', 'Position', 'LapNumber', 'LapTime', 'Sector1', 'Sector2', 'Sector3', 'BestLap', 'GapToBestLap', 'Interval', 'GapToPrevious',
-            'BestOfDay', 'BestofWeek', 'BestofMonth', 'Kart', 'Tyre', 'CostPerLap', 'HeatPrice', 'SessionDate', 'Notes'
+            'BestOfDay', 'BestofWeek', 'BestofMonth', 'Kart', 'Tyre', 'CostPerLap', 'HeatPrice', 'SessionDate', 'TrackDistance', 'Corners', 'AvgSpeed', 'Notes'
         ])
     print("CSV cleared and header written.")
     print()

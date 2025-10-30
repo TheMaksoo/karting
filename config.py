@@ -34,85 +34,26 @@ def load_config():
     # Default track configurations if not provided
     if not config.get('track_configs'):
         config['track_configs'] = {
-            'Circuit Park Berghem': {
-                'indoor': False,
-                'city': 'Berghem',
-                'country': 'NL',
-                'timezone': 'Europe/Amsterdam'
-            },
-            'De Voltage': {
-                'indoor': True,
-                'city': 'Tilburg',
-                'country': 'NL',
-                'timezone': 'Europe/Amsterdam'
-            },
-            'Goodwill Karting': {
-                'indoor': True,
-                'city': 'Olen',
-                'country': 'BE',
-                'timezone': 'Europe/Brussels'
-            },
-            'Experience Factory Antwerp': {
-                'indoor': True,
-                'city': 'Antwerp',
-                'country': 'BE',
-                'timezone': 'Europe/Brussels'
-            },
-            'Lot66': {
-                'indoor': True,
-                'city': 'Breda',
-                'country': 'NL',
-                'timezone': 'Europe/Amsterdam'
-            },
+           
             'Default Track': {
                 'indoor': True,
                 'city': 'Unknown',
                 'country': 'Unknown',
-                'timezone': 'UTC'
+                'timezone': 'UTC',
+                'distance': 400,  # meters (default)
+                'corners': 10     # default
             }
         }
     
     # Track pricing configurations with heat-based pricing
     if not config.get('track_pricing'):
         config['track_pricing'] = {
-            'De Voltage': {
-                'cost_per_lap': 2.35,
+            'Default Track': {
+                'cost_per_lap': 2.50,
                 'heat_pricing': {
-                    1: 19.75,
-                    2: 37.50,
-                    3: 50.00,
-                }
-            },
-            'Circuit Park Berghem': {
-                'cost_per_lap': 2.75,
-                'heat_pricing': {
-                    1: 19.95,
-                    2: 39.90,
-                    3: 59.85,
-                    4: 79.80
-                }
-            },
-            'Goodwill Karting': {
-                'cost_per_lap': 2.80,
-                'heat_pricing': {
-                    1: 14.00
-                }
-            },
-            'Experience Factory Antwerp': {
-                'cost_per_lap': 3.25,
-                'heat_pricing': {
-                    1: 27.00,
-                    2: 47.00,
-                    3: 67.00, 
-                    4: 87.00
-                }
-            },
-            'lot66': {
-                'cost_per_lap': 0.95,  # Calculated from €19.50/21 laps ≈ €0.95 per lap
-                'heat_pricing': {
-                    1: 19.50,  # €19.50 for 1 session (Adult pricing)
-                    2: 36.50,  # €36.50 for 2 sessions
-                    3: 52.50   # €52.50 for 3 sessions
+                    1: 30.00,
+                    2: 57.00,
+                    3: 81.00
                 }
             }
         }

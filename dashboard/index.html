@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏁 Elite Karting Analytics Platform - Complete Performance Dashboard</title>
+    <title>Elite Karting Analytics Platform - Complete Performance Dashboard - TheMaksoo</title>
+    <!-- Favicons: SVG primary + small PNG fallback -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB7ElEQVRYR+2Xv0sTURTHf0+gqIhBI0aKJp0K1aCkq0sZ0vQK4kYqJQqIo0q3EhsZq6C7yDgkQpFikxQopJXzXk2Y8Hk8Gd2b3n3n7s7szs3m7u7M7s7v3vO+f8zv/3nM+7zv9cD9SgK5p6nA7a8RBmQ0n6H3HJ6a4WQ5s9G6VtPzKqG4hA6sYy8hQ5s1G6UoOz3z9zF2X4YqE0Z+2Qb6XJ1Yw7k6V+XrG7Wk3m9u0G1n4xyM5r0WJ2Qx5r4yWc9k1Fq3vYQZ46w2x9E2w0Qb2k5n1I1t1G6Gk1n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gO3fYcZ2M7p9GJ1o8kY5n0Gx2gNs7A4uP8K0j2t2AAAAAElFTkSuQmCC">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,11 +19,14 @@
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-content">
-            <!-- Enhanced Kart Animation -->
-            <div class="loading-container">
-                <!-- Loading visual removed per user request; keep the container for spacing -->
+            <!-- Karting Logo -->
+            <div class="loading-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 64 64">
+                    <rect width="100%" height="100%" rx="12" ry="12" fill="#0d1117"/>
+                    <text x="32" y="36" font-size="36" text-anchor="middle" dominant-baseline="middle" transform="translate(64,0) scale(-1,1)">🏎️</text>
+                </svg>
             </div>
-            <h2 class="loading-title">🏁 Loading Elite Karting Analytics Platform</h2>
+            <h2 class="loading-title"> Loading Elite Karting Analytics Platform</h2>
             <div class="loading-bar">
                 <div class="loading-progress"></div>
             </div>
@@ -34,9 +40,13 @@
             <div class="header-content">
                 <div class="header-left">
                     <div class="racing-logo">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 64 64" class="logo-svg">
+                            <rect width="100%" height="100%" rx="12" ry="12" fill="#0d1117"/>
+                            <text x="32" y="36" font-size="36" text-anchor="middle" dominant-baseline="middle" transform="translate(64,0) scale(-1,1)">🏎️</text>
+                        </svg>
                         <div class="logo-text">
                             <h1 class="main-title">ELITE KARTING ANALYTICS</h1>
-                            <p class="subtitle">Professional Racing Performance Platform</p>
+                            <p class="subtitle">Professional Racing Performance Platform - TheMaksoo</p>
                         </div>
                     </div>
                 </div>
@@ -58,74 +68,155 @@
                 </div>
             </div>
             
-            <!-- Global KPI Summary Tiles (3x3 Layout) -->
-            <div class="kpi-summary" data-aos="fade-up">
-                <!-- Row 1 -->
-                <div class="kpi-tile">
-                    <div class="kpi-icon"><i class="fas fa-database"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-value" id="totalEntries">0</span>
-                        <span class="kpi-label">Total Entries</span>
-                    </div>
-                </div>
-                <div class="kpi-tile">
-                    <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-value" id="dataPoints">0</span>
-                        <span class="kpi-label">Data Points</span>
-                    </div>
-                </div>
-                <div class="kpi-tile">
-                    <div class="kpi-icon"><i class="fas fa-road"></i></div>
-                    <div class="kpi-content">
-                        <span class="kpi-value" id="totalHeats">0</span>
-                        <span class="kpi-label">Total Heats</span>
-                    </div>
-                </div>
-                
-                <!-- Row 2 -->
-                <div class="kpi-tile">
+            <!-- Global KPI Summary Tiles (4x5 Layout) -->
+            <div class="kpi-summary kpi-grid-4x5" data-aos="fade-up">
+                <!-- Row 1 - Core Performance Metrics -->
+                <div class="kpi-tile" title="Total number of laps completed across all sessions. Filtered by driver/track/date selection.">
                     <div class="kpi-icon"><i class="fas fa-flag-checkered"></i></div>
                     <div class="kpi-content">
-                        <span class="kpi-value" id="avgLapsPerSession">0</span>
-                        <span class="kpi-label">Avg Laps/Driver/Heat</span>
+                        <span class="kpi-value" id="totalLaps">0</span>
+                        <span class="kpi-label">Total Laps</span>
                     </div>
                 </div>
-                <div class="kpi-tile">
+                <div class="kpi-tile" title="Average lap time across all laps. Lower is faster. Calculated from all lap times in the filtered dataset.">
                     <div class="kpi-icon"><i class="fas fa-stopwatch"></i></div>
                     <div class="kpi-content">
                         <span class="kpi-value" id="avgLapOverall">0.00s</span>
-                        <span class="kpi-label">Average Lap Time</span>
+                        <span class="kpi-label">Avg Lap Time</span>
                     </div>
                 </div>
-                <div class="kpi-tile">
+                <div class="kpi-tile" title="Average of the fastest lap from each session. Shows typical best performance per heat. Better indicator than single fastest lap.">
+                    <div class="kpi-icon"><i class="fas fa-bolt"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="fastestLap">0.00s</span>
+                        <span class="kpi-label">Avg Best Lap</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="Lap time consistency (standard deviation σ). Lower = more consistent driving. Measures variation between lap times. Good drivers have low σ.">
+                    <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="consistency">0s</span>
+                        <span class="kpi-label">Consistency (σ)</span>
+                    </div>
+                </div>
+                
+                <!-- Row 2 - Sessions & Competition -->
+                <div class="kpi-tile" title="Total racing sessions/heats completed. Each session is a separate race event with multiple laps.">
+                    <div class="kpi-icon"><i class="fas fa-road"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="totalHeats">0</span>
+                        <span class="kpi-label">Sessions</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="Number of sessions won (fastest lap in the heat). Ties count as wins for all tied drivers. Shows competitive success rate.">
                     <div class="kpi-icon"><i class="fas fa-trophy"></i></div>
                     <div class="kpi-content">
                         <span class="kpi-value" id="sessionsWon">0</span>
                         <span class="kpi-label">Heats Won</span>
                     </div>
                 </div>
+                <div class="kpi-tile" title="Win rate percentage. Heats won divided by total sessions. Shows competitive performance level.">
+                    <div class="kpi-icon"><i class="fas fa-percentage"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="winRate">0%</span>
+                        <span class="kpi-label">Win Rate</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="Average laps completed per session/heat. Shows typical race length and endurance.">
+                    <div class="kpi-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="avgLapsPerSession">0</span>
+                        <span class="kpi-label">Avg Laps/Session</span>
+                    </div>
+                </div>
                 
-                <!-- Row 3 -->
-                <div class="kpi-tile">
+                <!-- Row 3 - Distance & Speed Statistics -->
+                <div class="kpi-tile" title="Cumulative distance driven across all laps. Calculated by summing each lap's track distance. Shows in km if ≥1km, otherwise meters.">
+                    <div class="kpi-icon"><i class="fas fa-route"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="totalDistance">0</span>
+                        <span class="kpi-label">Total Distance</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="Average speed in km/h calculated from lap times and track distances. Formula: (distance / time) × 3.6. Indoor: 35-50 km/h, Outdoor: 60-80 km/h.">
+                    <div class="kpi-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="avgSpeed">0</span>
+                        <span class="kpi-label">Avg Speed (km/h)</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="Total corners navigated. Each lap adds the track's corner count (9-14 corners per track). More corners = more technical driving.">
+                    <div class="kpi-icon"><i class="fas fa-turn-up"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="totalCorners">0</span>
+                        <span class="kpi-label">Total Corners</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="Number of unique karting tracks visited. Tracks: Circuit Park Berghem (1200m), De Voltage (450m), Lot66 (325m), Goodwill (450m), Experience Factory (350m).">
+                    <div class="kpi-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="totalTracks">0</span>
+                        <span class="kpi-label">Tracks Visited</span>
+                    </div>
+                </div>
+                
+                <!-- Row 4 - Financial Metrics -->
+                <div class="kpi-tile" title="Total cost spent on karting sessions. Includes all session fees and pricing for the filtered data.">
                     <div class="kpi-icon"><i class="fas fa-euro-sign"></i></div>
                     <div class="kpi-content">
                         <span class="kpi-value" id="totalCost">€0</span>
                         <span class="kpi-label">Total Cost</span>
                     </div>
                 </div>
-                <div class="kpi-tile">
-                    <div class="kpi-icon"><i class="fas fa-map-marked-alt"></i></div>
+                <div class="kpi-tile" title="Cost efficiency per lap. Total cost divided by number of laps. Lower values indicate better value for money per race.">
+                    <div class="kpi-icon"><i class="fas fa-coins"></i></div>
                     <div class="kpi-content">
-                        <span class="kpi-value" id="totalTracks">5</span>
-                        <span class="kpi-label">Tracks Covered</span>
+                        <span class="kpi-value" id="costPerLap">€0</span>
+                        <span class="kpi-label">Cost per Lap</span>
                     </div>
                 </div>
-                <div class="kpi-tile">
-                    <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
+                <div class="kpi-tile" title="Cost efficiency per kilometer. Total cost divided by total distance. Helps compare track pricing per distance driven.">
+                    <div class="kpi-icon"><i class="fas fa-money-bill-wave"></i></div>
                     <div class="kpi-content">
-                        <span class="kpi-value" id="consistencyMetric">--</span>
-                        <span class="kpi-label">Consistency</span>
+                        <span class="kpi-value" id="costPerKm">€0</span>
+                        <span class="kpi-label">Cost per km</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="Average cost per session/heat. Total cost divided by number of sessions. Shows typical expense per track visit.">
+                    <div class="kpi-icon"><i class="fas fa-receipt"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="costPerSession">€0</span>
+                        <span class="kpi-label">Cost per Session</span>
+                    </div>
+                </div>
+                
+                <!-- Row 5 - Data & Environmental -->
+                <div class="kpi-tile" title="Total data entries/records in the filtered dataset. Each lap is one entry with ~30 data fields (time, speed, position, cost, etc).">
+                    <div class="kpi-icon"><i class="fas fa-database"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="totalEntries">0</span>
+                        <span class="kpi-label">Data Entries</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="Total individual data points captured. Calculated as entries × 30 fields. Includes lap times, positions, sectors, costs, track data, weather, etc.">
+                    <div class="kpi-icon"><i class="fas fa-chart-pie"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="dataPoints">0</span>
+                        <span class="kpi-label">Data Points</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="Estimated CO₂ emissions from karting. Gas karts: ~150g/km, E-karts: ~50g/km (grid mix). Based on track type and total distance driven.">
+                    <div class="kpi-icon"><i class="fas fa-smog"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="co2Emissions">0</span>
+                        <span class="kpi-label">CO₂ Emissions</span>
+                    </div>
+                </div>
+                <div class="kpi-tile" title="CO₂ offset equivalent in trees. 1 tree absorbs ~21kg CO₂/year. Shows how many trees for 1 year would offset your karting emissions.">
+                    <div class="kpi-icon"><i class="fas fa-tree"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="treesOffset">0</span>
+                        <span class="kpi-label">Trees Needed</span>
                     </div>
                 </div>
             </div>
@@ -162,13 +253,18 @@
         </section>
 
         <!-- ========== 1. DRIVER PERFORMANCE OVERVIEW ========== -->
-        <section class="section driver-performance-section" data-aos="fade-up" data-aos-delay="200">
-            <div class="section-header">
-                <h2><i class="fas fa-tachometer-alt"></i> Driver Performance Overview</h2>
-                <p>Comprehensive analysis of driver performance across time and tracks</p>
+        <section class="section driver-performance-section charts-loading" data-aos="fade-up" data-aos-delay="200">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-tachometer-alt"></i> Driver Performance Overview</h2>
+                    <p>Comprehensive analysis of driver performance across time and tracks</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div class="charts-grid performance-grid">
+            <div class="charts-grid performance-grid section-content">
                 <!-- Driver Ranking Over Time -->
                 <div class="chart-container large">
                     <div class="chart-header">
@@ -262,13 +358,18 @@
         </section>
 
         <!-- ========== 2. LAP & SESSION ANALYSIS ========== -->
-        <section class="section lap-session-section" data-aos="fade-up" data-aos-delay="300">
-            <div class="section-header">
-                <h2><i class="fas fa-flag-checkered"></i> Lap & Session Analysis</h2>
-                <p>Deep dive into performance within individual sessions</p>
+        <section class="section lap-session-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="300">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-flag-checkered"></i> Lap & Session Analysis</h2>
+                    <p>Deep dive into performance within individual sessions</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div class="charts-grid session-grid">
+            <div class="charts-grid session-grid section-content">
                 <!-- Lap Time Trend -->
                 <div class="chart-container large">
                     <div class="chart-header">
@@ -336,13 +437,18 @@
         </section>
 
         <!-- ========== 3. TRACK INSIGHTS ========== -->
-        <section class="section track-insights-section" data-aos="fade-up" data-aos-delay="400">
-            <div class="section-header">
-                <h2><i class="fas fa-map-marked-alt"></i> Track Insights</h2>
-                <p>Compare performance per track and identify track-specific advantages</p>
+        <section class="section track-insights-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="400">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-map-marked-alt"></i> Track Insights</h2>
+                    <p>Compare performance per track and identify track-specific advantages</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div class="charts-grid track-grid">
+            <div class="charts-grid track-grid section-content">
                 <!-- Track Performance Comparison -->
                 <div class="chart-container large">
                     <div class="chart-header">
@@ -395,13 +501,18 @@
         </section>
 
         <!-- ========== 4. DRIVER VS DRIVER BATTLES ========== -->
-        <section class="section driver-battles-section" data-aos="fade-up" data-aos-delay="500">
-            <div class="section-header">
-                <h2><i class="fas fa-users"></i> Driver vs Driver Battles</h2>
-                <p>Head-to-head performance comparisons and competitive analysis</p>
+        <section class="section driver-battles-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="500">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-users"></i> Driver vs Driver Battles</h2>
+                    <p>Head-to-head performance comparisons and competitive analysis</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div class="charts-grid battles-grid">
+            <div class="charts-grid battles-grid section-content">
                 <!-- Driver Duel Matrix -->
                 <div class="chart-container large">
                     <div class="chart-header">
@@ -460,13 +571,18 @@
         </section>
 
         <!-- ========== 5. FINANCIAL & EFFICIENCY METRICS ========== -->
-        <section class="section financial-section" data-aos="fade-up" data-aos-delay="600">
-            <div class="section-header">
-                <h2><i class="fas fa-euro-sign"></i> Financial & Efficiency Metrics</h2>
-                <p>Cost-effectiveness analysis and ROI evaluation</p>
+        <section class="section financial-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="600">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-euro-sign"></i> Financial & Efficiency Metrics</h2>
+                    <p>Cost-effectiveness analysis and ROI evaluation</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div class="charts-grid financial-grid">
+            <div class="charts-grid financial-grid section-content">
                 <!-- Cost per Lap Distribution -->
                 <div class="chart-container medium">
                     <div class="chart-header">
@@ -519,13 +635,18 @@
         </section>
 
         <!-- ========== 6. TEMPORAL ANALYTICS ========== -->
-        <section class="section temporal-section" data-aos="fade-up" data-aos-delay="700">
-            <div class="section-header">
-                <h2><i class="fas fa-calendar-alt"></i> Temporal Analytics</h2>
-                <p>Track progress and trends over time periods</p>
+        <section class="section temporal-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="700">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-calendar-alt"></i> Temporal Analytics</h2>
+                    <p>Track progress and trends over time periods</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div class="charts-grid temporal-grid">
+            <div class="charts-grid temporal-grid section-content">
                 <!-- Lap Time Progression Over Weeks -->
                 <div class="chart-container large">
                     <div class="chart-header">
@@ -577,23 +698,33 @@
         </section>
 
         <!-- ========== 7. SESSION SUMMARY WIDGETS ========== -->
-        <section class="section session-widgets-section" data-aos="fade-up" data-aos-delay="800">
-            <div class="section-header">
-                <h2><i class="fas fa-th-large"></i> Session Summary Widgets</h2>
-                <p>Detailed performance cards for each session</p>
+        <section class="section session-widgets-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="800">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-th-large"></i> Session Summary Widgets</h2>
+                    <p>Detailed performance cards for each session</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div id="sessionWidgetsContainer" class="session-widgets-grid"></div>
+            <div id="sessionWidgetsContainer" class="session-widgets-grid section-content"></div>
         </section>
 
         <!-- ========== 8. ADVANCED / PREDICTIVE ANALYTICS ========== -->
-        <section class="section predictive-section" data-aos="fade-up" data-aos-delay="900">
-            <div class="section-header">
-                <h2><i class="fas fa-crystal-ball"></i> Advanced / Predictive Analytics</h2>
-                <p>AI-powered insights and performance predictions</p>
+        <section class="section predictive-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="900">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-crystal-ball"></i> Advanced / Predictive Analytics</h2>
+                    <p>AI-powered insights and performance predictions</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div class="charts-grid predictive-grid">
+            <div class="charts-grid predictive-grid section-content">
                 <!-- Predicted Best Lap -->
                 <div class="chart-container medium">
                     <div class="chart-header">
@@ -641,13 +772,18 @@
         </section>
 
         <!-- ========== 9. GEOGRAPHICAL EXPANSION (BENELUX) ========== -->
-        <section class="section geographical-section" data-aos="fade-up" data-aos-delay="1000">
-            <div class="section-header">
-                <h2><i class="fas fa-globe-europe"></i> Benelux Regional Analysis</h2>
-                <p>Geographical insights across Belgium, Netherlands, and Luxembourg</p>
+        <section class="section geographical-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="1000">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-globe-europe"></i> Benelux Regional Analysis</h2>
+                    <p>Geographical insights across Belgium, Netherlands, and Luxembourg</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div class="charts-grid geographical-grid">
+            <div class="charts-grid geographical-grid section-content">
                 <!-- Map of Tracks -->
                 <div class="chart-container large">
                     <div class="chart-header">
@@ -683,13 +819,18 @@
         </section>
 
         <!-- ========== LEADERBOARDS & HIGHLIGHTS ========== -->
-        <section class="section leaderboards-section" data-aos="fade-up" data-aos-delay="1100">
-            <div class="section-header">
-                <h2><i class="fas fa-medal"></i> Leaderboards & Highlights</h2>
-                <p>Real-time rankings and performance highlights</p>
+        <section class="section leaderboards-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="1100">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-medal"></i> Leaderboards & Highlights</h2>
+                    <p>Real-time rankings and performance highlights</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
             
-            <div class="leaderboards-container">
+            <div class="leaderboards-container section-content">
                 <div class="leaderboard-card">
                     <h3><i class="fas fa-trophy"></i> Fastest Lap Champions</h3>
                     <div id="fastestLapLeaderboard" class="leaderboard-list"></div>
@@ -710,10 +851,17 @@
         </section>
 
         <!-- ========== DATA TABLE ========== -->
-        <section class="section data-table-section" data-aos="fade-up" data-aos-delay="1200">
-            <div class="section-header">
-                <h2><i class="fas fa-table"></i> Raw Data Explorer</h2>
-                <p>Sortable, filterable, and exportable data table</p>
+        <section class="section data-table-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="1200">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-table"></i> Raw Data Explorer</h2>
+                    <p>Sortable, filterable, and exportable data table</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="section-content">
                 <div class="table-controls">
                     <button id="exportCSV" class="export-btn">
                         <i class="fas fa-file-csv"></i> Export CSV
@@ -723,13 +871,12 @@
                     </button>
                     <input type="text" id="tableSearch" class="table-search" placeholder="Search data...">
                 </div>
-            </div>
-            
-            <div class="data-table-wrapper">
-                <table id="mainDataTable" class="data-table">
-                    <thead id="tableHead"></thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
+                <div class="data-table-wrapper">
+                    <table id="mainDataTable" class="data-table">
+                        <thead id="tableHead"></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -761,10 +908,104 @@
         </button>
     </div>
 
-    <!-- Scripts -->
+    <!-- Critical Scripts: Load immediately -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- Core Module: Global state, theme, utilities (MUST load first) -->
+    <script src="js/core.js"></script>
+    
+    <!-- Main Script: Data loading, filters, KPI, UI (loads immediately) -->
     <script src="script.js"></script>
-    <script src="verify.js"></script>
+    
+    <!-- Lazy Load Charts: Load when user scrolls to chart sections -->
+    <script>
+        // Chart lazy loading configuration
+        let chartsLoaded = false;
+        
+        function loadChartScripts() {
+            if (chartsLoaded) return;
+            chartsLoaded = true;
+            
+            console.log('Loading chart modules...');
+            
+            const chartScripts = [
+                'js/charts-driver.js',
+                'js/charts-session.js',
+                'js/charts-track.js',
+                'js/charts-battles.js',
+                'js/charts-financial.js',
+                'js/charts-temporal.js',
+                'js/charts-predictive.js',
+                'js/charts-geo.js'
+            ];
+            
+            // Load scripts sequentially to maintain dependencies
+            let loadPromise = Promise.resolve();
+            chartScripts.forEach(src => {
+                loadPromise = loadPromise.then(() => {
+                    return new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = src;
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.body.appendChild(script);
+                    });
+                });
+            });
+            
+            loadPromise.then(() => {
+                console.log('✅ All chart modules loaded');
+                
+                // Remove loading state from sections
+                document.querySelectorAll('.section.charts-loading').forEach(section => {
+                    section.classList.remove('charts-loading');
+                });
+                
+                // Initialize all charts
+                if (typeof window.initializeAllCharts === 'function') {
+                    console.log('🎯 Calling initializeAllCharts...');
+                    window.initializeAllCharts();
+                } else {
+                    console.error('❌ initializeAllCharts function not found!');
+                }
+            }).catch(error => {
+                console.error('❌ Error loading chart modules:', error);
+            });
+        }
+        
+        // Intersection Observer to detect when user scrolls near charts
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    loadChartScripts();
+                    observer.disconnect(); // Only load once
+                }
+            });
+        }, {
+            rootMargin: '800px' // Start loading 800px before reaching charts (much earlier)
+        });
+        
+        // Observe the first chart section
+        window.addEventListener('DOMContentLoaded', () => {
+            const firstChartSection = document.querySelector('.driver-performance-section');
+            if (firstChartSection) {
+                observer.observe(firstChartSection);
+            }
+            
+            // Also load after a short delay if user hasn't scrolled yet
+            setTimeout(() => {
+                if (!chartsLoaded) {
+                    console.log('🕐 Auto-loading charts after 2 seconds...');
+                    loadChartScripts();
+                }
+            }, 2000);
+            
+            // Also load if user is already scrolled down
+            if (window.scrollY > 200) {
+                loadChartScripts();
+            }
+        });
+    </script>
 </body>
 </html>
