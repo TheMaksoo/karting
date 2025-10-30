@@ -941,9 +941,8 @@ body {
 }
 
 .filter-select:focus {
-  background-image: 
-    linear-gradient(135deg, var(--card-bg-hover) 0%, rgba(255, 107, 53, 0.1) 100%),
-    animation: dropdownOpen 0.3s ease-out;
+  background-image: linear-gradient(135deg, var(--card-bg-hover) 0%, rgba(255, 107, 53, 0.1) 100%);
+  animation: dropdownOpen 0.3s ease-out;
 }
 
 .filter-select:hover, .filter-input:hover {
@@ -957,9 +956,8 @@ body {
 }
 
 .filter-select:hover {
-  background-image: 
-    linear-gradient(135deg, var(--card-bg-hover) 0%, rgba(255, 107, 53, 0.03) 100%),
-   }
+  background-image: linear-gradient(135deg, var(--card-bg-hover) 0%, rgba(255, 107, 53, 0.03) 100%);
+}
 
 /* Active filter styling with enhanced visual feedback */
 .filter-select:not([value=""]), .filter-input:not([value=""]) {
@@ -973,9 +971,8 @@ body {
 }
 
 .filter-select:not([value=""]) {
-  background-image: 
-    linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 107, 53, 0.12) 100%),
-  }
+  background-image: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 107, 53, 0.12) 100%);
+}
 
 /* Modern dropdown animations */
 @keyframes dropdownGlow {
