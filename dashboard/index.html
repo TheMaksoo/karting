@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏁 Elite Karting Analytics Platform - Complete Performance Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <!-- Enhanced Kart Animation -->
+            <div class="loading-container">
+                <div class="track"></div>
+                <div class="kart">
+                    <div class="kart-body"></div>
+                    <div class="kart-wheels">
+                        <div class="wheel wheel-front"></div>
+                        <div class="wheel wheel-back"></div>
+                    </div>
+                    <div class="kart-spoiler"></div>
+                    <div class="driver">
+                        <div class="helmet"></div>
+                    </div>
+                </div>
+                <div class="smoke"></div>
+                <div class="smoke smoke-2"></div>
+                <div class="smoke smoke-3"></div>
+            </div>
+            <h2 class="loading-title">🏁 Loading Elite Karting Analytics Platform</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Preparing comprehensive performance analytics<span class="loading-dots"></span></p>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- ========== ENHANCED HEADER + SUMMARY TILES ========== -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="racing-logo">
+                        <div class="logo-text">
+                            <h1 class="main-title">ELITE KARTING ANALYTICS</h1>
+                            <p class="subtitle">Professional Racing Performance Platform</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-controls">
+                    <div id="currentDateTime" class="current-date-time" title="Click to refresh date/time">
+                        <div class="date-display">
+                            <i class="fas fa-calendar-day"></i>
+                            <span id="currentDate">Loading...</span>
+                        </div>
+                        <div class="time-display">
+                            <i class="fas fa-clock"></i>
+                            <span id="currentTime">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="filterStatus" class="filter-status hidden">
+                        <i class="fas fa-filter"></i>
+                        <span id="filterStatusText">Filters Active</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Global KPI Summary Tiles (3x3 Layout) -->
+            <div class="kpi-summary" data-aos="fade-up">
+                <!-- Row 1 -->
+                <div class="kpi-tile">
+                    <div class="kpi-icon"><i class="fas fa-database"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="totalEntries">0</span>
+                        <span class="kpi-label">Total Entries</span>
+                    </div>
+                </div>
+                <div class="kpi-tile">
+                    <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="dataPoints">0</span>
+                        <span class="kpi-label">Data Points</span>
+                    </div>
+                </div>
+                <div class="kpi-tile">
+                    <div class="kpi-icon"><i class="fas fa-road"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="totalHeats">0</span>
+                        <span class="kpi-label">Total Heats</span>
+                    </div>
+                </div>
+                
+                <!-- Row 2 -->
+                <div class="kpi-tile">
+                    <div class="kpi-icon"><i class="fas fa-flag-checkered"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="avgLapsPerSession">0</span>
+                        <span class="kpi-label">Avg Laps/Driver/Heat</span>
+                    </div>
+                </div>
+                <div class="kpi-tile">
+                    <div class="kpi-icon"><i class="fas fa-stopwatch"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="avgLapOverall">0.00s</span>
+                        <span class="kpi-label">Average Lap Time</span>
+                    </div>
+                </div>
+                <div class="kpi-tile">
+                    <div class="kpi-icon"><i class="fas fa-trophy"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="sessionsWon">0</span>
+                        <span class="kpi-label">Heats Won</span>
+                    </div>
+                </div>
+                
+                <!-- Row 3 -->
+                <div class="kpi-tile">
+                    <div class="kpi-icon"><i class="fas fa-euro-sign"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="totalCost">€0</span>
+                        <span class="kpi-label">Total Cost</span>
+                    </div>
+                </div>
+                <div class="kpi-tile">
+                    <div class="kpi-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="totalTracks">5</span>
+                        <span class="kpi-label">Tracks Covered</span>
+                    </div>
+                </div>
+                <div class="kpi-tile">
+                    <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="consistencyMetric">--</span>
+                        <span class="kpi-label">Consistency</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ========== ADVANCED FILTER BAR ========== -->
+        <section class="filter-bar" data-aos="fade-up" data-aos-delay="100">
+            <div class="filter-content">
+                <div class="filter-group">
+                    <label><i class="fas fa-user"></i> Driver <span class="instant-filter-note">• Auto-apply</span></label>
+                    <select id="driverFilter" class="filter-select">
+                        <option value="">All Drivers</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Track <span class="instant-filter-note">• Auto-apply</span></label>
+                    <select id="trackFilter" class="filter-select">
+                        <option value="">All Tracks</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar"></i> Date Range <span class="instant-filter-note">• Auto-apply</span></label>
+                    <input type="date" id="dateFromFilter" class="filter-input">
+                    <input type="date" id="dateToFilter" class="filter-input">
+                </div>
+                <div class="filter-actions">
+                    <button id="clearFilters" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 1. DRIVER PERFORMANCE OVERVIEW ========== -->
+        <section class="section driver-performance-section" data-aos="fade-up" data-aos-delay="200">
+            <div class="section-header">
+                <h2><i class="fas fa-tachometer-alt"></i> Driver Performance Overview</h2>
+                <p>Comprehensive analysis of driver performance across time and tracks</p>
+            </div>
+            
+            <div class="charts-grid performance-grid">
+                <!-- Driver Ranking Over Time -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Driver Ranking Over Time</h3>
+                        <div class="chart-controls">
+                            <select id="rankingMetricSelect">
+                                <option value="position">Average Position</option>
+                                <option value="laptime">Average Lap Time</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="driverRankingChart"></canvas>
+                </div>
+
+                <!-- Fastest Lap by Driver -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-trophy"></i> Fastest Lap by Driver</h3>
+                    </div>
+                    <canvas id="fastestLapChart"></canvas>
+                </div>
+
+                <!-- Average Lap Time per Driver -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Average Lap Time per Driver</h3>
+                        <div class="chart-controls">
+                            <select id="avgLapGroupBy">
+                                <option value="overall">Overall</option>
+                                <option value="track">By Track</option>
+                                <option value="session">By Session</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="avgLapTimeChart"></canvas>
+                </div>
+
+                <!-- Consistency Index -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-bullseye"></i> Consistency Index</h3>
+                        <p class="chart-subtitle">Lower variance = more consistent</p>
+                    </div>
+                    <canvas id="consistencyChart"></canvas>
+                </div>
+
+                <!-- Improvement Over Sessions -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-trending-up"></i> Improvement Over Sessions</h3>
+                        <div class="chart-controls">
+                            <select id="improvementDriverSelect">
+                                <option value="all">All Drivers</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="improvementChart"></canvas>
+                </div>
+
+                <!-- Lap Time Distribution -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-area"></i> Lap Time Distribution</h3>
+                        <div class="chart-controls">
+                            <select id="distributionDriverSelect">
+                                <option value="all">All Drivers</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="lapDistributionChart"></canvas>
+                </div>
+
+                <!-- Best Lap Heatmap -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-fire"></i> Best Lap Heatmap</h3>
+                        <p class="chart-subtitle">Driver vs Track performance matrix</p>
+                    </div>
+                    <div id="bestLapHeatmap" class="heatmap-container"></div>
+                </div>
+
+                <!-- Start vs End Pace Analysis -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-clock"></i> Start vs End Pace</h3>
+                        <p class="chart-subtitle">Fatigue vs focus analysis</p>
+                    </div>
+                    <canvas id="paceAnalysisChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 2. LAP & SESSION ANALYSIS ========== -->
+        <section class="section lap-session-section" data-aos="fade-up" data-aos-delay="300">
+            <div class="section-header">
+                <h2><i class="fas fa-flag-checkered"></i> Lap & Session Analysis</h2>
+                <p>Deep dive into performance within individual sessions</p>
+            </div>
+            
+            <div class="charts-grid session-grid">
+                <!-- Lap Time Trend -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Lap Time Trend</h3>
+                        <div class="chart-controls">
+                            <select id="sessionSelect">
+                                <option value="">Select Session</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="lapTimeTrendChart"></canvas>
+                </div>
+
+                <!-- Gap Evolution -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-area"></i> Gap Evolution</h3>
+                    </div>
+                    <canvas id="gapEvolutionChart"></canvas>
+                </div>
+
+                <!-- Best Lap Comparison -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-medal"></i> Best Lap Comparison</h3>
+                    </div>
+                    <canvas id="bestLapComparisonChart"></canvas>
+                </div>
+
+                <!-- Consistency Heatmap -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-fire"></i> Session Consistency Heatmap</h3>
+                        <p class="chart-subtitle">Green = fast, Red = slow</p>
+                    </div>
+                    <div id="sessionConsistencyHeatmap" class="heatmap-container"></div>
+                </div>
+
+                <!-- Performance Stability -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Performance Stability</h3>
+                        <p class="chart-subtitle">Standard deviation per heat</p>
+                    </div>
+                    <canvas id="performanceStabilityChart"></canvas>
+                </div>
+
+                <!-- Pace Dropoff Graph -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-battery-quarter"></i> Pace Dropoff</h3>
+                        <p class="chart-subtitle">Lap time increase throughout session</p>
+                    </div>
+                    <canvas id="paceDropoffChart"></canvas>
+                </div>
+
+                <!-- Session Summary Cards -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-clipboard-list"></i> Session Summary Cards</h3>
+                    </div>
+                    <div id="sessionSummaryCards" class="session-cards-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 3. TRACK INSIGHTS ========== -->
+        <section class="section track-insights-section" data-aos="fade-up" data-aos-delay="400">
+            <div class="section-header">
+                <h2><i class="fas fa-map-marked-alt"></i> Track Insights</h2>
+                <p>Compare performance per track and identify track-specific advantages</p>
+            </div>
+            
+            <div class="charts-grid track-grid">
+                <!-- Track Performance Comparison -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Track Performance Comparison</h3>
+                    </div>
+                    <canvas id="trackPerformanceChart"></canvas>
+                </div>
+
+                <!-- Best Lap per Track Table -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-trophy"></i> Best Lap per Track</h3>
+                    </div>
+                    <div id="bestLapPerTrackTable" class="data-table-container"></div>
+                </div>
+
+                <!-- Track Difficulty Index -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-cog"></i> Track Difficulty Index</h3>
+                        <p class="chart-subtitle">Based on lap time spread</p>
+                    </div>
+                    <canvas id="trackDifficultyChart"></canvas>
+                </div>
+
+                <!-- Weather Impact Chart -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-cloud-sun"></i> Weather Impact</h3>
+                    </div>
+                    <canvas id="weatherImpactChart"></canvas>
+                </div>
+
+                <!-- Indoor vs Outdoor Comparison -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-building"></i> Indoor vs Outdoor</h3>
+                    </div>
+                    <canvas id="indoorOutdoorChart"></canvas>
+                </div>
+
+                <!-- Tyre Type Performance -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-circle-dot"></i> Tyre Performance</h3>
+                    </div>
+                    <canvas id="tyrePerformanceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 4. DRIVER VS DRIVER BATTLES ========== -->
+        <section class="section driver-battles-section" data-aos="fade-up" data-aos-delay="500">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Driver vs Driver Battles</h2>
+                <p>Head-to-head performance comparisons and competitive analysis</p>
+            </div>
+            
+            <div class="charts-grid battles-grid">
+                <!-- Driver Duel Matrix -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chess-board"></i> Driver Duel Matrix</h3>
+                        <p class="chart-subtitle">Win/loss ratios per pair</p>
+                    </div>
+                    <div id="driverDuelMatrix" class="duel-matrix-container"></div>
+                </div>
+
+                <!-- Position Swap Timeline -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-exchange-alt"></i> Position Swap Timeline</h3>
+                        <div class="chart-controls">
+                            <select id="battleSessionSelect">
+                                <option value="">Select Session</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="positionSwapChart"></canvas>
+                </div>
+
+                <!-- Gap vs Time -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-stopwatch"></i> Gap vs Time</h3>
+                        <div class="chart-controls">
+                            <select id="driver1BattleSelect">
+                                <option value="">Driver 1</option>
+                            </select>
+                            <select id="driver2BattleSelect">
+                                <option value="">Driver 2</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="gapVsTimeChart"></canvas>
+                </div>
+
+                <!-- Battle Heatmap -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-fire"></i> Battle Intensity</h3>
+                        <p class="chart-subtitle">Close gaps < 0.2s</p>
+                    </div>
+                    <div id="battleHeatmap" class="heatmap-container"></div>
+                </div>
+
+                <!-- Average Gap Per Session -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Average Gap Per Session</h3>
+                    </div>
+                    <canvas id="avgGapSessionChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 5. FINANCIAL & EFFICIENCY METRICS ========== -->
+        <section class="section financial-section" data-aos="fade-up" data-aos-delay="600">
+            <div class="section-header">
+                <h2><i class="fas fa-euro-sign"></i> Financial & Efficiency Metrics</h2>
+                <p>Cost-effectiveness analysis and ROI evaluation</p>
+            </div>
+            
+            <div class="charts-grid financial-grid">
+                <!-- Cost per Lap Distribution -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-coins"></i> Cost per Lap Distribution</h3>
+                    </div>
+                    <canvas id="costPerLapChart"></canvas>
+                </div>
+
+                <!-- Cost vs Performance -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-scatter"></i> Cost vs Performance</h3>
+                    </div>
+                    <canvas id="costVsPerformanceChart"></canvas>
+                </div>
+
+                <!-- Heat Price vs Average Lap Time -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-thermometer-half"></i> Heat Price vs Lap Time</h3>
+                    </div>
+                    <canvas id="heatPriceChart"></canvas>
+                </div>
+
+                <!-- Total Spend per Driver -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-wallet"></i> Total Spend per Driver</h3>
+                    </div>
+                    <canvas id="totalSpendChart"></canvas>
+                </div>
+
+                <!-- Cost Efficiency Index -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-calculator"></i> Cost Efficiency Index</h3>
+                        <p class="chart-subtitle">Best lap / Heat price ratio</p>
+                    </div>
+                    <canvas id="costEfficiencyChart"></canvas>
+                </div>
+
+                <!-- Cost vs Track Type -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-building"></i> Cost vs Track Type</h3>
+                    </div>
+                    <canvas id="costTrackTypeChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 6. TEMPORAL ANALYTICS ========== -->
+        <section class="section temporal-section" data-aos="fade-up" data-aos-delay="700">
+            <div class="section-header">
+                <h2><i class="fas fa-calendar-alt"></i> Temporal Analytics</h2>
+                <p>Track progress and trends over time periods</p>
+            </div>
+            
+            <div class="charts-grid temporal-grid">
+                <!-- Lap Time Progression Over Weeks -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Weekly Progression</h3>
+                    </div>
+                    <canvas id="weeklyProgressChart"></canvas>
+                </div>
+
+                <!-- Session Frequency per Driver -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-calendar-check"></i> Session Frequency</h3>
+                    </div>
+                    <canvas id="sessionFrequencyChart"></canvas>
+                </div>
+
+                <!-- Calendar Heatmap -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-calendar"></i> Racing Calendar Heatmap</h3>
+                    </div>
+                    <div id="calendarHeatmap" class="calendar-heatmap-container"></div>
+                </div>
+
+                <!-- Day of Week Performance -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-calendar-week"></i> Day of Week Performance</h3>
+                    </div>
+                    <canvas id="dayOfWeekChart"></canvas>
+                </div>
+
+                <!-- Monthly Improvement Rate -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-trending-up"></i> Monthly Improvement</h3>
+                    </div>
+                    <canvas id="monthlyImprovementChart"></canvas>
+                </div>
+
+                <!-- Weather vs Lap Time Trend -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-cloud-rain"></i> Weather Trends</h3>
+                    </div>
+                    <canvas id="weatherTrendChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 7. SESSION SUMMARY WIDGETS ========== -->
+        <section class="section session-widgets-section" data-aos="fade-up" data-aos-delay="800">
+            <div class="section-header">
+                <h2><i class="fas fa-th-large"></i> Session Summary Widgets</h2>
+                <p>Detailed performance cards for each session</p>
+            </div>
+            
+            <div id="sessionWidgetsContainer" class="session-widgets-grid"></div>
+        </section>
+
+        <!-- ========== 8. ADVANCED / PREDICTIVE ANALYTICS ========== -->
+        <section class="section predictive-section" data-aos="fade-up" data-aos-delay="900">
+            <div class="section-header">
+                <h2><i class="fas fa-crystal-ball"></i> Advanced / Predictive Analytics</h2>
+                <p>AI-powered insights and performance predictions</p>
+            </div>
+            
+            <div class="charts-grid predictive-grid">
+                <!-- Predicted Best Lap -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-robot"></i> Predicted Best Lap</h3>
+                        <p class="chart-subtitle">ML regression model</p>
+                    </div>
+                    <canvas id="predictedLapChart"></canvas>
+                </div>
+
+                <!-- Driver Form Index -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Driver Form Index</h3>
+                        <p class="chart-subtitle">Weighted recent performance</p>
+                    </div>
+                    <canvas id="driverFormChart"></canvas>
+                </div>
+
+                <!-- Weather Adjustment Model -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-cloud"></i> Weather Adjustment</h3>
+                    </div>
+                    <canvas id="weatherAdjustmentChart"></canvas>
+                </div>
+
+                <!-- Fatigue Model -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-battery-quarter"></i> Fatigue Model</h3>
+                        <p class="chart-subtitle">Lap time degradation prediction</p>
+                    </div>
+                    <canvas id="fatigueModelChart"></canvas>
+                </div>
+
+                <!-- Pitstop Simulation -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-tools"></i> Pitstop Simulation</h3>
+                        <p class="chart-subtitle">Optimal rest intervals</p>
+                    </div>
+                    <canvas id="pitstopSimChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 9. GEOGRAPHICAL EXPANSION (BENELUX) ========== -->
+        <section class="section geographical-section" data-aos="fade-up" data-aos-delay="1000">
+            <div class="section-header">
+                <h2><i class="fas fa-globe-europe"></i> Benelux Regional Analysis</h2>
+                <p>Geographical insights across Belgium, Netherlands, and Luxembourg</p>
+            </div>
+            
+            <div class="charts-grid geographical-grid">
+                <!-- Map of Tracks -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-map"></i> Track Locations Map</h3>
+                    </div>
+                    <div id="trackMap" class="map-container"></div>
+                </div>
+
+                <!-- Regional Performance -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-flag"></i> Regional Performance</h3>
+                    </div>
+                    <canvas id="regionalPerformanceChart"></canvas>
+                </div>
+
+                <!-- Heat Price per Region -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-euro-sign"></i> Regional Pricing</h3>
+                    </div>
+                    <canvas id="regionalPricingChart"></canvas>
+                </div>
+
+                <!-- Sessions per Track -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Track Utilization</h3>
+                    </div>
+                    <canvas id="trackUtilizationChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== LEADERBOARDS & HIGHLIGHTS ========== -->
+        <section class="section leaderboards-section" data-aos="fade-up" data-aos-delay="1100">
+            <div class="section-header">
+                <h2><i class="fas fa-medal"></i> Leaderboards & Highlights</h2>
+                <p>Real-time rankings and performance highlights</p>
+            </div>
+            
+            <div class="leaderboards-container">
+                <div class="leaderboard-card">
+                    <h3><i class="fas fa-trophy"></i> Fastest Lap Champions</h3>
+                    <div id="fastestLapLeaderboard" class="leaderboard-list"></div>
+                </div>
+                <div class="leaderboard-card">
+                    <h3><i class="fas fa-fire"></i> Most Active Racers</h3>
+                    <div id="mostActiveLeaderboard" class="leaderboard-list"></div>
+                </div>
+                <div class="leaderboard-card">
+                    <h3><i class="fas fa-bullseye"></i> Consistency Masters</h3>
+                    <div id="consistencyLeaderboard" class="leaderboard-list"></div>
+                </div>
+                <div class="leaderboard-card">
+                    <h3><i class="fas fa-coins"></i> Value Champions</h3>
+                    <div id="valueLeaderboard" class="leaderboard-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== DATA TABLE ========== -->
+        <section class="section data-table-section" data-aos="fade-up" data-aos-delay="1200">
+            <div class="section-header">
+                <h2><i class="fas fa-table"></i> Raw Data Explorer</h2>
+                <p>Sortable, filterable, and exportable data table</p>
+                <div class="table-controls">
+                    <button id="exportCSV" class="export-btn">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </button>
+                    <button id="exportExcel" class="export-btn">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                    <input type="text" id="tableSearch" class="table-search" placeholder="Search data...">
+                </div>
+            </div>
+            
+            <div class="data-table-wrapper">
+                <table id="mainDataTable" class="data-table">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ========== MOBILE MINI-DASHBOARD ========== -->
+        <div id="mobileDashboard" class="mobile-mini-dashboard">
+            <div class="mobile-header">
+                <h3>🏁 Quick Stats</h3>
+                <button id="closeMobile" class="close-mobile">×</button>
+            </div>
+            <div class="mobile-stats">
+                <div class="mobile-stat">
+                    <span class="mobile-value" id="mobileBestLap">--</span>
+                    <span class="mobile-label">Best Lap</span>
+                </div>
+                <div class="mobile-stat">
+                    <span class="mobile-value" id="mobileLastSession">--</span>
+                    <span class="mobile-label">Last Session</span>
+                </div>
+                <div class="mobile-stat">
+                    <span class="mobile-value" id="mobileUpcoming">--</span>
+                    <span class="mobile-label">Next Event</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Toggle Button -->
+        <button id="showMobile" class="mobile-toggle">
+            <i class="fas fa-mobile-alt"></i>
+        </button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="script.js"></script>
+    <script src="verify.js"></script>
+</body>
+</html>
