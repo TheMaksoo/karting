@@ -276,7 +276,9 @@ function initializeEventListeners() {
 
 // Lightweight custom dropdown enhancer for .filter-select elements
 function enhanceFilterSelects() {
-    const selects = Array.from(document.querySelectorAll('.filter-select'));
+    // Only enhance selects explicitly opted-in via the 'enhanced' class.
+    // This avoids duplicating UI for primary driver/track selects which should remain native for accessibility.
+    const selects = Array.from(document.querySelectorAll('.filter-select.enhanced'));
     selects.forEach(select => {
         // Skip if already enhanced
         if (select.dataset.enhanced === 'true') return;
@@ -299,8 +301,6 @@ function enhanceFilterSelects() {
         list.className = 'custom-select-list hidden';
         Array.from(select.options).forEach(opt => {
             const item = document.createElement('div');
-            item.className = 'custom-select-item';
-            item.dataset.value = opt.value;
             item.innerText = opt.text;
             if (opt.disabled) item.classList.add('disabled');
             item.addEventListener('click', () => {

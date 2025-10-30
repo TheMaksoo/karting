@@ -894,6 +894,13 @@ body {
     0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* Expanded select style for primary filters */
+.filter-select.expanded {
+  min-height: 64px;
+  padding: 16px 20px;
+  font-size: 1rem;
+}
+
 /* Enhanced dropdown options styling */
 .filter-select option {
   background: var(--card-bg);
@@ -919,11 +926,11 @@ body {
 
 /* Custom dropdown arrow for select elements with animation */
 .filter-select {
-  background-image: 
-    linear-gradient(135deg, var(--card-bg) 0%, var(--bg-tertiary) 100%),
-   background-repeat: no-repeat, no-repeat;
-  background-position: 0 0, right 16px center;
-  background-size: 100% 100%, 16px;
+  /* primary background for the select; optional arrow can be added as a second background if needed */
+  background-image: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-tertiary) 100%);
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
   padding-right: 50px;
   transition: all var(--transition-normal);
 }
