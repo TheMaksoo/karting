@@ -3,5 +3,12 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/themgbpn/public_html/karting
     - echo "Deploying to $DEPLOYPATH..."
-    - /bin/rsync -av --delete $PWD/dashboard/ $DEPLOYPATH/
+    - mkdir -p "$DEPLOYPATH"
+    - >-
+      if command -v rsync >/dev/null 2>&1; then
+        rsync -av --delete dashboard/ "$DEPLOYPATH/"
+      else
+        cp -a dashboard/. "$DEPLOYPATH/"
+      fi
     - echo "✅ Deployment complete!"
+      - echo "✅ Deployment complete!"
