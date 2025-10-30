@@ -13,6 +13,34 @@ let loadingHideTimeout = null;
 // Once the initial load completes and the overlay has been hidden, prevent accidental re-shows
 let initialLoadComplete = false;
 
+// ========== UTILITY FUNCTIONS ==========
+// Calculate standard deviation
+function calculateStandardDeviation(values) {
+    if (!values || values.length === 0) return 0;
+    if (values.length === 1) return 0;
+    
+    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const squaredDiffs = values.map(val => Math.pow(val - mean, 2));
+    const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
+    return Math.sqrt(variance);
+}
+
+// Destroy existing chart instance
+function destroyChart(chartId) {
+    if (charts[chartId]) {
+        charts[chartId].destroy();
+        delete charts[chartId];
+    }
+}
+
+// Add chart event listener helper
+function addChartEventListener(elementId, callback) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.addEventListener('change', callback);
+    }
+}
+
 // Analytics State
 let driverStats = {};
 let trackStats = {};
@@ -1035,6 +1063,16 @@ function toggleSection(headerElement) {
         // If expanding a section, trigger AOS animation refresh
         if (wasCollapsed && typeof AOS !== 'undefined') {
             setTimeout(() => AOS.refresh(), 100);
+        }
+        
+        // If expanding the geographical section, refresh the map
+        if (wasCollapsed && section.classList.contains('geographical-section')) {
+            setTimeout(() => {
+                if (window.trackMapInstance) {
+                    console.log('🗺️ Refreshing map after section expand...');
+                    window.trackMapInstance.invalidateSize();
+                }
+            }, 200);
         }
         
         // Save state to localStorage

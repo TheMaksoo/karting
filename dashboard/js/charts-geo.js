@@ -16,9 +16,283 @@ function initializeGeographicalCharts() {
 // GEOGRAPHICAL FEATURES SECTION
 // ==============================================
 
-// Track Map Visualization
+// Track Map Visualization using Leaflet
 function createTrackMapChart() {
+    console.log('🗺️ createTrackMapChart called');
     try {
+        const mapContainer = document.getElementById('trackMap');
+        if (!mapContainer) {
+            console.error('❌ Map container #trackMap not found!');
+            return;
+        }
+        
+        // Check if Leaflet is loaded
+        if (typeof L === 'undefined') {
+            console.error('❌ Leaflet library not loaded!');
+            return;
+        }
+        
+        console.log('✅ Map container found, Leaflet loaded');
+
+        // Track coordinates for BENELUX region (verified actual locations)
+        const trackLocations = {
+            'Circuit Park Berghem': { 
+                lat: 51.7538, 
+                lng: 5.5786, 
+                city: 'Berghem, Netherlands',
+                address: 'Berghemseweg 35, 5351 NC Berghem'
+            },
+            'De Voltage': { 
+                lat: 51.5558, 
+                lng: 5.0917, 
+                city: 'Tilburg, Netherlands',
+                address: 'Kempenbaan 2, 5017 AS Tilburg'
+            },
+            'Experience Factory Antwerp': { 
+                lat: 51.2629, 
+                lng: 4.4378, 
+                city: 'Mortsel (Antwerp), Belgium',
+                address: 'Roderveldlaan 5, 2640 Mortsel'
+            },
+            'Goodwill Karting': { 
+                lat: 51.1654, 
+                lng: 4.9936, 
+                city: 'Geel, Belgium',
+                address: 'Pas 91, 2440 Geel'
+            },
+            'Lot66': { 
+                lat: 51.5219, 
+                lng: 4.7607, 
+                city: 'Breda, Netherlands',
+                address: 'Vossenbergseweg 66, 4851 RH Ulvenhout (Breda)'
+            }
+        };
+
+        // Check if we have data
+        if (!filteredData || filteredData.length === 0) {
+            console.warn('⚠️ No filtered data available for map');
+            return;
+        }
+        
+        console.log(`📊 Processing ${filteredData.length} rows for map statistics`);
+
+        // Calculate stats for each track
+        const trackStats = {};
+        
+        // First pass: count laps, best times, and distance
+        filteredData.forEach(row => {
+            const track = row.Track;
+            if (!track) return; // Skip if no track name
+            
+            if (!trackStats[track]) {
+                trackStats[track] = {
+                    sessions: 0,
+                    laps: 0,
+                    bestLap: Infinity,
+                    totalDistance: 0,
+                    totalCost: 0,
+                    avgSpeed: 0,
+                    speedCount: 0
+                };
+            }
+            
+            trackStats[track].laps++;
+            
+            const lapTime = parseFloat(row.LapTime);
+            if (!isNaN(lapTime) && lapTime > 0 && lapTime < trackStats[track].bestLap) {
+                trackStats[track].bestLap = lapTime;
+            }
+            
+            const distance = parseFloat(row.TrackDistance);
+            if (!isNaN(distance)) {
+                trackStats[track].totalDistance += distance;
+            }
+            
+            const avgSpeed = parseFloat(row.AvgSpeed);
+            if (!isNaN(avgSpeed) && avgSpeed > 0) {
+                trackStats[track].avgSpeed += avgSpeed;
+                trackStats[track].speedCount++;
+            }
+        });
+
+        // Second pass: count unique sessions and calculate cost per session
+        const sessionCosts = {};
+        filteredData.forEach(row => {
+            const track = row.Track;
+            if (!track || !trackStats[track]) return;
+            
+            const sessionKey = `${track}-${row.Date}-${row.Heat}`;
+            if (!sessionCosts[sessionKey]) {
+                sessionCosts[sessionKey] = true;
+                trackStats[track].sessions++;
+                
+                // Add heat price once per session
+                const heatPrice = parseFloat(row.HeatPrice);
+                if (!isNaN(heatPrice)) {
+                    trackStats[track].totalCost += heatPrice;
+                }
+            }
+        });
+        
+        // Calculate average speed for each track
+        Object.keys(trackStats).forEach(track => {
+            const stats = trackStats[track];
+            if (stats.speedCount > 0) {
+                stats.avgSpeed = stats.avgSpeed / stats.speedCount;
+            }
+        });
+        
+        console.log('📊 Track statistics calculated:', trackStats);
+        console.log(`📍 Found ${Object.keys(trackStats).length} unique tracks in data`);
+
+        // Initialize map centered on BENELUX region
+        if (window.trackMapInstance) {
+            try {
+                window.trackMapInstance.remove();
+                console.log('🗑️ Previous map instance removed');
+            } catch (e) {
+                console.warn('⚠️ Error removing previous map:', e);
+            }
+        }
+        
+        // Clear the container first
+        mapContainer.innerHTML = '';
+        
+        console.log('🗺️ Initializing Leaflet map...');
+        
+        let map;
+        try {
+            // Center on Netherlands/Belgium border (between all tracks)
+            map = L.map('trackMap').setView([51.5, 4.9], 9);
+            window.trackMapInstance = map;
+            console.log('✅ Map instance created at [51.5, 4.9]');
+        } catch (e) {
+            console.error('❌ Failed to create map instance:', e);
+            throw e;
+        }
+
+        // Add OpenStreetMap tiles (FREE, no API key needed!)
+        try {
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19,
+                minZoom: 7
+            }).addTo(map);
+            console.log('✅ Map tiles added');
+        } catch (e) {
+            console.error('❌ Failed to add map tiles:', e);
+            throw e;
+        }
+        
+        // Fix map size issue (common Leaflet problem)
+        setTimeout(() => {
+            if (map) {
+                map.invalidateSize();
+                console.log('🔄 Map size invalidated');
+            }
+        }, 200);
+
+        // Add markers for each track
+        let markersAdded = 0;
+        Object.keys(trackLocations).forEach(trackName => {
+            try {
+                const loc = trackLocations[trackName];
+                const stats = trackStats[trackName] || { sessions: 0, laps: 0, bestLap: 0, totalCost: 0 };
+                
+                console.log(`📍 Adding marker for ${trackName} at [${loc.lat}, ${loc.lng}]`);
+                
+                // Create custom icon based on number of sessions
+                const iconSize = Math.min(40, 20 + (stats.sessions * 2));
+            const customIcon = L.divIcon({
+                html: `<div style="
+                    background: #ff6b35;
+                    border: 3px solid #fff;
+                    border-radius: 50%;
+                    width: ${iconSize}px;
+                    height: ${iconSize}px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: ${iconSize * 0.5}px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                ">🏁</div>`,
+                className: 'custom-marker',
+                iconSize: [iconSize, iconSize],
+                iconAnchor: [iconSize/2, iconSize/2]
+            });
+
+            const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
+            
+            // Create popup content with full address and stats
+            const hasData = stats.laps > 0;
+            const totalDistanceKm = (stats.totalDistance / 1000).toFixed(1);
+            const avgSpeedKmh = stats.avgSpeed.toFixed(1);
+            const costPerSession = stats.sessions > 0 ? (stats.totalCost / stats.sessions).toFixed(2) : '0.00';
+            
+            console.log(`💰 ${trackName} cost breakdown:`, {
+                sessions: stats.sessions,
+                totalCost: stats.totalCost,
+                costPerSession: costPerSession
+            });
+            
+            const popupContent = `
+                <div class="track-popup">
+                    <h4 style="margin: 0 0 4px 0; color: #ff6b35; font-size: 1rem;">� ${trackName}</h4>
+                    <p style="margin: 0 0 8px 0; color: #666; font-size: 0.75rem; border-bottom: 1px solid #eee; padding-bottom: 6px;">
+                        📍 ${loc.address}
+                    </p>
+                    ${hasData ? `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.85rem;">
+                        <div style="padding: 4px; background: #f8f9fa; border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: #666; margin-bottom: 2px;">Sessions</div>
+                            <div style="font-weight: bold; color: #000;">${stats.sessions}</div>
+                        </div>
+                        <div style="padding: 4px; background: #f8f9fa; border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: #666; margin-bottom: 2px;">Total Laps</div>
+                            <div style="font-weight: bold; color: #000;">${stats.laps}</div>
+                        </div>
+                        <div style="padding: 4px; background: #e8f5e9; border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: #2e7d32; margin-bottom: 2px;">🏆 Best Lap</div>
+                            <div style="font-weight: bold; color: #1b5e20;">${stats.bestLap !== Infinity ? stats.bestLap.toFixed(2) + 's' : 'N/A'}</div>
+                        </div>
+                        <div style="padding: 4px; background: #fff3e0; border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: #e65100; margin-bottom: 2px;">⚡ Avg Speed</div>
+                            <div style="font-weight: bold; color: #bf360c;">${avgSpeedKmh} km/h</div>
+                        </div>
+                        <div style="padding: 4px; background: #e3f2fd; border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: #1565c0; margin-bottom: 2px;">🛣️ Distance</div>
+                            <div style="font-weight: bold; color: #0d47a1;">${totalDistanceKm} km</div>
+                        </div>
+                        <div style="padding: 4px; background: #fce4ec; border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: #c2185b; margin-bottom: 2px;">💰 €/Session</div>
+                            <div style="font-weight: bold; color: #880e4f;">€${costPerSession}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 6px; padding: 6px; background: #f5f5f5; border-radius: 4px; text-align: center; font-size: 0.8rem;">
+                        <strong>Total Spent:</strong> <span style="color: #d32f2f; font-weight: bold;">€${stats.totalCost.toFixed(2)}</span>
+                    </div>
+                    ` : `
+                    <p style="margin: 8px 0; color: #999; font-style: italic; text-align: center;">
+                        No data for this track
+                    </p>
+                    `}
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent, { maxWidth: 320 });
+            
+            console.log(`📍 ${trackName}: ${stats.laps} laps, ${stats.sessions} sessions`);
+            markersAdded++;
+            } catch (e) {
+                console.error(`❌ Error adding marker for ${trackName}:`, e);
+            }
+        });
+
+        console.log(`✅ Track Map created with Leaflet (${markersAdded} markers added)`);
+    } catch (error) {
+        console.error('❌ Error creating Track Map:', error);
+        
+        // Fallback: Show simple chart if map fails
         const ctx = document.getElementById('trackMap')?.getContext('2d');
         if (!ctx) return;
 
@@ -127,29 +401,42 @@ function createTrackMapChart() {
             }
         });
 
-        console.log('✅ Track Map Chart created');
-    } catch (error) {
-        console.error('❌ Error creating Track Map Chart:', error);
+        console.log('✅ Track Map Chart (fallback) created');
     }
 }
 
-// Regional Performance Analysis
+// Sessions Per Track Chart
 function createRegionalPerformanceChart() {
     try {
         const ctx = document.getElementById('regionalPerformance')?.getContext('2d');
         if (!ctx) return;
 
-        // Analyze performance by track regions/sectors
-        const regionalData = analyzeRegionalPerformance(filteredData);
+        // Count sessions per track
+        const trackSessions = {};
+        const sessionKeys = new Set();
+        
+        filteredData.forEach(row => {
+            const track = row.Track;
+            if (!track) return;
+            
+            const sessionKey = `${track}-${row.Date}-${row.Heat}`;
+            if (!sessionKeys.has(sessionKey)) {
+                sessionKeys.add(sessionKey);
+                trackSessions[track] = (trackSessions[track] || 0) + 1;
+            }
+        });
+        
+        const tracks = Object.keys(trackSessions).sort();
+        const sessionCounts = tracks.map(t => trackSessions[t]);
 
         destroyChart('regionalPerformance');
         charts.regionalPerformance = new Chart(ctx, {
-            type: 'polarArea',
+            type: 'bar',
             data: {
-                labels: regionalData.regions,
+                labels: tracks,
                 datasets: [{
-                    label: 'Average Lap Time (s)',
-                    data: regionalData.avgTimes,
+                    label: 'Number of Sessions',
+                    data: sessionCounts,
                     backgroundColor: [
                         '#00ff8840',
                         '#4ecdc440',
@@ -171,10 +458,11 @@ function createRegionalPerformanceChart() {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     title: {
                         display: true,
-                        text: '🌍 Regional Performance Analysis',
+                        text: '📊 Sessions Per Track',
                         color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
                     },
                     legend: {
@@ -220,18 +508,131 @@ function createRegionalPerformanceChart() {
     }
 }
 
-// Track Heatmap Analysis
+// Average Lap Time Comparison by Track
 function createHeatmapAnalysisChart() {
     try {
         const ctx = document.getElementById('heatmapAnalysis')?.getContext('2d');
+        if (!ctx) return;
+
+        // Calculate average lap time per track
+        const trackLapTimes = {};
+        
+        filteredData.forEach(row => {
+            const track = row.Track;
+            const lapTime = parseFloat(row.LapTime);
+            
+            if (track && !isNaN(lapTime) && lapTime > 0) {
+                if (!trackLapTimes[track]) {
+                    trackLapTimes[track] = [];
+                }
+                trackLapTimes[track].push(lapTime);
+            }
+        });
+        
+        const tracks = Object.keys(trackLapTimes).sort();
+        const avgLapTimes = tracks.map(track => {
+            const times = trackLapTimes[track];
+            return times.reduce((sum, t) => sum + t, 0) / times.length;
+        });
+        
+        const bestLapTimes = tracks.map(track => {
+            return Math.min(...trackLapTimes[track]);
+        });
+
+        destroyChart('heatmapAnalysis');
+        charts.heatmapAnalysis = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: tracks,
+                datasets: [{
+                    label: 'Average Lap Time',
+                    data: avgLapTimes,
+                    backgroundColor: '#4ecdc4',
+                    borderColor: '#4ecdc4',
+                    borderWidth: 2
+                }, {
+                    label: 'Best Lap Time',
+                    data: bestLapTimes,
+                    backgroundColor: '#00ff88',
+                    borderColor: '#00ff88',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '⏱️ Lap Time Comparison',
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                    },
+                    legend: {
+                        labels: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg'),
+                        titleColor: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                        bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border-color'),
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}s`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Lap Time (seconds)',
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+                            callback: function(value) {
+                                return value.toFixed(1) + 's';
+                            }
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
+                        },
+                        grid: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                        }
+                    }
+                }
+            }
+        });
+
+        console.log('✅ Lap Time Comparison Chart created');
+    } catch (error) {
+        console.error('❌ Error creating Lap Time Comparison Chart:', error);
+    }
+}
+
+// Legacy heatmap function - keeping for compatibility
+function createHeatmapAnalysisChart_OLD() {
+    try {
+        const ctx = document.getElementById('heatmapAnalysis_OLD')?.getContext('2d');
         if (!ctx) return;
 
         // Generate performance heatmap data
         const heatmapData = generateHeatmapData(filteredData);
 
         // Create heatmap using matrix chart
-        destroyChart('heatmapAnalysis');
-        charts.heatmapAnalysis = new Chart(ctx, {
+        destroyChart('heatmapAnalysis_OLD');
+        charts.heatmapAnalysis_OLD = new Chart(ctx, {
             type: 'scatter',
             data: {
                 datasets: [{
@@ -331,27 +732,70 @@ function createLocationTrendsChart() {
         const ctx = document.getElementById('locationTrends')?.getContext('2d');
         if (!ctx) return;
 
-        // Analyze trends by geographic location
-        const locationData = analyzeLocationTrends(filteredData);
+        // Calculate total distance and cost per track
+        const trackData = {};
+        
+        filteredData.forEach(row => {
+            const track = row.Track;
+            if (!track) return;
+            
+            if (!trackData[track]) {
+                trackData[track] = {
+                    distance: 0,
+                    cost: 0,
+                    laps: 0
+                };
+            }
+            
+            const distance = parseFloat(row.TrackDistance);
+            if (!isNaN(distance)) {
+                trackData[track].distance += distance;
+            }
+            
+            trackData[track].laps++;
+        });
+        
+        // Count cost per track (once per session)
+        const sessionCosts = {};
+        filteredData.forEach(row => {
+            const sessionKey = `${row.Track}-${row.Date}-${row.Heat}`;
+            if (!sessionCosts[sessionKey]) {
+                sessionCosts[sessionKey] = true;
+                const heatPrice = parseFloat(row.HeatPrice);
+                if (!isNaN(heatPrice) && trackData[row.Track]) {
+                    trackData[row.Track].cost += heatPrice;
+                }
+            }
+        });
+        
+        const tracks = Object.keys(trackData).sort();
+        const distances = tracks.map(t => (trackData[t].distance / 1000).toFixed(1)); // Convert to km
+        const costs = tracks.map(t => trackData[t].cost.toFixed(2));
 
         destroyChart('locationTrends');
         charts.locationTrends = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
-                labels: locationData.timeLabels,
-                datasets: locationData.locations.map((location, index) => ({
-                    label: location.name,
-                    data: location.trends,
-                    borderColor: location.color,
-                    backgroundColor: location.color + '20',
-                    fill: false,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }))
+                labels: tracks,
+                datasets: [{
+                    label: 'Total Distance (km)',
+                    data: distances,
+                    backgroundColor: '#4ecdc4',
+                    borderColor: '#4ecdc4',
+                    borderWidth: 2,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Total Cost (€)',
+                    data: costs,
+                    backgroundColor: '#ff6b35',
+                    borderColor: '#ff6b35',
+                    borderWidth: 2,
+                    yAxisID: 'y1'
+                }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 interaction: {
                     intersect: false,
                     mode: 'index'
@@ -359,7 +803,7 @@ function createLocationTrendsChart() {
                 plugins: {
                     title: {
                         display: true,
-                        text: '📍 Location-based Performance Trends',
+                        text: '�️ Distance & Cost by Track',
                         color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
                     },
                     legend: {
@@ -377,11 +821,6 @@ function createLocationTrendsChart() {
                 },
                 scales: {
                     x: {
-                        title: {
-                            display: true,
-                            text: 'Time Period',
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
-                        },
                         ticks: {
                             color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
                         },
@@ -390,16 +829,33 @@ function createLocationTrendsChart() {
                         }
                     },
                     y: {
+                        type: 'linear',
+                        position: 'left',
                         title: {
                             display: true,
-                            text: 'Performance Index',
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                            text: 'Distance (km)',
+                            color: '#4ecdc4'
                         },
                         ticks: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
+                            color: '#4ecdc4'
                         },
                         grid: {
                             color: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Cost (€)',
+                            color: '#ff6b35'
+                        },
+                        ticks: {
+                            color: '#ff6b35'
+                        },
+                        grid: {
+                            drawOnChartArea: false
                         }
                     }
                 }
@@ -449,26 +905,73 @@ function generateTrackLayoutData(data) {
 }
 
 function analyzeRegionalPerformance(data) {
-    // Mock regional analysis
-    const regions = ['Sector 1', 'Sector 2', 'Sector 3', 'Main Straight', 'Chicane', 'Hair Pin'];
-    const avgTimes = [18.5, 22.3, 19.8, 8.2, 15.6, 12.4];
+    // Analyze performance by actual tracks
+    const trackPerformance = {};
+    
+    data.forEach(row => {
+        const track = row.Track;
+        if (!track) return;
+        
+        if (!trackPerformance[track]) {
+            trackPerformance[track] = {
+                lapTimes: [],
+                totalCost: 0,
+                sessions: 0
+            };
+        }
+        
+        const lapTime = parseFloat(row.LapTime);
+        if (!isNaN(lapTime) && lapTime > 0) {
+            trackPerformance[track].lapTimes.push(lapTime);
+        }
+        
+        const heatPrice = parseFloat(row.HeatPrice);
+        if (!isNaN(heatPrice)) {
+            trackPerformance[track].totalCost += heatPrice;
+        }
+    });
+    
+    // Calculate average lap time per track
+    const regions = [];
+    const avgTimes = [];
+    
+    Object.keys(trackPerformance).forEach(track => {
+        const perf = trackPerformance[track];
+        if (perf.lapTimes.length > 0) {
+            regions.push(track);
+            const avgTime = perf.lapTimes.reduce((sum, t) => sum + t, 0) / perf.lapTimes.length;
+            avgTimes.push(avgTime);
+        }
+    });
     
     return { regions, avgTimes };
 }
 
 function generateHeatmapData(data) {
+    // Create heatmap showing lap times by track and session number
     const points = [];
-    const maxValue = 100;
+    let maxValue = 0;
     
-    // Generate grid of performance data points
-    for (let x = 0; x <= 10; x++) {
-        for (let y = 0; y <= 10; y++) {
-            const intensity = Math.random() * maxValue;
-            points.push({ x, y, v: intensity });
+    const trackIndex = {};
+    const tracks = [...new Set(data.map(row => row.Track))];
+    tracks.forEach((track, i) => trackIndex[track] = i);
+    
+    data.forEach(row => {
+        const track = row.Track;
+        const lapTime = parseFloat(row.LapTime);
+        const lapNr = parseInt(row.LapNr);
+        
+        if (track && !isNaN(lapTime) && lapTime > 0 && !isNaN(lapNr)) {
+            const x = trackIndex[track];
+            const y = Math.min(lapNr, 30); // Cap at lap 30 for visualization
+            const v = lapTime;
+            
+            points.push({ x, y, v });
+            maxValue = Math.max(maxValue, v);
         }
-    }
+    });
     
-    return { points, maxValue };
+    return { points, maxValue, tracks };
 }
 
 function getPerformanceLevel(value, maxValue) {
@@ -481,30 +984,56 @@ function getPerformanceLevel(value, maxValue) {
 }
 
 function analyzeLocationTrends(data) {
-    const timeLabels = ['Q1', 'Q2', 'Q3', 'Q4', 'Q1+1', 'Q2+1'];
+    // Analyze performance trends over time by track
+    const trackData = {};
     
-    const locations = [
-        {
-            name: 'Indoor Track',
-            color: '#00ff88',
-            trends: [85, 87, 90, 92, 95, 97]
-        },
-        {
-            name: 'Outdoor Track',
-            color: '#4ecdc4',
-            trends: [78, 82, 85, 88, 90, 92]
-        },
-        {
-            name: 'Street Circuit',
-            color: '#ff6b35',
-            trends: [72, 75, 78, 80, 83, 85]
-        },
-        {
-            name: 'Professional Circuit',
-            color: '#ffed4a',
-            trends: [88, 90, 92, 94, 96, 98]
+    // Group data by track and date
+    data.forEach(row => {
+        const track = row.Track;
+        const date = row.Date;
+        const lapTime = parseFloat(row.LapTime);
+        
+        if (!track || !date || isNaN(lapTime) || lapTime <= 0) return;
+        
+        if (!trackData[track]) {
+            trackData[track] = {};
         }
-    ];
+        
+        if (!trackData[track][date]) {
+            trackData[track][date] = [];
+        }
+        
+        trackData[track][date].push(lapTime);
+    });
+    
+    // Calculate average lap time per date for each track
+    const locations = [];
+    const colors = ['#00ff88', '#4ecdc4', '#ff6b35', '#ffed4a', '#e74c3c'];
+    let colorIndex = 0;
+    
+    Object.keys(trackData).forEach(track => {
+        const dates = Object.keys(trackData[track]).sort();
+        const avgTimes = dates.map(date => {
+            const times = trackData[track][date];
+            return times.reduce((sum, t) => sum + t, 0) / times.length;
+        });
+        
+        if (avgTimes.length > 0) {
+            locations.push({
+                name: track,
+                color: colors[colorIndex % colors.length],
+                trends: avgTimes
+            });
+            colorIndex++;
+        }
+    });
+    
+    // Get unique dates across all tracks
+    const allDates = new Set();
+    Object.values(trackData).forEach(dates => {
+        Object.keys(dates).forEach(date => allDates.add(date));
+    });
+    const timeLabels = Array.from(allDates).sort().slice(0, 10); // Last 10 sessions
     
     return { timeLabels, locations };
 }

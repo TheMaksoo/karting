@@ -11,8 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></link>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
@@ -797,23 +797,23 @@
                     <div class="chart-header">
                         <h3><i class="fas fa-flag"></i> Regional Performance</h3>
                     </div>
-                    <canvas id="regionalPerformanceChart"></canvas>
+                    <canvas id="regionalPerformance"></canvas>
                 </div>
 
-                <!-- Heat Price per Region -->
+                <!-- Heatmap Analysis -->
                 <div class="chart-container medium">
                     <div class="chart-header">
-                        <h3><i class="fas fa-euro-sign"></i> Regional Pricing</h3>
+                        <h3><i class="fas fa-fire"></i> Performance Heatmap</h3>
                     </div>
-                    <canvas id="regionalPricingChart"></canvas>
+                    <canvas id="heatmapAnalysis"></canvas>
                 </div>
 
-                <!-- Sessions per Track -->
+                <!-- Location Trends -->
                 <div class="chart-container large">
                     <div class="chart-header">
-                        <h3><i class="fas fa-chart-bar"></i> Track Utilization</h3>
+                        <h3><i class="fas fa-chart-line"></i> Location Performance Trends</h3>
                     </div>
-                    <canvas id="trackUtilizationChart"></canvas>
+                    <canvas id="locationTrends"></canvas>
                 </div>
             </div>
         </section>
