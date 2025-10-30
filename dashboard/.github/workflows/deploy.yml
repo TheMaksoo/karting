@@ -1,0 +1,36 @@
+name: 🚀 Deploy Karting Dashboard to Namecheap
+
+on:
+  push:
+    branches:
+      - main  # or 'master' if that's your default branch
+    paths:
+      - 'dashboard/**' # only trigger when dashboard files change
+
+jobs:
+  deploy:
+    name: Upload Dashboard to Namecheap
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧩 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Install LFTP (SFTP client)
+        run: sudo apt-get install -y lftp
+
+      - name: 🚀 Deploy dashboard to Namecheap via SFTP
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          TARGET: ${{ secrets.TARGET }}
+        run: |
+          echo "Starting deployment to $HOST..."
+          lftp -e "
+          set sftp:auto-confirm yes;
+          open -u $USERNAME,$PASSWORD sftp://$HOST;
+          mirror -R --delete --verbose ./dashboard $TARGET;
+          bye
+          "
+          echo "✅ Deployment complete!"
