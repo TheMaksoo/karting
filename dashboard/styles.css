@@ -144,158 +144,14 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Enhanced Kart */
-.kart {
-  position: absolute;
-  bottom: 60px;
-  width: 120px;
-  height: 60px;
-  animation: superDrive 3.2s linear infinite;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+/* Kart removed: no kart styles remain */
+
+/* Kart visuals removed per user request - keep container spacing intact */
+.loading-container {
+  height: 60px; /* reduce visual footprint now that kart is removed */
 }
 
-.kart-body {
-  position: absolute;
-  width: 120px;
-  height: 45px;
-  background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%);
-  border-radius: 15px 15px 5px 5px;
-  box-shadow: 
-    0 4px 0 #b71c1c, 
-    0 0 20px rgba(255, 0, 0, 0.4),
-    inset 0 2px 4px rgba(255, 255, 255, 0.2);
-}
-
-/* Kart wheels */
-.kart-wheels {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-.wheel {
-  position: absolute;
-  width: 25px;
-  height: 25px;
-  background: radial-gradient(circle, #222 0%, #000 70%);
-  border-radius: 50%;
-  top: 15px;
-  animation: wheelSpin 0.3s linear infinite;
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.6),
-    inset 0 1px 2px rgba(255, 255, 255, 0.2);
-}
-
-.wheel::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 15px;
-  height: 15px;
-  background: #444;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.wheel-front {
-  left: 10px;
-}
-
-.wheel-back {
-  left: 85px;
-}
-
-/* Spoiler */
-.kart-spoiler {
-  position: absolute;
-  top: 5px;
-  left: 35px;
-  width: 50px;
-  height: 8px;
-  background: linear-gradient(90deg, #ffb300 0%, #ff8f00 100%);
-  border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Driver */
-.driver {
-  position: absolute;
-  top: 10px;
-  left: 45px;
-  width: 30px;
-  height: 30px;
-}
-
-.helmet {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-  border-radius: 50% 50% 45% 45%;
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 2px rgba(255, 255, 255, 0.3);
-  position: relative;
-}
-
-.helmet::before {
-  content: '';
-  position: absolute;
-  top: 8px;
-  left: 6px;
-  width: 18px;
-  height: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 3px;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
-}
-
-/* Speed smoke/dust effects */
-.smoke {
-  position: absolute;
-  bottom: 70px;
-  left: 0;
-  width: 10px;
-  height: 10px;
-  background: rgba(200, 200, 200, 0.6);
-  border-radius: 50%;
-  animation: smoke 3.2s linear infinite;
-}
-
-.smoke-2 {
-  animation-delay: -0.8s;
-  background: rgba(180, 180, 180, 0.4);
-  width: 8px;
-  height: 8px;
-}
-
-.smoke-3 {
-  animation-delay: -1.6s;
-  background: rgba(160, 160, 160, 0.3);
-  width: 6px;
-  height: 6px;
-}
-
-@keyframes superDrive {
-  0% { left: -150px; transform: scaleX(1); }
-  45% { left: 50%; transform: scaleX(1); }
-  50% { transform: scaleX(-1); }
-  95% { left: calc(100% + 150px); transform: scaleX(-1); }
-  100% { left: -150px; transform: scaleX(1); }
-}
-
-@keyframes wheelSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes smoke {
-  0% { opacity: 0; transform: translateX(0) scale(0.5); }
-  25% { opacity: 1; transform: translateX(-20px) scale(1.2); }
-  50% { opacity: 0.6; transform: translateX(-40px) scale(0.8); }
-  75% { opacity: 0.3; transform: translateX(-60px) scale(0.6); }
-  100% { opacity: 0; transform: translateX(-80px) scale(0.3); }
-}
+/* Kart visuals removed completely per user request */
 
 .loading-title {
   font-family: var(--font-display);
@@ -1065,8 +921,7 @@ body {
 .filter-select {
   background-image: 
     linear-gradient(135deg, var(--card-bg) 0%, var(--bg-tertiary) 100%),
-    url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path fill='%23FF6B35' stroke='%23FF6B35' stroke-width='1' d='M8 12L3 6h10z'/></svg>");
-  background-repeat: no-repeat, no-repeat;
+   background-repeat: no-repeat, no-repeat;
   background-position: 0 0, right 16px center;
   background-size: 100% 100%, 16px;
   padding-right: 50px;
@@ -1088,8 +943,7 @@ body {
 .filter-select:focus {
   background-image: 
     linear-gradient(135deg, var(--card-bg-hover) 0%, rgba(255, 107, 53, 0.1) 100%),
-    url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path fill='%23FF6B35' stroke='%23FF6B35' stroke-width='1' d='M8 4L13 10H3z'/></svg>");
-  animation: dropdownOpen 0.3s ease-out;
+    animation: dropdownOpen 0.3s ease-out;
 }
 
 .filter-select:hover, .filter-input:hover {
@@ -1105,8 +959,7 @@ body {
 .filter-select:hover {
   background-image: 
     linear-gradient(135deg, var(--card-bg-hover) 0%, rgba(255, 107, 53, 0.03) 100%),
-    url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path fill='%23FF6B35' stroke='%23FF6B35' stroke-width='1' d='M8 12L3 6h10z'/></svg>");
-}
+   }
 
 /* Active filter styling with enhanced visual feedback */
 .filter-select:not([value=""]), .filter-input:not([value=""]) {
@@ -1122,8 +975,7 @@ body {
 .filter-select:not([value=""]) {
   background-image: 
     linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 107, 53, 0.12) 100%),
-    url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path fill='%23FF6B35' stroke='%23FF6B35' stroke-width='1.5' d='M8 12L3 6h10z'/></svg>");
-}
+  }
 
 /* Modern dropdown animations */
 @keyframes dropdownGlow {

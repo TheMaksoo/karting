@@ -1158,77 +1158,13 @@ function showLoading(show, message = 'Loading...') {
 function updateLoadingProgress(percentage, message) {
     const loadingProgress = document.querySelector('.loading-progress');
     const loadingText = document.querySelector('.loading-text');
-    const kart = document.querySelector('.kart');
-    const track = document.querySelector('.track');
-    const loadingBar = document.querySelector('.loading-bar');
-    const wheels = document.querySelectorAll('.kart .wheel');
-    const smokes = document.querySelectorAll('.smoke');
-    
+
     if (loadingProgress) {
         loadingProgress.style.width = `${percentage}%`;
     }
-    
+
     if (loadingText && message) {
         loadingText.textContent = message;
-    }
-
-    // Move kart along the actual loading-bar based on percentage
-    if (kart && loadingBar) {
-        const barRect = loadingBar.getBoundingClientRect();
-        const containerRect = loadingBar.parentElement.getBoundingClientRect();
-        const kartRect = kart.getBoundingClientRect();
-        // usable distance is the full width of the bar minus the kart width
-        const usable = Math.max(0, barRect.width - kartRect.width);
-        const x = (percentage / 100) * usable;
-        // translate relative to left edge of the bar (inside loading-container)
-    const relativeX = (barRect.left - containerRect.left) + x;
-    const tilt = (percentage - 50) / 6;
-    const bob = Math.sin(Date.now() / 120) * (1 + (percentage / 100) * 2);
-
-    // Position horizontally by setting left (px) relative to the loading-container
-    kart.style.left = `${relativeX}px`;
-
-    // Compute bottom so kart wheels sit on the loading bar centerline
-    const barCenterY = barRect.top + (loadingBar.offsetHeight / 2);
-    const baseBottom = Math.round(containerRect.bottom - barCenterY - (kartRect.height / 2));
-    kart.style.bottom = `${Math.max(0, baseBottom)}px`;
-
-    // Apply bob and tilt via transform only
-    kart.style.transform = `translateY(${ -Math.abs(bob).toFixed(2)}px) rotate(${tilt.toFixed(2)}deg)`;
-        if (percentage > 1) {
-            kart.classList.add('moving');
-            kart.style.animation = 'kartBob 600ms ease-in-out infinite';
-        } else {
-            kart.classList.remove('moving');
-            kart.style.animation = '';
-        }
-
-        // wheel speed: faster spin while moving
-        // wheel rotation speed (seconds per rotation) — faster = smaller number
-        const speed = Math.max(0.06, 0.45 - (percentage / 100) * 0.36);
-        wheels.forEach(w => {
-            // set CSS var used by CSS animation
-            w.style.setProperty('--wheel-speed', `${speed}s`);
-            // rotate spokes group inside the wheel for SVG
-            const spokes = w.querySelector('.spokes');
-            if (spokes) {
-                const rot = (Date.now() / (speed * 1000)) % 360;
-                spokes.style.transform = `rotate(${rot}deg)`;
-            }
-        });
-
-        // small front-wheel steering sway to make it feel alive
-        const front = document.getElementById('frontWheel');
-        if (front) {
-            const steer = Math.sin(Date.now() / 300 + percentage) * (3 + (percentage / 100) * 6); // -~9..9 deg
-            front.style.transform = `translate(88px,118px) rotate(${steer.toFixed(2)}deg)`;
-        }
-
-        // smoke intensity based on speed
-        smokes.forEach((s, i) => {
-            s.style.opacity = `${0.2 + (percentage / 100) * 0.8 - i * 0.05}`;
-            s.style.transform = `translateX(${-(percentage / 100) * 60 - i * 10}px) scale(${0.6 + (percentage / 100) * 0.8})`;
-        });
     }
 }
 
