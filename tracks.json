@@ -42,23 +42,26 @@
       "trackId": "TRK-002",
       "name": "De Voltage",
       "location": {
-        "city": "Tiel",
+        "city": "Tilburg",
         "country": "Netherlands",
-        "region": "Gelderland"
+        "region": "North Brabant"
       },
       "specifications": {
         "distance": 450,
         "corners": 12,
         "indoor": true
       },
-      "features": ["Electric karts"],
+      "features": ["Electric karts", "Fly-over", "Largest lasergame area in North Brabant"],
       "website": "https://devoltage.nl",
-      "contact": {},
+      "contact": {
+        "phone": "013 - 580 00 07",
+        "email": "info@devoltage.nl"
+      },
       "pricing": {
         "session": 19.75,
         "costPerLap": 1.65
       },
-      "karts": ["Electric karts"]
+      "karts": ["Sodi Electric Karts (up to 50 km/h)"]
     },
     {
       "trackId": "TRK-003",
@@ -132,7 +135,7 @@
       "trackId": "TRK-006",
       "name": "Lot66",
       "location": {
-        "city": "Oss",
+        "city": "Breda",
         "country": "Netherlands",
         "region": "North Brabant"
       },
@@ -143,12 +146,17 @@
       },
       "features": ["SMS Timing"],
       "website": "https://lot66.nl",
-      "contact": {},
+      "contact": {
+        "phone": "076 - 543 93 65",
+        "email": "info@lot66.nl"
+      },
       "pricing": {
         "session": 30.0,
         "costPerLap": 2.0
       },
-      "karts": []
+      "karts": [],
+      "status": "PERMANENTLY CLOSED",
+      "notes": "Closed as of 2024/2025"
     },
     {
       "trackId": "TRK-007",
