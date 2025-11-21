@@ -1,8 +1,8 @@
 // ========== TEMPORAL CHARTS MODULE ==========
 // Extracted from script.js
 
-function initializeTemporalCharts() {
-    console.log('📅 Initializing Temporal Analytics Charts...');
+// Make function globally accessible
+window.initializeTemporalCharts = function() {
     
     // Add event listeners for controls
     addChartEventListener('seasonalMetric', createSeasonalTrendsChart);
@@ -16,7 +16,7 @@ function initializeTemporalCharts() {
     createMonthlyAnalysisChart();
     createPeakPerformanceChart();
     createHistoricalProgressionChart();
-}
+}; // End of window.initializeTemporalCharts
 
 // 6.1 Seasonal Trends Chart
 function createSeasonalTrendsChart() {
@@ -58,14 +58,31 @@ function createSeasonalTrendsChart() {
     let chartData = [];
     
     if (metric === 'performance') {
-        const avgLapTimes = sortedMonths.map(month => {
-            const times = monthlyData[month].lapTimes;
-            return times.length > 0 ? times.reduce((sum, time) => sum + time, 0) / times.length : 0;
+        // Show improvement percentage instead of absolute lap times
+        const improvementPerMonth = sortedMonths.map(month => {
+            const monthSessions = [...monthlyData[month].sessions];
+            let totalImprovement = 0;
+            let sessionCount = 0;
+            
+            monthSessions.forEach(session => {
+                const sessionLaps = filteredData.filter(row => row.SessionDate === session)
+                                                .map(row => parseFloat(row.LapTime || 0))
+                                                .filter(time => time > 0);
+                if (sessionLaps.length >= 2) {
+                    const firstLap = sessionLaps[0];
+                    const bestLap = Math.min(...sessionLaps);
+                    const improvement = ((firstLap - bestLap) / firstLap) * 100;
+                    totalImprovement += improvement;
+                    sessionCount++;
+                }
+            });
+            
+            return sessionCount > 0 ? totalImprovement / sessionCount : 0;
         });
         
         chartData = [{
-            label: 'Average Lap Time (s)',
-            data: avgLapTimes,
+            label: 'Avg Session Improvement (%)',
+            data: improvementPerMonth,
             borderColor: '#FF6B35',
             backgroundColor: '#FF6B3540',
             borderWidth: 3,
@@ -912,8 +929,8 @@ function createHistoricalProgressionChart() {
                 x: session,
                 y: data.bestLapProgression[i]
             })),
-            borderColor: getDriverColor(index),
-            backgroundColor: getDriverColor(index) + '40',
+            borderColor: window.getDriverColor(driver),
+            backgroundColor: window.getDriverColor(driver) + '40',
             borderWidth: 3,
             fill: false,
             tension: 0.4,
@@ -1039,9 +1056,7 @@ function createSessionControlWidget() {
             </div>
         `;
 
-        console.log('✅ Session Control Widget created');
     } catch (error) {
-        console.error('❌ Error creating Session Control Widget:', error);
     }
 }
 
@@ -1097,9 +1112,7 @@ function createLiveSessionMonitor() {
             </div>
         `;
 
-        console.log('✅ Live Session Monitor created');
     } catch (error) {
-        console.error('❌ Error creating Live Session Monitor:', error);
     }
 }
 
@@ -1183,9 +1196,7 @@ function createSessionStatsWidget() {
             </div>
         `;
 
-        console.log('✅ Session Statistics Widget created');
     } catch (error) {
-        console.error('❌ Error creating Session Statistics Widget:', error);
     }
 }
 
@@ -1240,9 +1251,7 @@ function createDriverPerformanceMonitor() {
             </div>
         `;
 
-        console.log('✅ Driver Performance Monitor created');
     } catch (error) {
-        console.error('❌ Error creating Driver Performance Monitor:', error);
     }
 }
 
@@ -1297,9 +1306,7 @@ function createSessionProgressTimeline() {
             </div>
         `;
 
-        console.log('✅ Session Progress Timeline created');
     } catch (error) {
-        console.error('❌ Error creating Session Progress Timeline:', error);
     }
 }
 
@@ -1377,9 +1384,7 @@ function createConditionsMonitor() {
             </div>
         `;
 
-        console.log('✅ Conditions Monitor created');
     } catch (error) {
-        console.error('❌ Error creating Conditions Monitor:', error);
     }
 }
 
@@ -1588,7 +1593,6 @@ function analyzeTrackConditions(sessionData) {
 }
 
 function initializeSessionWidgets() {
-    console.log('🚀 Initializing Session Management Widgets...');
     
     createSessionControlWidget();
     createLiveSessionMonitor();
@@ -1597,7 +1601,6 @@ function initializeSessionWidgets() {
     createSessionProgressTimeline();
     createConditionsMonitor();
     
-    console.log('✅ Session Management Widgets initialized');
 }
 
 

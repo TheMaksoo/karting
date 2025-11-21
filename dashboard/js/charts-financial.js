@@ -1,8 +1,8 @@
 // ========== FINANCIAL CHARTS MODULE ==========
 // Extracted from script.js
 
-function initializeFinancialCharts() {
-    console.log('💰 Initializing Financial Analytics Charts...');
+// Make function globally accessible
+window.initializeFinancialCharts = function() {
     
     // Add event listeners for controls
     addChartEventListener('costAnalysisType', createCostAnalysisChart);
@@ -16,7 +16,7 @@ function initializeFinancialCharts() {
     createDriverValueChart();
     createSessionProfitabilityChart();
     createROICalculationChart();
-}
+}; // End of window.initializeFinancialCharts
 
 // 5.1 Cost per Session Analysis
 function createCostAnalysisChart() {
@@ -212,9 +212,10 @@ function createDynamicPricingChart() {
         const dayOfWeek = new Date(session).getDay();
         const peakMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 1.3 : 1.0; // Weekend premium
         
-        // Performance factor (better tracks command higher prices)
-        const avgPerformance = avgLapTime > 0 ? Math.max(0, 100 - avgLapTime) : 50;
-        const performanceFactor = 0.8 + (avgPerformance / 100) * 0.4;
+        // Performance factor based on track consistency (lower std dev = premium track)
+        const lapTimes = sessionData.map(row => parseFloat(row.LapTime || 0)).filter(t => t > 0);
+        const consistency = lapTimes.length > 1 ? calculateStandardDeviation(lapTimes) : 0;
+        const performanceFactor = 0.8 + Math.max(0, Math.min(0.4, (5 - consistency) / 10));
         
         // Base price calculation
         const basePrice = 25; // $25 base price per session
@@ -513,19 +514,19 @@ function createDriverValueChart() {
         // Loyalty score (based on session frequency)
         const loyaltyScore = Math.min(sessions * 10, 100);
         
-        // Performance value (better performers attract more customers)
+        // Performance value based on consistency (consistent drivers are engaged customers)
         const lapTimes = driverData.map(row => parseFloat(row.LapTime || 0)).filter(time => time > 0);
-        const avgLapTime = lapTimes.length > 0 ? lapTimes.reduce((sum, time) => sum + time, 0) / lapTimes.length : 50;
-        const performanceValue = Math.max(0, 100 - avgLapTime) * 5; // Convert to value
+        const consistency = lapTimes.length > 1 ? calculateStandardDeviation(lapTimes) : 0;
+        const engagementValue = Math.max(0, 100 - (consistency * 10)) * 5; // Lower std dev = more engaged
         
         // Total customer value
-        const customerValue = totalRevenue + loyaltyScore + performanceValue;
+        const customerValue = totalRevenue + loyaltyScore + engagementValue;
         
         return {
             driver,
             totalRevenue,
             loyaltyScore,
-            performanceValue,
+            performanceValue: engagementValue,
             customerValue,
             sessions,
             totalLaps

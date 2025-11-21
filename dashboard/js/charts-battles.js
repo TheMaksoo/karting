@@ -1,8 +1,8 @@
 // ========== DRIVER BATTLE CHARTS MODULE ==========
 // Extracted from script.js
 
-function initializeDriverBattleCharts() {
-    console.log('⚔️ Initializing Driver Battle Charts...');
+// Make function globally accessible
+window.initializeDriverBattleCharts = function() {
     
     // Add event listeners for controls
     addChartEventListener('headToHeadDriver1', createHeadToHeadChart);
@@ -16,9 +16,9 @@ function initializeDriverBattleCharts() {
     createOvertakingAnalysisChart();
     createGapAnalysisChart();
     createRivalryMatrixChart();
-}
+}; // End of window.initializeDriverBattleCharts
 
-// 4.1 Head-to-Head Comparison Chart
+// 4.1 Head-to-Head Comparison Chart (Session-Based)
 function createHeadToHeadChart() {
     const ctx = document.getElementById('headToHeadChart');
     if (!ctx) return;
@@ -31,31 +31,60 @@ function createHeadToHeadChart() {
         return;
     }
     
-    const driver1Data = filteredData.filter(row => row.Driver === driver1);
-    const driver2Data = filteredData.filter(row => row.Driver === driver2);
+    // Only compare sessions where both drivers participated
+    const commonSessions = [...new Set(filteredData.map(row => row.SessionDate))].filter(session => {
+        const sessionData = filteredData.filter(row => row.SessionDate === session);
+        return sessionData.some(row => row.Driver === driver1) && 
+               sessionData.some(row => row.Driver === driver2);
+    });
     
-    // Calculate head-to-head metrics
+    if (commonSessions.length === 0) {
+        ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+        return;
+    }
+    
+    const driver1Data = filteredData.filter(row => row.Driver === driver1 && commonSessions.includes(row.SessionDate));
+    const driver2Data = filteredData.filter(row => row.Driver === driver2 && commonSessions.includes(row.SessionDate));
+    
+    // Calculate normalized head-to-head metrics (relative to each other)
+    const d1AvgLap = calculateAverageLapTime(driver1Data);
+    const d2AvgLap = calculateAverageLapTime(driver2Data);
+    const d1BestLap = calculateBestLapTime(driver1Data);
+    const d2BestLap = calculateBestLapTime(driver2Data);
+    const d1Consistency = calculateConsistency(driver1Data);
+    const d2Consistency = calculateConsistency(driver2Data);
+    const d1AvgPos = calculateAveragePosition(driver1Data);
+    const d2AvgPos = calculateAveragePosition(driver2Data);
+    
+    // Normalize: driver with better value gets 100, other gets proportional score
+    const normalizeMetric = (val1, val2, lowerIsBetter = true) => {
+        if (val1 === 0 || val2 === 0) return [50, 50];
+        if (lowerIsBetter) {
+            const minVal = Math.min(val1, val2);
+            return [(minVal / val1) * 100, (minVal / val2) * 100];
+        } else {
+            const maxVal = Math.max(val1, val2);
+            return [(val1 / maxVal) * 100, (val2 / maxVal) * 100];
+        }
+    };
+    
+    const avgLapScores = normalizeMetric(d1AvgLap, d2AvgLap, true);
+    const bestLapScores = normalizeMetric(d1BestLap, d2BestLap, true);
+    const consistencyScores = normalizeMetric(d1Consistency, d2Consistency, true);
+    const positionScores = normalizeMetric(d1AvgPos, d2AvgPos, true);
+    const lapCountScores = normalizeMetric(driver1Data.length, driver2Data.length, false);
+    const winsScores = normalizeMetric(
+        driver1Data.filter(row => parseInt(row.Position || 0) === 1).length,
+        driver2Data.filter(row => parseInt(row.Position || 0) === 1).length,
+        false
+    );
+
     const metrics = {
-        avgLapTime: [
-            calculateAverageLapTime(driver1Data),
-            calculateAverageLapTime(driver2Data)
-        ],
-        bestLap: [
-            calculateBestLapTime(driver1Data),
-            calculateBestLapTime(driver2Data)
-        ],
-        consistency: [
-            calculateConsistency(driver1Data),
-            calculateConsistency(driver2Data)
-        ],
-        avgPosition: [
-            calculateAveragePosition(driver1Data),
-            calculateAveragePosition(driver2Data)
-        ],
-        totalLaps: [
-            driver1Data.length,
-            driver2Data.length
-        ],
+        avgLapTime: [d1AvgLap, d2AvgLap],
+        bestLap: [d1BestLap, d2BestLap],
+        consistency: [d1Consistency, d2Consistency],
+        avgPosition: [d1AvgPos, d2AvgPos],
+        totalLaps: [driver1Data.length, driver2Data.length],
         wins: [
             driver1Data.filter(row => parseInt(row.Position || 0) === 1).length,
             driver2Data.filter(row => parseInt(row.Position || 0) === 1).length
@@ -71,12 +100,12 @@ function createHeadToHeadChart() {
                 {
                     label: driver1,
                     data: [
-                        100 - ((metrics.avgLapTime[0] - 30) * 2), // Normalize lap time
-                        100 - ((metrics.bestLap[0] - 30) * 2), // Normalize best lap
-                        100 - (metrics.consistency[0] * 20), // Normalize consistency
-                        100 - (metrics.avgPosition[0] * 10), // Normalize position
-                        Math.min(metrics.totalLaps[0] / 5, 100), // Normalize total laps
-                        metrics.wins[0] * 20 // Normalize wins
+                        avgLapScores[0],
+                        bestLapScores[0],
+                        consistencyScores[0],
+                        positionScores[0],
+                        lapCountScores[0],
+                        winsScores[0]
                     ],
                     borderColor: '#FF6B35',
                     backgroundColor: '#FF6B3540',
@@ -87,12 +116,12 @@ function createHeadToHeadChart() {
                 {
                     label: driver2,
                     data: [
-                        100 - ((metrics.avgLapTime[1] - 30) * 2),
-                        100 - ((metrics.bestLap[1] - 30) * 2),
-                        100 - (metrics.consistency[1] * 20),
-                        100 - (metrics.avgPosition[1] * 10),
-                        Math.min(metrics.totalLaps[1] / 5, 100),
-                        metrics.wins[1] * 20
+                        avgLapScores[1],
+                        bestLapScores[1],
+                        consistencyScores[1],
+                        positionScores[1],
+                        lapCountScores[1],
+                        winsScores[1]
                     ],
                     borderColor: '#4ECDC4',
                     backgroundColor: '#4ECDC440',
@@ -111,7 +140,7 @@ function createHeadToHeadChart() {
                     max: 100,
                     title: {
                         display: true,
-                        text: 'Performance Score (0-100)',
+                        text: 'Relative Performance (0-100)',
                         color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
                     },
                     ticks: {
@@ -153,6 +182,9 @@ function createHeadToHeadChart() {
                             ];
                             
                             return `${driver}: ${rawValues[metricIndex][driverIndex]} (Score: ${context.parsed.r.toFixed(1)})`;
+                        },
+                        afterBody: function() {
+                            return `Based on ${commonSessions.length} common session(s)`;
                         }
                     }
                 }
@@ -206,8 +238,8 @@ function createBattleTimelineChart() {
         return {
             label: driver,
             data: positions,
-            borderColor: getDriverColor(index),
-            backgroundColor: getDriverColor(index) + '20',
+            borderColor: window.getDriverColor(driver),
+            backgroundColor: window.getDriverColor(driver) + '20',
             borderWidth: 4,
             fill: false,
             tension: 0.4,

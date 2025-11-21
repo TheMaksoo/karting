@@ -222,6 +222,73 @@
             </div>
         </header>
 
+        <!-- ========== QUICK NAVIGATION & SITE STATS BAR ========== -->
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar-nav" data-aos="fade-right" data-aos-delay="100">
+            <div class="sidebar-header">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <button class="sidebar-item active" data-section="driver-performance" title="Driver Performance">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="sidebar-label">Driver Performance</span>
+                </button>
+                <button class="sidebar-item" data-section="geographical-expansion" title="Tracks">
+                    <i class="fas fa-globe-europe"></i>
+                    <span class="sidebar-label">Tracks</span>
+                </button>
+                <button class="sidebar-item" data-section="session-analysis" title="Sessions">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="sidebar-label">Sessions</span>
+                </button>
+                <button class="sidebar-item" data-section="track-mastery" title="Track Mastery">
+                    <i class="fas fa-trophy"></i>
+                    <span class="sidebar-label">Track Mastery</span>
+                </button>
+                <button class="sidebar-item" data-section="head-to-head" title="Battles">
+                    <i class="fas fa-users"></i>
+                    <span class="sidebar-label">Battles</span>
+                </button>
+                <button class="sidebar-item" data-section="financial-breakdown" title="Financial">
+                    <i class="fas fa-euro-sign"></i>
+                    <span class="sidebar-label">Financial</span>
+                </button>
+                <button class="sidebar-item" data-section="temporal-insights" title="Temporal">
+                    <i class="fas fa-clock"></i>
+                    <span class="sidebar-label">Temporal</span>
+                </button>
+                <button class="sidebar-item" data-section="predictive-analytics" title="Predictive">
+                    <i class="fas fa-brain"></i>
+                    <span class="sidebar-label">Predictive</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="sidebar-stats">
+                    <div class="sidebar-stat" title="Total data points being analyzed">
+                        <i class="fas fa-database"></i>
+                        <span class="stat-value" id="sidebarDataPoints">0</span>
+                    </div>
+                    <div class="sidebar-stat" title="Total charts">
+                        <i class="fas fa-chart-bar"></i>
+                        <span class="stat-value">35</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="nav-stats-bar-placeholder" style="display: none;">
+            <!-- Removed old navigation -->
+                    <div class="stat-item" title="Dashboard version">
+                        <i class="fas fa-code-branch"></i>
+                        <span class="stat-value">v2.0</span>
+                        <span class="stat-label">Version</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ========== ADVANCED FILTER BAR ========== -->
         <section class="filter-bar" data-aos="fade-up" data-aos-delay="100">
             <div class="filter-content">
@@ -253,7 +320,7 @@
         </section>
 
         <!-- ========== 1. DRIVER PERFORMANCE OVERVIEW ========== -->
-        <section class="section driver-performance-section charts-loading" data-aos="fade-up" data-aos-delay="200">
+        <section id="driver-performance" class="section driver-performance-section charts-loading" data-aos="fade-up" data-aos-delay="200">
             <div class="section-header" onclick="toggleSection(this)">
                 <div>
                     <h2><i class="fas fa-tachometer-alt"></i> Driver Performance Overview</h2>
@@ -266,99 +333,295 @@
             
             <div class="charts-grid performance-grid section-content">
                 <!-- Driver Ranking Over Time -->
-                <div class="chart-container large">
+                <div class="chart-container extra-large">
                     <div class="chart-header">
-                        <h3><i class="fas fa-chart-line"></i> Driver Ranking Over Time</h3>
-                        <div class="chart-controls">
-                            <select id="rankingMetricSelect">
-                                <option value="position">Average Position</option>
-                                <option value="laptime">Average Lap Time</option>
+                        <h3><i class="fas fa-chart-line"></i> Driver Activity Over Time</h3>
+                        <div class="chart-controls" style="display: flex; gap: 12px; align-items: center;">
+                            <select id="rankingMetricSelect" class="modern-select">
+                                <option value="totallaps">Total Laps Driven</option>
+                                <option value="totaltracks">Total Tracks Driven</option>
+                                <option value="avgpertrack">Avg Lap Time</option>
+                            </select>
+                            <select id="rankingTrackSelect" class="modern-select" style="display:none;">
+                                <option value="all">All Tracks (Normalized)</option>
                             </select>
                         </div>
                     </div>
-                    <canvas id="driverRankingChart"></canvas>
+                    <div class="chart-with-stats">
+                        <canvas id="driverRankingChart"></canvas>
+                        <div class="stats-panel" id="driverActivityStatsPanel">
+                            <div class="stats-panel-header">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Hover over chart to see details</span>
+                            </div>
+                            <div class="stats-panel-content" id="driverActivityStatsContent">
+                                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                                    <i class="fas fa-mouse-pointer" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
+                                    <p>Move your mouse over the chart to view driver statistics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Fastest Lap by Driver -->
                 <div class="chart-container medium">
                     <div class="chart-header">
-                        <h3><i class="fas fa-trophy"></i> Fastest Lap by Driver</h3>
+                        <h3><i class="fas fa-trophy"></i> Average Gap to Track Record</h3>
+                        <div class="chart-controls">
+                            <select id="fastestLapTrackSelect" class="modern-select">
+                                <option value="all">All Tracks</option>
+                            </select>
+                        </div>
                     </div>
                     <canvas id="fastestLapChart"></canvas>
                 </div>
 
                 <!-- Average Lap Time per Driver -->
-                <div class="chart-container medium">
+                <div class="chart-container extra-large" id="avgPerformanceContainer" style="min-height: 900px;">
                     <div class="chart-header">
-                        <h3><i class="fas fa-chart-bar"></i> Average Lap Time per Driver</h3>
+                        <h3><i class="fas fa-chart-bar"></i> Average Performance by Driver</h3>
+                        <p class="chart-subtitle">Compare driver performance across all tracks and sessions</p>
                         <div class="chart-controls">
-                            <select id="avgLapGroupBy">
-                                <option value="overall">Overall</option>
+                            <select id="avgLapTrackSelect" class="modern-select">
+                                <option value="all">All Tracks</option>
+                            </select>
+                            <select id="avgLapGroupBy" class="modern-select">
                                 <option value="track">By Track</option>
+                                <option value="overall">Overall (% from best)</option>
                                 <option value="session">By Session</option>
                             </select>
                         </div>
                     </div>
-                    <canvas id="avgLapTimeChart"></canvas>
+                    <div class="chart-explanation">
+                        <strong>What this shows:</strong> Performance comparison showing each driver's average lap time. The <span style="color: #FFD700;">★ golden segment</span> at the top of each bar represents the gap between their average and their personal best (PB). Hover to see detailed stats on the right!
+                    </div>
+                    <div class="chart-with-stats" style="min-height: 800px;">
+                        <canvas id="avgLapTimeChart" style="height: 800px !important;"></canvas>
+                        <div class="stats-panel" id="avgLapStatsPanel" style="max-height: 780px;">
+                            <div class="stats-panel-header">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Hover over a bar to see details</span>
+                            </div>
+                            <div class="stats-panel-content" id="avgLapStatsContent">
+                                <p style="color: var(--text-secondary); text-align: center; padding: 20px;">
+                                    <i class="fas fa-mouse-pointer" style="font-size: 2rem; opacity: 0.3; display: block; margin-bottom: 10px;"></i>
+                                    Hover over bars to see detailed statistics
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Consistency Index -->
-                <div class="chart-container medium">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-bullseye"></i> Consistency Index</h3>
-                        <p class="chart-subtitle">Lower variance = more consistent</p>
-                    </div>
-                    <canvas id="consistencyChart"></canvas>
-                </div>
-
-                <!-- Improvement Over Sessions -->
                 <div class="chart-container large">
                     <div class="chart-header">
-                        <h3><i class="fas fa-trending-up"></i> Improvement Over Sessions</h3>
+                        <h3><i class="fas fa-bullseye"></i> Consistency Index</h3>
                         <div class="chart-controls">
-                            <select id="improvementDriverSelect">
-                                <option value="all">All Drivers</option>
+                            <select id="consistencyGroupBy" class="modern-select">
+                                <option value="overall">Overall</option>
+                                <option value="byTrack">By Track</option>
                             </select>
                         </div>
                     </div>
-                    <canvas id="improvementChart"></canvas>
+                    <div class="chart-explanation">
+                        <strong>What this shows:</strong> Consistency measures how similar your lap times are. A score of <strong>100 = perfect consistency</strong> (all laps identical), while <strong>0 = highly variable</strong>. High consistency means you can reliably replicate your performance - a key skill for racing!
+                    </div>
+                    <div class="chart-with-stats">
+                        <canvas id="consistencyChart"></canvas>
+                        <div class="stats-panel" id="consistencyStatsPanel">
+                            <div class="stats-panel-header">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Consistency Details</span>
+                            </div>
+                            <div class="stats-panel-content" id="consistencyStatsContent">
+                                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                                    <i class="fas fa-mouse-pointer" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
+                                    <p>Hover over bars to see detailed consistency statistics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Improvement Over Laps -->
+                <div class="chart-container" style="height: 700px;">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Lap-by-Lap Improvement Analysis</h3>
+                        <div class="chart-controls" style="display: flex; gap: 12px;">
+                            <select id="improvementGroupBy" class="modern-select">
+                                <option value="byTrack">By Track</option>
+                                <option value="overall">Overall Progress</option>
+                            </select>
+                            <select id="improvementTrackSelect" class="modern-select">
+                                <!-- Populated dynamically -->
+                            </select>
+                            <select id="improvementDriverSelect" class="modern-select">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-explanation">
+                        <strong>What this shows:</strong> Lap-by-lap improvement visualization. Select a driver and track to see their progression. Each bar represents one lap, showing how it compares to their average on that track. Green = faster than average, red = slower. Makes it easy to spot trends and see which laps were exceptional vs which need work.
+                    </div>
+                    <div class="chart-with-stats">
+                        <canvas id="improvementChart"></canvas>
+                        <div class="stats-panel" id="improvementStatsPanel">
+                            <div class="stats-panel-header">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Improvement Details</span>
+                            </div>
+                            <div class="stats-panel-content" id="improvementStatsContent">
+                                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                                    <i class="fas fa-mouse-pointer" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
+                                    <p>Hover over bars to see improvement statistics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="improvementConclusion"></div>
                 </div>
 
                 <!-- Lap Time Distribution -->
-                <div class="chart-container medium">
+                <div class="chart-container large">
                     <div class="chart-header">
                         <h3><i class="fas fa-chart-area"></i> Lap Time Distribution</h3>
                         <div class="chart-controls">
-                            <select id="distributionDriverSelect">
+                            <select id="distributionDriverSelect" class="modern-select">
                                 <option value="all">All Drivers</option>
                             </select>
                         </div>
                     </div>
-                    <canvas id="lapDistributionChart"></canvas>
+                    <div class="chart-explanation">
+                        <strong>What this shows:</strong> Box plot showing lap time distribution per track. The box shows where the middle 50% of laps fall (Q1-Q3), the gold line is the average, and the whiskers extend from PB (fastest) to slowest lap.
+                    </div>
+                    <div class="chart-with-stats">
+                        <canvas id="lapDistributionChart"></canvas>
+                        <div class="stats-panel" id="lapDistributionStatsPanel">
+                            <div class="stats-panel-header">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Distribution Details</span>
+                            </div>
+                            <div class="stats-panel-content" id="lapDistributionStatsContent">
+                                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                                    <i class="fas fa-mouse-pointer" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
+                                    <p>Hover over bars to see detailed lap time statistics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Best Lap Heatmap -->
-                <div class="chart-container large">
+                <div class="chart-container extra-large">
                     <div class="chart-header">
                         <h3><i class="fas fa-fire"></i> Best Lap Heatmap</h3>
                         <p class="chart-subtitle">Driver vs Track performance matrix</p>
                     </div>
-                    <div id="bestLapHeatmap" class="heatmap-container"></div>
+                    <div class="chart-explanation">
+                        <strong>What this shows:</strong> Color-coded performance across all tracks. Greener = closer to track record, redder = slower compared to the best.
+                    </div>
+                    <div class="chart-with-stats">
+                        <div id="bestLapHeatmap" class="heatmap-container"></div>
+                        <div class="stats-panel" id="heatmapStatsPanel">
+                            <div class="stats-panel-header">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Performance Details</span>
+                            </div>
+                            <div class="stats-panel-content" id="heatmapStatsContent">
+                                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                                    <i class="fas fa-mouse-pointer" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
+                                    <p>Hover over a cell to see detailed performance stats</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Start vs End Pace Analysis -->
-                <div class="chart-container medium">
+                <div class="chart-container large">
                     <div class="chart-header">
                         <h3><i class="fas fa-clock"></i> Start vs End Pace</h3>
-                        <p class="chart-subtitle">Fatigue vs focus analysis</p>
+                        <p class="chart-subtitle">Analyzing fatigue vs focus</p>
+                        <div class="chart-controls">
+                            <select id="paceAnalysisMode" class="modern-select">
+                                <option value="overall">Overall (% Change)</option>
+                                <option value="bytrack">By Track (Actual Times)</option>
+                            </select>
+                        </div>
                     </div>
-                    <canvas id="paceAnalysisChart"></canvas>
+                    <div class="chart-explanation">
+                        <strong>What this shows:</strong> Compare your first laps vs last laps. Getting slower? You might be fatiguing. Getting faster? You're warming up well! Overall mode shows % improvement regardless of track.
+                    </div>
+                    <div class="chart-with-stats">
+                        <canvas id="paceAnalysisChart"></canvas>
+                        <div class="stats-panel" id="paceStatsPanel">
+                            <div class="stats-panel-header">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Pace Details</span>
+                            </div>
+                            <div class="stats-panel-content" id="paceStatsContent">
+                                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                                    <i class="fas fa-mouse-pointer" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
+                                    <p>Hover over bars to see pace analysis</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="paceConclusion"></div>
                 </div>
             </div>
         </section>
 
-        <!-- ========== 2. LAP & SESSION ANALYSIS ========== -->
-        <section class="section lap-session-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="300">
+        <!-- ========== 2. GEOGRAPHICAL EXPANSION (BENELUX) ========== -->
+        <section id="geographical-expansion" class="section geographical-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="300">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div>
+                    <h2><i class="fas fa-globe-europe"></i> Benelux Regional Analysis</h2>
+                    <p>Geographical insights across Belgium, Netherlands, and Luxembourg</p>
+                </div>
+                <button class="section-toggle" aria-label="Toggle section">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            
+            <div class="charts-grid geographical-grid section-content">
+                <!-- Map of Tracks -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-map"></i> Track Locations Map</h3>
+                    </div>
+                    <div id="trackMap" class="map-container"></div>
+                </div>
+
+                <!-- Regional Performance -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-flag"></i> Regional Performance</h3>
+                    </div>
+                    <canvas id="regionalPerformance"></canvas>
+                </div>
+
+                <!-- Heatmap Analysis -->
+                <div class="chart-container medium">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-fire"></i> Performance Heatmap</h3>
+                    </div>
+                    <canvas id="heatmapAnalysis"></canvas>
+                </div>
+
+                <!-- Location Trends -->
+                <div class="chart-container large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Location Performance Trends</h3>
+                    </div>
+                    <canvas id="locationTrends"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== 3. LAP & SESSION ANALYSIS ========== -->
+        <section id="session-analysis" class="section lap-session-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="400">
             <div class="section-header" onclick="toggleSection(this)">
                 <div>
                     <h2><i class="fas fa-flag-checkered"></i> Lap & Session Analysis</h2>
@@ -375,7 +638,7 @@
                     <div class="chart-header">
                         <h3><i class="fas fa-chart-line"></i> Lap Time Trend</h3>
                         <div class="chart-controls">
-                            <select id="sessionSelect">
+                            <select id="sessionSelect" class="modern-select">
                                 <option value="">Select Session</option>
                             </select>
                         </div>
@@ -429,15 +692,16 @@
                 <!-- Session Summary Cards -->
                 <div class="chart-container large">
                     <div class="chart-header">
-                        <h3><i class="fas fa-clipboard-list"></i> Session Summary Cards</h3>
+                        <h3><i class="fas fa-clipboard-list"></i> Session Summary</h3>
+                        <p class="chart-subtitle">Track-grouped analysis to avoid cross-track comparisons</p>
                     </div>
                     <div id="sessionSummaryCards" class="session-cards-container"></div>
                 </div>
             </div>
         </section>
 
-        <!-- ========== 3. TRACK INSIGHTS ========== -->
-        <section class="section track-insights-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="400">
+        <!-- ========== 4. TRACK INSIGHTS ========== -->
+        <section id="track-mastery" class="section track-insights-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="500">
             <div class="section-header" onclick="toggleSection(this)">
                 <div>
                     <h2><i class="fas fa-map-marked-alt"></i> Track Insights</h2>
@@ -452,7 +716,8 @@
                 <!-- Track Performance Comparison -->
                 <div class="chart-container large">
                     <div class="chart-header">
-                        <h3><i class="fas fa-chart-bar"></i> Track Performance Comparison</h3>
+                        <h3><i class="fas fa-chart-bar"></i> Track Characteristics</h3>
+                        <p class="chart-subtitle">Improvement rates, speeds, and consistency per track</p>
                     </div>
                     <canvas id="trackPerformanceChart"></canvas>
                 </div>
@@ -500,8 +765,8 @@
             </div>
         </section>
 
-        <!-- ========== 4. DRIVER VS DRIVER BATTLES ========== -->
-        <section class="section driver-battles-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="500">
+        <!-- ========== 5. DRIVER VS DRIVER BATTLES ========== -->
+        <section id="head-to-head" class="section driver-battles-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="600">
             <div class="section-header" onclick="toggleSection(this)">
                 <div>
                     <h2><i class="fas fa-users"></i> Driver vs Driver Battles</h2>
@@ -527,7 +792,7 @@
                     <div class="chart-header">
                         <h3><i class="fas fa-exchange-alt"></i> Position Swap Timeline</h3>
                         <div class="chart-controls">
-                            <select id="battleSessionSelect">
+                            <select id="battleSessionSelect" class="modern-select">
                                 <option value="">Select Session</option>
                             </select>
                         </div>
@@ -539,11 +804,11 @@
                 <div class="chart-container medium">
                     <div class="chart-header">
                         <h3><i class="fas fa-stopwatch"></i> Gap vs Time</h3>
-                        <div class="chart-controls">
-                            <select id="driver1BattleSelect">
+                        <div class="chart-controls" style="display: flex; gap: 12px;">
+                            <select id="driver1BattleSelect" class="modern-select">
                                 <option value="">Driver 1</option>
                             </select>
-                            <select id="driver2BattleSelect">
+                            <select id="driver2BattleSelect" class="modern-select">
                                 <option value="">Driver 2</option>
                             </select>
                         </div>
@@ -570,8 +835,8 @@
             </div>
         </section>
 
-        <!-- ========== 5. FINANCIAL & EFFICIENCY METRICS ========== -->
-        <section class="section financial-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="600">
+        <!-- ========== 6. FINANCIAL & EFFICIENCY METRICS ========== -->
+        <section id="financial-breakdown" class="section financial-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="700">
             <div class="section-header" onclick="toggleSection(this)">
                 <div>
                     <h2><i class="fas fa-euro-sign"></i> Financial & Efficiency Metrics</h2>
@@ -634,8 +899,8 @@
             </div>
         </section>
 
-        <!-- ========== 6. TEMPORAL ANALYTICS ========== -->
-        <section class="section temporal-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="700">
+        <!-- ========== 7. TEMPORAL ANALYTICS ========== -->
+        <section id="temporal-insights" class="section temporal-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="800">
             <div class="section-header" onclick="toggleSection(this)">
                 <div>
                     <h2><i class="fas fa-calendar-alt"></i> Temporal Analytics</h2>
@@ -650,7 +915,8 @@
                 <!-- Lap Time Progression Over Weeks -->
                 <div class="chart-container large">
                     <div class="chart-header">
-                        <h3><i class="fas fa-chart-line"></i> Weekly Progression</h3>
+                        <h3><i class="fas fa-chart-line"></i> Monthly Performance Trends</h3>
+                        <p class="chart-subtitle">Session improvement rates and participation</p>
                     </div>
                     <canvas id="weeklyProgressChart"></canvas>
                 </div>
@@ -697,8 +963,8 @@
             </div>
         </section>
 
-        <!-- ========== 7. SESSION SUMMARY WIDGETS ========== -->
-        <section class="section session-widgets-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="800">
+        <!-- ========== 8. SESSION SUMMARY WIDGETS ========== -->
+        <section class="section session-widgets-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="900">
             <div class="section-header" onclick="toggleSection(this)">
                 <div>
                     <h2><i class="fas fa-th-large"></i> Session Summary Widgets</h2>
@@ -712,8 +978,8 @@
             <div id="sessionWidgetsContainer" class="session-widgets-grid section-content"></div>
         </section>
 
-        <!-- ========== 8. ADVANCED / PREDICTIVE ANALYTICS ========== -->
-        <section class="section predictive-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="900">
+        <!-- ========== 9. ADVANCED / PREDICTIVE ANALYTICS ========== -->
+        <section id="predictive-analytics" class="section predictive-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="1000">
             <div class="section-header" onclick="toggleSection(this)">
                 <div>
                     <h2><i class="fas fa-crystal-ball"></i> Advanced / Predictive Analytics</h2>
@@ -767,53 +1033,6 @@
                         <p class="chart-subtitle">Optimal rest intervals</p>
                     </div>
                     <canvas id="pitstopSimChart"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <!-- ========== 9. GEOGRAPHICAL EXPANSION (BENELUX) ========== -->
-        <section class="section geographical-section charts-loading collapsed" data-aos="fade-up" data-aos-delay="1000">
-            <div class="section-header" onclick="toggleSection(this)">
-                <div>
-                    <h2><i class="fas fa-globe-europe"></i> Benelux Regional Analysis</h2>
-                    <p>Geographical insights across Belgium, Netherlands, and Luxembourg</p>
-                </div>
-                <button class="section-toggle" aria-label="Toggle section">
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
-            
-            <div class="charts-grid geographical-grid section-content">
-                <!-- Map of Tracks -->
-                <div class="chart-container large">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-map"></i> Track Locations Map</h3>
-                    </div>
-                    <div id="trackMap" class="map-container"></div>
-                </div>
-
-                <!-- Regional Performance -->
-                <div class="chart-container medium">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-flag"></i> Regional Performance</h3>
-                    </div>
-                    <canvas id="regionalPerformance"></canvas>
-                </div>
-
-                <!-- Heatmap Analysis -->
-                <div class="chart-container medium">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-fire"></i> Performance Heatmap</h3>
-                    </div>
-                    <canvas id="heatmapAnalysis"></canvas>
-                </div>
-
-                <!-- Location Trends -->
-                <div class="chart-container large">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-chart-line"></i> Location Performance Trends</h3>
-                    </div>
-                    <canvas id="locationTrends"></canvas>
                 </div>
             </div>
         </section>
@@ -913,10 +1132,16 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     
     <!-- Core Module: Global state, theme, utilities (MUST load first) -->
-    <script src="js/core.js"></script>
+    <script src="js/core.js?v=2024112108"></script>
+    
+    <!-- Chart Configuration: Shared utilities and constants -->
+    <script src="js/chart-config.js?v=2024112108"></script>
+    
+    <!-- Chart Utilities Module -->
+    <script src="js/chart-utils.js?v=2024112108"></script>
     
     <!-- Main Script: Data loading, filters, KPI, UI (loads immediately) -->
-    <script src="script.js"></script>
+    <script src="script.js?v=2024112108"></script>
     
     <!-- Lazy Load Charts: Load when user scrolls to chart sections -->
     <script>
@@ -930,14 +1155,14 @@
             console.log('Loading chart modules...');
             
             const chartScripts = [
-                'js/charts-driver.js',
-                'js/charts-session.js',
-                'js/charts-track.js',
-                'js/charts-battles.js',
-                'js/charts-financial.js',
-                'js/charts-temporal.js',
-                'js/charts-predictive.js',
-                'js/charts-geo.js'
+                'js/charts-driver.js?v=2024112108',
+                'js/charts-session.js?v=2024112108',
+                'js/charts-track.js?v=2024112108',
+                'js/charts-battles.js?v=2024112108',
+                'js/charts-financial.js?v=2024112108',
+                'js/charts-temporal.js?v=2024112108',
+                'js/charts-predictive.js?v=2024112108',
+                'js/charts-geo.js?v=2024112108'
             ];
             
             // Load scripts sequentially to maintain dependencies

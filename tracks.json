@@ -1,0 +1,186 @@
+{
+  "tracks": [
+    {
+      "trackId": "TRK-001",
+      "name": "Fastkart Elche",
+      "location": {
+        "city": "Elche",
+        "country": "Spain",
+        "region": "Alicante"
+      },
+      "specifications": {
+        "distance": 1160,
+        "corners": 14,
+        "width": 10,
+        "indoor": false
+      },
+      "features": [
+        "Electronic flags",
+        "3x3m video scoreboard",
+        "Real-time timing",
+        "Cafeteria",
+        "Game room",
+        "Large terrace",
+        "Private paddock"
+      ],
+      "website": "https://fastkart.es/karting-elche",
+      "contact": {
+        "phone": "+34 638 003 916"
+      },
+      "pricing": {
+        "ticketSimple": 20.0,
+        "carrera": 30.0,
+        "granPremio": 40.0,
+        "challenge": 50.0,
+        "superChallenge": 60.0,
+        "session": 30.0,
+        "costPerLap": 2.14
+      },
+      "karts": ["GTR 270cc", "LR5 Junior 160cc", "Biplaza 270cc", "RT8 390cc"]
+    },
+    {
+      "trackId": "TRK-002",
+      "name": "De Voltage",
+      "location": {
+        "city": "Tiel",
+        "country": "Netherlands",
+        "region": "Gelderland"
+      },
+      "specifications": {
+        "distance": 450,
+        "corners": 12,
+        "indoor": true
+      },
+      "features": ["Electric karts"],
+      "website": "https://devoltage.nl",
+      "contact": {},
+      "pricing": {
+        "session": 19.75,
+        "costPerLap": 1.65
+      },
+      "karts": ["Electric karts"]
+    },
+    {
+      "trackId": "TRK-003",
+      "name": "Experience Factory Antwerp",
+      "location": {
+        "city": "Antwerp",
+        "country": "Belgium",
+        "region": "Flanders"
+      },
+      "specifications": {
+        "distance": 350,
+        "corners": 9,
+        "indoor": true
+      },
+      "features": ["E-Karting", "Apex timing system"],
+      "website": "https://www.experience-factory.com",
+      "contact": {
+        "email": "antwerp@experience-factory.com"
+      },
+      "pricing": {
+        "session": 23.5,
+        "costPerLap": 2.14
+      },
+      "karts": ["E-Kart"]
+    },
+    {
+      "trackId": "TRK-004",
+      "name": "Circuit Park Berghem",
+      "location": {
+        "city": "Berghem (Oss)",
+        "country": "Netherlands",
+        "region": "North Brabant"
+      },
+      "specifications": {
+        "distance": 1200,
+        "corners": 14,
+        "indoor": false
+      },
+      "features": ["SMS Timing"],
+      "website": "https://circuitparkberghem.nl",
+      "contact": {},
+      "pricing": {
+        "session": 19.95,
+        "costPerLap": 0.91
+      },
+      "karts": []
+    },
+    {
+      "trackId": "TRK-005",
+      "name": "Goodwill Karting",
+      "location": {
+        "city": "Heerhugowaard",
+        "country": "Netherlands",
+        "region": "North Holland"
+      },
+      "specifications": {
+        "distance": 450,
+        "corners": 10,
+        "indoor": true
+      },
+      "features": [],
+      "website": "https://goodwillkarting.nl",
+      "contact": {},
+      "pricing": {
+        "session": 13.30,
+        "costPerLap": 0.74
+      },
+      "karts": []
+    },
+    {
+      "trackId": "TRK-006",
+      "name": "Lot66",
+      "location": {
+        "city": "Oss",
+        "country": "Netherlands",
+        "region": "North Brabant"
+      },
+      "specifications": {
+        "distance": 325,
+        "corners": 11,
+        "indoor": true
+      },
+      "features": ["SMS Timing"],
+      "website": "https://lot66.nl",
+      "contact": {},
+      "pricing": {
+        "session": 30.0,
+        "costPerLap": 2.0
+      },
+      "karts": []
+    },
+    {
+      "trackId": "TRK-007",
+      "name": "Racing Center Gilesias",
+      "location": {
+        "city": "Guardamar del Segura",
+        "country": "Spain",
+        "region": "Alicante"
+      },
+      "specifications": {
+        "distance": 500,
+        "corners": 12,
+        "indoor": false
+      },
+      "features": [
+        "Latest timing technology",
+        "Photography services",
+        "Recreational area",
+        "Restaurant (The Paddock)",
+        "Formula 1 store"
+      ],
+      "website": "https://racingcentergilesias.es",
+      "contact": {
+        "phone": "+34 965 615 711",
+        "email": "info@racingcentergilesias.es"
+      },
+      "pricing": {
+        "session8min": 15.0,
+        "costPerLap": 0.83
+      },
+      "karts": ["2 Stroke", "Super Fast Kart", "Fast Kart", "Super Junior", "Junior", "Mini Junior", "Biplazas"],
+      "notes": "Since 1989. Best karting track with Google rating in the Valencian Community and Region of Murcia"
+    }
+  ]
+}

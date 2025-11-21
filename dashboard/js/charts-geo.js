@@ -1,16 +1,15 @@
 // ========== GEOGRAPHICAL CHARTS MODULE ==========
 // Extracted from script.js
 
-function initializeGeographicalCharts() {
-    console.log('🌍 Initializing Geographical Analytics Charts...');
+// Make function globally accessible
+window.initializeGeographicalCharts = function() {
     
     createTrackMapChart();
     createRegionalPerformanceChart();
     createHeatmapAnalysisChart();
     createLocationTrendsChart();
     
-    console.log('✅ Geographical Analytics Charts initialized');
-}
+}; // End of window.initializeGeographicalCharts
 
 // ==============================================
 // GEOGRAPHICAL FEATURES SECTION
@@ -18,63 +17,69 @@ function initializeGeographicalCharts() {
 
 // Track Map Visualization using Leaflet
 function createTrackMapChart() {
-    console.log('🗺️ createTrackMapChart called');
     try {
         const mapContainer = document.getElementById('trackMap');
         if (!mapContainer) {
-            console.error('❌ Map container #trackMap not found!');
             return;
         }
         
         // Check if Leaflet is loaded
         if (typeof L === 'undefined') {
-            console.error('❌ Leaflet library not loaded!');
             return;
         }
         
-        console.log('✅ Map container found, Leaflet loaded');
 
-        // Track coordinates for BENELUX region (verified actual locations)
+        // Track coordinates (verified actual locations)
         const trackLocations = {
             'Circuit Park Berghem': { 
                 lat: 51.7538, 
                 lng: 5.5786, 
-                city: 'Berghem, Netherlands',
+                city: 'Berghem (Oss), Netherlands',
                 address: 'Berghemseweg 35, 5351 NC Berghem'
             },
             'De Voltage': { 
-                lat: 51.5558, 
-                lng: 5.0917, 
+                lat: 51.5469, 
+                lng: 5.0884, 
                 city: 'Tilburg, Netherlands',
-                address: 'Kempenbaan 2, 5017 AS Tilburg'
+                address: 'Groenstraat 139-391, 5021 LL Tilburg'
             },
             'Experience Factory Antwerp': { 
-                lat: 51.2629, 
-                lng: 4.4378, 
+                lat: 51.1726, 
+                lng: 4.4488, 
                 city: 'Mortsel (Antwerp), Belgium',
                 address: 'Roderveldlaan 5, 2640 Mortsel'
             },
             'Goodwill Karting': { 
-                lat: 51.1654, 
-                lng: 4.9936, 
-                city: 'Geel, Belgium',
-                address: 'Pas 91, 2440 Geel'
+                lat: 51.3294, 
+                lng: 4.9378, 
+                city: 'Turnhout, Belgium',
+                address: 'Goodwill Karting Turnhout'
             },
             'Lot66': { 
-                lat: 51.5219, 
-                lng: 4.7607, 
+                lat: 51.5889, 
+                lng: 4.7758, 
                 city: 'Breda, Netherlands',
-                address: 'Vossenbergseweg 66, 4851 RH Ulvenhout (Breda)'
+                address: 'Lot66, Breda (Permanently Closed)'
+            },
+            'Fastkart Elche': { 
+                lat: 38.2699, 
+                lng: -0.6983, 
+                city: 'Elche, Spain',
+                address: 'Elche Karting Club, Alicante'
+            },
+            'Racing Center Gilesias': { 
+                lat: 38.1143, 
+                lng: -0.6580, 
+                city: 'Guardamar del Segura, Spain',
+                address: 'Ctra. Alicante-Cartagena KM 74'
             }
         };
 
         // Check if we have data
         if (!filteredData || filteredData.length === 0) {
-            console.warn('⚠️ No filtered data available for map');
             return;
         }
         
-        console.log(`📊 Processing ${filteredData.length} rows for map statistics`);
 
         // Calculate stats for each track
         const trackStats = {};
@@ -142,32 +147,26 @@ function createTrackMapChart() {
             }
         });
         
-        console.log('📊 Track statistics calculated:', trackStats);
-        console.log(`📍 Found ${Object.keys(trackStats).length} unique tracks in data`);
 
         // Initialize map centered on BENELUX region
         if (window.trackMapInstance) {
             try {
                 window.trackMapInstance.remove();
-                console.log('🗑️ Previous map instance removed');
             } catch (e) {
-                console.warn('⚠️ Error removing previous map:', e);
             }
         }
         
         // Clear the container first
         mapContainer.innerHTML = '';
         
-        console.log('🗺️ Initializing Leaflet map...');
         
         let map;
         try {
-            // Center on Netherlands/Belgium border (between all tracks)
-            map = L.map('trackMap').setView([51.5, 4.9], 9);
+            // Center on Europe to show Netherlands, Belgium, and Spain
+            // Coordinates roughly centered between Benelux and Spain
+            map = L.map('trackMap').setView([46.0, 2.5], 5);
             window.trackMapInstance = map;
-            console.log('✅ Map instance created at [51.5, 4.9]');
         } catch (e) {
-            console.error('❌ Failed to create map instance:', e);
             throw e;
         }
 
@@ -176,11 +175,9 @@ function createTrackMapChart() {
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19,
-                minZoom: 7
+                minZoom: 4
             }).addTo(map);
-            console.log('✅ Map tiles added');
         } catch (e) {
-            console.error('❌ Failed to add map tiles:', e);
             throw e;
         }
         
@@ -188,7 +185,6 @@ function createTrackMapChart() {
         setTimeout(() => {
             if (map) {
                 map.invalidateSize();
-                console.log('🔄 Map size invalidated');
             }
         }, 200);
 
@@ -199,7 +195,6 @@ function createTrackMapChart() {
                 const loc = trackLocations[trackName];
                 const stats = trackStats[trackName] || { sessions: 0, laps: 0, bestLap: 0, totalCost: 0 };
                 
-                console.log(`📍 Adding marker for ${trackName} at [${loc.lat}, ${loc.lng}]`);
                 
                 // Create custom icon based on number of sessions
                 const iconSize = Math.min(40, 20 + (stats.sessions * 2));
@@ -228,12 +223,9 @@ function createTrackMapChart() {
             const totalDistanceKm = (stats.totalDistance / 1000).toFixed(1);
             const avgSpeedKmh = stats.avgSpeed.toFixed(1);
             const costPerSession = stats.sessions > 0 ? (stats.totalCost / stats.sessions).toFixed(2) : '0.00';
+            const costPerLap = stats.laps > 0 ? (stats.totalCost / stats.laps).toFixed(2) : '0.00';
+            const avgLapTime = stats.laps > 0 ? (filteredData.filter(r => r.Track === trackName).reduce((sum, r) => sum + parseFloat(r.LapTime || 0), 0) / stats.laps).toFixed(2) : '0.00';
             
-            console.log(`💰 ${trackName} cost breakdown:`, {
-                sessions: stats.sessions,
-                totalCost: stats.totalCost,
-                costPerSession: costPerSession
-            });
             
             const popupContent = `
                 <div class="track-popup">
@@ -255,21 +247,29 @@ function createTrackMapChart() {
                             <div style="font-size: 0.7rem; color: #2e7d32; margin-bottom: 2px;">🏆 Best Lap</div>
                             <div style="font-weight: bold; color: #1b5e20;">${stats.bestLap !== Infinity ? stats.bestLap.toFixed(2) + 's' : 'N/A'}</div>
                         </div>
+                        <div style="padding: 4px; background: #e3f2fd; border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: #1565c0; margin-bottom: 2px;">⏱️ Avg Lap</div>
+                            <div style="font-weight: bold; color: #0d47a1;">${avgLapTime}s</div>
+                        </div>
                         <div style="padding: 4px; background: #fff3e0; border-radius: 4px;">
                             <div style="font-size: 0.7rem; color: #e65100; margin-bottom: 2px;">⚡ Avg Speed</div>
                             <div style="font-weight: bold; color: #bf360c;">${avgSpeedKmh} km/h</div>
                         </div>
-                        <div style="padding: 4px; background: #e3f2fd; border-radius: 4px;">
-                            <div style="font-size: 0.7rem; color: #1565c0; margin-bottom: 2px;">🛣️ Distance</div>
-                            <div style="font-weight: bold; color: #0d47a1;">${totalDistanceKm} km</div>
+                        <div style="padding: 4px; background: #f3e5f5; border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: #6a1b9a; margin-bottom: 2px;">🛣️ Distance</div>
+                            <div style="font-weight: bold; color: #4a148c;">${totalDistanceKm} km</div>
                         </div>
                         <div style="padding: 4px; background: #fce4ec; border-radius: 4px;">
                             <div style="font-size: 0.7rem; color: #c2185b; margin-bottom: 2px;">💰 €/Session</div>
                             <div style="font-weight: bold; color: #880e4f;">€${costPerSession}</div>
                         </div>
+                        <div style="padding: 4px; background: #fff9c4; border-radius: 4px;">
+                            <div style="font-size: 0.7rem; color: #f57f17; margin-bottom: 2px;">💶 €/Lap</div>
+                            <div style="font-weight: bold; color: #f57f17;">€${costPerLap}</div>
+                        </div>
                     </div>
-                    <div style="margin-top: 6px; padding: 6px; background: #f5f5f5; border-radius: 4px; text-align: center; font-size: 0.8rem;">
-                        <strong>Total Spent:</strong> <span style="color: #d32f2f; font-weight: bold;">€${stats.totalCost.toFixed(2)}</span>
+                    <div style="margin-top: 6px; padding: 6px; background: #ffebee; border-radius: 4px; text-align: center; font-size: 0.85rem; border: 1px solid #ffcdd2;">
+                        <strong style="color: #333;">Total Spent:</strong> <span style="color: #c62828; font-weight: bold; font-size: 0.95rem;">€${stats.totalCost.toFixed(2)}</span>
                     </div>
                     ` : `
                     <p style="margin: 8px 0; color: #999; font-style: italic; text-align: center;">
@@ -281,16 +281,12 @@ function createTrackMapChart() {
             
             marker.bindPopup(popupContent, { maxWidth: 320 });
             
-            console.log(`📍 ${trackName}: ${stats.laps} laps, ${stats.sessions} sessions`);
             markersAdded++;
             } catch (e) {
-                console.error(`❌ Error adding marker for ${trackName}:`, e);
             }
         });
 
-        console.log(`✅ Track Map created with Leaflet (${markersAdded} markers added)`);
     } catch (error) {
-        console.error('❌ Error creating Track Map:', error);
         
         // Fallback: Show simple chart if map fails
         const ctx = document.getElementById('trackMap')?.getContext('2d');
@@ -401,7 +397,6 @@ function createTrackMapChart() {
             }
         });
 
-        console.log('✅ Track Map Chart (fallback) created');
     }
 }
 
@@ -502,9 +497,7 @@ function createRegionalPerformanceChart() {
             }
         });
 
-        console.log('✅ Regional Performance Chart created');
     } catch (error) {
-        console.error('❌ Error creating Regional Performance Chart:', error);
     }
 }
 
@@ -615,9 +608,7 @@ function createHeatmapAnalysisChart() {
             }
         });
 
-        console.log('✅ Lap Time Comparison Chart created');
     } catch (error) {
-        console.error('❌ Error creating Lap Time Comparison Chart:', error);
     }
 }
 
@@ -720,9 +711,7 @@ function createHeatmapAnalysisChart_OLD() {
             }
         });
 
-        console.log('✅ Heatmap Analysis Chart created');
     } catch (error) {
-        console.error('❌ Error creating Heatmap Analysis Chart:', error);
     }
 }
 
@@ -862,9 +851,7 @@ function createLocationTrendsChart() {
             }
         });
 
-        console.log('✅ Location Trends Chart created');
     } catch (error) {
-        console.error('❌ Error creating Location Trends Chart:', error);
     }
 }
 
@@ -1038,4 +1025,3 @@ function analyzeLocationTrends(data) {
     return { timeLabels, locations };
 }
 
-console.log('🏁 Elite Karting Analytics Platform Script Loaded and Ready!');

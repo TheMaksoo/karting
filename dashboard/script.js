@@ -2,10 +2,18 @@
 // Complete JavaScript implementation with 40+ charts and advanced analytics
 
 // ========== GLOBAL VARIABLES & STATE ==========
-let kartingData = [];
-let filteredData = [];
-let charts = {};
-let currentTheme = 'dark';
+// Note: These are also defined in core.js but we ensure they're on window object
+window.kartingData = window.kartingData || [];
+window.filteredData = window.filteredData || [];
+window.charts = window.charts || {};
+window.currentTheme = window.currentTheme || 'dark';
+
+// Local references for backward compatibility
+let kartingData = window.kartingData;
+let filteredData = window.filteredData;
+let charts = window.charts;
+let currentTheme = window.currentTheme;
+
 let loadingTimeout;
 // Timers used to coordinate loading screen hide/fade to prevent flicker
 let loadingFadeTimeout = null;
@@ -46,13 +54,6 @@ let driverStats = {};
 let trackStats = {};
 let sessionStats = {};
 let temporalStats = {};
-
-// Chart Colors
-const CHART_COLORS = [
-    '#ff6b35', '#004e89', '#ffd23f', '#06d6a0', '#f18701', '#e63946',
-    '#9c27b0', '#4caf50', '#3f51b5', '#ff9800', '#00bcd4', '#795548',
-    '#607d8b', '#8bc34a', '#ffeb3b', '#e91e63', '#2196f3', '#ff5722'
-];
 
 // Default chart options to prevent scaling issues
 const DEFAULT_CHART_OPTIONS = {
@@ -383,10 +384,17 @@ async function loadData() {
         await new Promise(resolve => setTimeout(resolve, 200));
         
         kartingData = parseCSV(csvText);
+        window.kartingData = kartingData; // Update window object
         filteredData = [...kartingData];
+        window.filteredData = filteredData; // Update window object
+        
+        // Initialize driver colors immediately after loading data
+        const drivers = [...new Set(kartingData.map(row => row.Driver))];
+        drivers.forEach(driver => {
+            window.getDriverColor(driver); // This will assign colors
+        });
         
         updateLoadingProgress(70, 'Analyzing performance metrics...');
-        console.log(`📊 Loaded ${kartingData.length} racing records`);
         await new Promise(resolve => setTimeout(resolve, 300));
         
         // Step 4: Initialize analytics
@@ -405,7 +413,6 @@ async function loadData() {
         }
         
     } catch (error) {
-        console.error('❌ Error loading data (will propagate to caller):', error);
 
         // Still respect minimum loading time even on error
         const elapsedTime = Date.now() - startTime;
@@ -444,7 +451,6 @@ function parseCSV(csvText) {
 }
 
 async function initializeAnalytics() {
-    console.log('🔄 Initializing comprehensive analytics...');
     
     // Initialize all analytics modules
     await Promise.all([
@@ -461,16 +467,14 @@ async function initializeAnalytics() {
     updateFilterStatus(); // Initialize filter status
     populateAllDropdowns();
     
+    
     // Initialize all chart sections (if modules are loaded)
     // Charts will be initialized after lazy loading completes
-    if (typeof initializeDriverPerformanceCharts === 'function') {
-        console.log('📊 Chart modules already loaded, initializing now...');
-        initializeAllCharts();
+    if (typeof window.initializeDriverPerformanceCharts === 'function') {
+        window.initializeAllCharts();
     } else {
-        console.log('⏳ Waiting for chart modules to load via lazy loading...');
     }
     
-    console.log('✅ Analytics platform fully initialized!');
 }
 
 // ========== STATISTICS CALCULATIONS ==========
@@ -718,7 +722,6 @@ function updateKPISummary() {
         });
         
         const allHeatKeys = Object.keys(allHeats);
-        console.log(`Checking heats won for ${selectedDriver} across ${allHeatKeys.length} total heats`);
         
         allHeatKeys.forEach((heatKey, index) => {
             const heatData = allHeats[heatKey];
@@ -743,12 +746,10 @@ function updateKPISummary() {
                 if (driverBestLaps[selectedDriver] && 
                     Math.abs(driverBestLaps[selectedDriver] - overallFastest) < 0.001) {
                     heatsWon++;
-                    console.log(`${selectedDriver} WON heat ${heatKey} with time ${driverBestLaps[selectedDriver]} (fastest: ${overallFastest})`);
                 }
             }
         });
         
-        console.log(`${selectedDriver} won ${heatsWon} heats (ties count as wins for all tied drivers)`);
         
         // Calculate cost per heat and cost per lap
         const totalCost = stats.totalCost;
@@ -769,7 +770,6 @@ function updateKPISummary() {
             ? `${totalDistanceKm.toFixed(1)} km` 
             : `${totalDistanceMeters.toFixed(0)} m`;
         
-        console.log('Driver distance calc:', { totalDistanceMeters, driverDataLength: driverData.length, sampleDistance: driverData[0]?.TrackDistance });
         
         // Calculate average speed from all laps
         const avgSpeedValues = driverData
@@ -782,7 +782,6 @@ function updateKPISummary() {
             ? avgSpeedValues.reduce((sum, speed) => sum + speed, 0) / avgSpeedValues.length
             : 0;
         
-        console.log('Driver speed calc:', { avgSpeedValues: avgSpeedValues.slice(0, 5), overallAvgSpeed, count: avgSpeedValues.length });
         
         // Calculate total corners
         const totalCorners = driverData.reduce((sum, row) => {
@@ -790,7 +789,6 @@ function updateKPISummary() {
             return sum + (isNaN(corners) ? 0 : corners);
         }, 0);
         
-        console.log('Driver corners calc:', { totalCorners, sampleCorners: driverData[0]?.Corners });
         
         // Calculate average of fastest laps per heat
         const heatFastestLaps = heatKeys.map(heatKey => {
@@ -837,7 +835,7 @@ function updateKPISummary() {
         const treesNeeded = totalCO2kg / 21;
         
         // Data points calculation
-        const dataColumnsCount = 30;
+        const dataColumnsCount = 32; // Total columns in CSV
         const driverDataPoints = totalLapsForDriver * dataColumnsCount;
         
         // Update KPI tiles with driver metrics
@@ -858,14 +856,15 @@ function updateKPISummary() {
         updateElement('costPerKm', `€${costPerKm.toFixed(2)}`);
         updateElement('costPerSession', `€${costPerSession.toFixed(2)}`);
         updateElement('totalEntries', totalLapsForDriver.toLocaleString());
-        updateElement('dataPoints', driverDataPoints.toLocaleString());
+        updateElement('dataPoints', `${totalLapsForDriver.toLocaleString()} × ${dataColumnsCount} = ${driverDataPoints.toLocaleString()}`);
+        updateElement('sidebarDataPoints', driverDataPoints.toLocaleString());
         updateElement('co2Emissions', totalCO2kg >= 1 ? `${totalCO2kg.toFixed(1)} kg` : `${(totalCO2kg * 1000).toFixed(0)} g`);
         updateElement('treesOffset', treesNeeded >= 1 ? `${treesNeeded.toFixed(1)}` : `<1`);
         
     } else {
         // GLOBAL METRICS (when no driver selected)
         const totalEntries = kartingData.length;
-        const dataColumns = 26;
+        const dataColumns = 32; // Total columns in CSV
         const totalDataPoints = totalEntries * dataColumns;
         const uniqueTracks = new Set(kartingData.map(row => row.Track)).size;
         const uniqueDrivers = new Set(kartingData.map(row => row.Driver)).size;
@@ -945,7 +944,6 @@ function updateKPISummary() {
             ? `${totalDistanceKm.toFixed(1)} km` 
             : `${totalDistanceMeters.toFixed(0)} m`;
         
-        console.log('Global distance calc:', { totalDistanceMeters, filteredDataLength: filteredData.length, sampleDistance: filteredData[0]?.TrackDistance });
         
         // Calculate average speed from all laps (global)
         const avgSpeedValues = filteredData
@@ -958,7 +956,6 @@ function updateKPISummary() {
             ? avgSpeedValues.reduce((sum, speed) => sum + speed, 0) / avgSpeedValues.length
             : 0;
         
-        console.log('Global speed calc:', { avgSpeedValues: avgSpeedValues.slice(0, 5), overallAvgSpeed, count: avgSpeedValues.length });
         
         // Calculate total corners (global)
         const totalCorners = filteredData.reduce((sum, row) => {
@@ -966,7 +963,6 @@ function updateKPISummary() {
             return sum + (isNaN(corners) ? 0 : corners);
         }, 0);
         
-        console.log('Global corners calc:', { totalCorners, sampleCorners: filteredData[0]?.Corners });
         
         // Calculate average of fastest laps per heat (global)
         const heatFastestLaps = Object.keys(globalHeats).map(heatKey => {
@@ -1019,7 +1015,7 @@ function updateKPISummary() {
         const treesNeeded = totalCO2kg / 21;
         
         // Data points calculation
-        const dataColumnsCount = 30;
+        const dataColumnsCount = 32;
         const globalDataPoints = filteredData.length * dataColumnsCount;
         
         // Update KPI tiles with global metrics
@@ -1040,7 +1036,8 @@ function updateKPISummary() {
         updateElement('costPerKm', `€${costPerKm.toFixed(2)}`);
         updateElement('costPerSession', `€${costPerSession.toFixed(2)}`);
         updateElement('totalEntries', filteredData.length.toLocaleString());
-        updateElement('dataPoints', globalDataPoints.toLocaleString());
+        updateElement('dataPoints', `${filteredData.length.toLocaleString()} × ${dataColumnsCount} = ${globalDataPoints.toLocaleString()}`);
+        updateElement('sidebarDataPoints', globalDataPoints.toLocaleString());
         updateElement('co2Emissions', totalCO2kg >= 1 ? `${totalCO2kg.toFixed(1)} kg` : `${(totalCO2kg * 1000).toFixed(0)} g`);
         updateElement('treesOffset', treesNeeded >= 1 ? `${treesNeeded.toFixed(1)}` : `<1`);
     }
@@ -1069,7 +1066,6 @@ function toggleSection(headerElement) {
         if (wasCollapsed && section.classList.contains('geographical-section')) {
             setTimeout(() => {
                 if (window.trackMapInstance) {
-                    console.log('🗺️ Refreshing map after section expand...');
                     window.trackMapInstance.invalidateSize();
                 }
             }, 200);
@@ -1086,7 +1082,6 @@ function toggleSection(headerElement) {
 
 // Placeholder function for Leaderboards section
 function initializeLeaderboardsSection() {
-    console.log('🏆 Leaderboards section - placeholder (to be implemented)');
     const leaderboardContainer = document.querySelector('.leaderboards-section .section-content');
     if (leaderboardContainer && filteredData.length > 0) {
         // Calculate top drivers by best lap time
@@ -1120,7 +1115,6 @@ function initializeLeaderboardsSection() {
 
 // Placeholder function for Data Table section
 function initializeDataTableSection() {
-    console.log('📊 Data Table section - placeholder (to be implemented)');
     const tableContainer = document.querySelector('.data-table-section .section-content');
     if (tableContainer && filteredData.length > 0) {
         let html = '<div style="padding: 1rem; overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">';
@@ -1153,55 +1147,45 @@ function initializeDataTableSection() {
 
 // Initialize all chart modules
 window.initializeAllCharts = function() {
-    console.log('🚀 Initializing all chart modules...');
     
     try {
-        if (typeof initializeDriverPerformanceCharts === 'function') {
-            initializeDriverPerformanceCharts();
-            console.log('✅ Driver Performance Charts initialized');
+        if (typeof window.initializeDriverPerformanceCharts === 'function') {
+            window.initializeDriverPerformanceCharts();
+        } else {
         }
         
-        if (typeof initializeLapSessionCharts === 'function') {
-            initializeLapSessionCharts();
-            console.log('✅ Lap Session Charts initialized');
+        if (typeof window.initializeLapSessionCharts === 'function') {
+            window.initializeLapSessionCharts();
         }
         
-        if (typeof initializeTrackInsightsCharts === 'function') {
-            initializeTrackInsightsCharts();
-            console.log('✅ Track Insights Charts initialized');
+        if (typeof window.initializeTrackInsightsCharts === 'function') {
+            window.initializeTrackInsightsCharts();
         }
         
-        if (typeof initializeDriverBattleCharts === 'function') {
-            initializeDriverBattleCharts();
-            console.log('✅ Driver Battle Charts initialized');
+        if (typeof window.initializeDriverBattleCharts === 'function') {
+            window.initializeDriverBattleCharts();
         }
         
-        if (typeof initializeFinancialCharts === 'function') {
-            initializeFinancialCharts();
-            console.log('✅ Financial Charts initialized');
+        if (typeof window.initializeFinancialCharts === 'function') {
+            window.initializeFinancialCharts();
         }
         
-        if (typeof initializeTemporalCharts === 'function') {
-            initializeTemporalCharts();
-            console.log('✅ Temporal Charts initialized');
+        if (typeof window.initializeTemporalCharts === 'function') {
+            window.initializeTemporalCharts();
         }
         
-        if (typeof initializePredictiveCharts === 'function') {
-            initializePredictiveCharts();
-            console.log('✅ Predictive Charts initialized');
+        if (typeof window.initializePredictiveCharts === 'function') {
+            window.initializePredictiveCharts();
         }
         
-        if (typeof initializeGeographicalCharts === 'function') {
-            initializeGeographicalCharts();
-            console.log('✅ Geographical Charts initialized');
+        if (typeof window.initializeGeographicalCharts === 'function') {
+            window.initializeGeographicalCharts();
         }
         
         // Initialize Session Widgets component (from charts-temporal.js)
         if (typeof initializeSessionWidgets === 'function') {
             initializeSessionWidgets();
-            console.log('✅ Session Widgets initialized');
         } else {
-            console.warn('⚠️ initializeSessionWidgets not found');
         }
         
         // Initialize Leaderboards section (placeholder)
@@ -1210,9 +1194,7 @@ window.initializeAllCharts = function() {
         // Initialize Data Table section (placeholder)
         initializeDataTableSection();
         
-        console.log('✅ All chart modules initialized successfully!');
     } catch (error) {
-        console.error('❌ Error initializing charts:', error);
     }
 }
 
@@ -1222,8 +1204,6 @@ function populateFilters() {
     const weather = [...new Set(kartingData.map(row => row.Weather))].filter(w => w).sort();
     const tyres = [...new Set(kartingData.map(row => row.TyreType))].filter(t => t).sort();
     
-    console.log('🏁 Available tracks:', tracks);
-    console.log('🏎️ Available drivers:', drivers);
     
     populateSelect('driverFilter', drivers);
     populateSelect('trackFilter', tracks);
@@ -1273,6 +1253,24 @@ function populateAllDropdowns() {
         }
     });
     
+    // Populate track dropdowns
+    const tracks = [...new Set(filteredData.map(row => row.Track))].sort();
+    const trackSelects = ['improvementTrackSelect', 'avgLapTrackSelect'];
+    trackSelects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="all">All Tracks</option>';
+            tracks.forEach(track => {
+                const option = document.createElement('option');
+                option.value = track;
+                option.textContent = track;
+                select.appendChild(option);
+            });
+            if (currentValue) select.value = currentValue;
+        }
+    });
+    
     // Populate session dropdowns
     const sessionSelects = ['sessionSelect', 'battleSessionSelect'];
     sessionSelects.forEach(selectId => {
@@ -1289,6 +1287,20 @@ function populateAllDropdowns() {
             if (currentValue) select.value = currentValue;
         }
     });
+    
+    // Add event listeners for chart-specific dropdowns
+    const improvementDriverSelect = document.getElementById('improvementDriverSelect');
+    const improvementTrackSelect = document.getElementById('improvementTrackSelect');
+    
+    if (improvementDriverSelect) {
+        improvementDriverSelect.removeEventListener('change', createImprovementChart);
+        improvementDriverSelect.addEventListener('change', createImprovementChart);
+    }
+    
+    if (improvementTrackSelect) {
+        improvementTrackSelect.removeEventListener('change', createImprovementChart);
+        improvementTrackSelect.addEventListener('change', createImprovementChart);
+    }
 }
 
 // ========== FILTER FUNCTIONALITY ==========
@@ -1298,12 +1310,6 @@ function applyFilters() {
     const dateFromFilter = document.getElementById('dateFromFilter')?.value;
     const dateToFilter = document.getElementById('dateToFilter')?.value;
     
-    console.log('🔍 Applying filters:', {
-        driver: driverFilter || 'All',
-        track: trackFilter || 'All',
-        dateFrom: dateFromFilter || 'No start date',
-        dateTo: dateToFilter || 'No end date'
-    });
     
     filteredData = kartingData.filter(row => {
         // Driver filter
@@ -1341,7 +1347,8 @@ function applyFilters() {
         return true;
     });
     
-    console.log(`🔍 Filter results: ${filteredData.length} / ${kartingData.length} records`);
+    window.filteredData = filteredData; // Update window object
+    
     
     // Update filter status indicators
     updateFilterStatus();
@@ -1358,6 +1365,7 @@ function applyFilters() {
     updateDataTable();
     updateSessionWidgets();
     updateLeaderboards();
+    updateSiteStats(); // Update data points counter when filters change
 }
 
 function updateFilterStatus() {
@@ -1412,7 +1420,6 @@ function updateFilterIndicator(filterId, value) {
 }
 
 function clearFilters() {
-    console.log('🧹 Clearing all filters...');
     
     // Clear all filter inputs
     const driverFilter = document.getElementById('driverFilter');
@@ -1427,6 +1434,7 @@ function clearFilters() {
     
     // Reset filtered data to all data
     filteredData = [...kartingData];
+    window.filteredData = filteredData; // Update window object
     
     // Update filter status indicators
     updateFilterStatus();
@@ -1443,7 +1451,6 @@ function clearFilters() {
     updateSessionWidgets();
     updateLeaderboards();
     
-    console.log('🧹 All filters cleared, showing all data');
     
     // Add visual feedback
     const clearBtn = document.getElementById('clearFilters');
@@ -1518,7 +1525,6 @@ function updateLoadingProgress(percentage, message) {
 }
 
 function showError(message) {
-    console.error('❌ Error:', message);
     
     // Create a custom error notification instead of alert
     const errorDiv = document.createElement('div');
@@ -1545,10 +1551,6 @@ function showError(message) {
 }
 
 // ========== UTILITY FUNCTIONS ==========
-function getDriverColor(index) {
-    return CHART_COLORS[index % CHART_COLORS.length];
-}
-
 function formatTime(seconds) {
     return `${seconds.toFixed(3)}s`;
 }
@@ -1594,7 +1596,6 @@ function updateMobileStats() {
 
 // ========== EXPORT FUNCTIONALITY ==========
 function exportToCSV() {
-    console.log('📊 Exporting to CSV...');
     
     const headers = Object.keys(filteredData[0] || {});
     const csvContent = [
@@ -1623,7 +1624,6 @@ function searchTable() {
     });
 }
 
-console.log('🏁 Elite Karting Analytics Platform JavaScript Loaded');
 
 // ========== CHART MODULES EXTRACTED TO /js DIRECTORY ==========
 // All chart initialization functions have been moved to separate module files:
@@ -1639,17 +1639,14 @@ console.log('🏁 Elite Karting Analytics Platform JavaScript Loaded');
 // ========== SESSION & UI WIDGETS ==========
 
 function initializeSessionWidgets() {
-    console.log('📋 Initializing Session Widgets...');
     // To be implemented
 }
 
 function initializeLeaderboards() {
-    console.log('🏆 Initializing Leaderboards...');
     // To be implemented
 }
 
 function initializeDataTable() {
-    console.log('📊 Initializing Data Table...');
     // To be implemented
 }
 
@@ -1686,7 +1683,6 @@ function updateSessionWidgets() {
             }
         });
     } catch (error) {
-        console.error('Error updating session widgets:', error);
     }
 }
 
@@ -1723,7 +1719,6 @@ function updateLeaderboards() {
             `).join('');
         }
     } catch (error) {
-        console.error('Error updating leaderboards:', error);
     }
 }
 
@@ -1755,7 +1750,101 @@ function updateDataTable() {
             tableFooter.textContent = `Showing ${Math.min(50, filteredData.length)} of ${filteredData.length} records`;
         }
     } catch (error) {
-        console.error('Error updating data table:', error);
+    }
+}
+
+// ========== NAVIGATION SYSTEM ==========
+
+// Initialize navigation functionality
+function initializeNavigation() {
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    const sections = document.querySelectorAll('section[id]');
+    
+    // Smooth scroll to section when sidebar item is clicked
+    sidebarItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetSection = this.getAttribute('data-section');
+            const section = document.getElementById(targetSection);
+            
+            if (section) {
+                const offset = 100; // Offset for better visibility
+                const targetPosition = section.offsetTop - offset;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+                
+                // Update active state
+                updateActiveSidebarItem(targetSection);
+            }
+        });
+    });
+    
+    // Update active sidebar item based on scroll position
+    let scrollTimeout;
+    window.addEventListener('scroll', function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            updateActiveSidebarOnScroll();
+        }, 100);
+    });
+    
+    // Update data points counter
+    updateSiteStats();
+}
+
+// Update active sidebar item based on current section in view
+function updateActiveSidebarOnScroll() {
+    const sections = document.querySelectorAll('section[id]');
+    const offset = 150;
+    
+    let currentSection = '';
+    
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop - offset;
+        const sectionBottom = sectionTop + section.offsetHeight;
+        
+        if (window.scrollY >= sectionTop && window.scrollY < sectionBottom) {
+            currentSection = section.getAttribute('id');
+        }
+    });
+    
+    if (currentSection) {
+        updateActiveSidebarItem(currentSection);
+    }
+}
+
+// Update the active state of sidebar items
+function updateActiveSidebarItem(sectionId) {
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    
+    sidebarItems.forEach(item => {
+        if (item.getAttribute('data-section') === sectionId) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
+// Update site statistics in the sidebar
+function updateSiteStats() {
+    const sidebarDataPointsElement = document.querySelector('#sidebarDataPoints');
+    
+    if (window.filteredData) {
+        const entries = window.filteredData.length;
+        const dataColumns = 32;
+        const totalDataPoints = entries * dataColumns;
+        const formattedDataPoints = totalDataPoints.toLocaleString();
+        
+        // Update sidebar data points with TOTAL calculation
+        if (sidebarDataPointsElement) {
+            sidebarDataPointsElement.textContent = formattedDataPoints;
+        }
+        
+        // KPI tile is updated by updateStatistics, don't override it here
     }
 }
 
@@ -1763,11 +1852,11 @@ function updateDataTable() {
 
 // Initialize the dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Initializing Elite Karting Analytics Platform...');
     
     // Initialize UI components first (before showing loading screen)
     initializeTheme();
     initializeEventListeners();
+    initializeNavigation(); // Initialize navigation system
     initializeAOS();
     initializeDateTimeDisplay();
     
@@ -1777,11 +1866,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load and process data (loadData will hide overlay in finally)
     loadData()
         .then(() => {
-            console.log('✅ Data loaded successfully');
             initializeDashboard();
+            updateSiteStats(); // Update data points after data loads
         })
         .catch(error => {
-            console.error('❌ Error loading data:', error);
             showErrorState(error);
         });
 });
@@ -1821,32 +1909,55 @@ function showErrorState(error) {
 }
 
 function initializeDashboard() {
-    console.log('🎯 Initializing dashboard components...');
     
-    // Initialize all chart sections
-    initializeDriverPerformanceCharts();
-    initializeLapSessionCharts();
-    initializeTrackInsightsCharts();
-    initializeDriverBattleCharts();
-    initializeFinancialCharts();
-    initializeTemporalCharts();
+    // Initialize all chart sections - Use window. prefix for globally scoped functions
+    if (typeof window.initializeDriverPerformanceCharts === 'function') {
+        window.initializeDriverPerformanceCharts();
+    } else {
+    }
+    
+    if (typeof window.initializeLapSessionCharts === 'function') {
+        window.initializeLapSessionCharts();
+    }
+    
+    if (typeof window.initializeTrackInsightsCharts === 'function') {
+        window.initializeTrackInsightsCharts();
+    }
+    
+    if (typeof window.initializeDriverBattleCharts === 'function') {
+        window.initializeDriverBattleCharts();
+    }
+    
+    if (typeof window.initializeFinancialCharts === 'function') {
+        window.initializeFinancialCharts();
+    }
+    
+    if (typeof window.initializeTemporalCharts === 'function') {
+        window.initializeTemporalCharts();
+    }
     
     // Initialize Session Management Widgets
-    initializeSessionWidgets();
+    if (typeof window.initializeSessionWidgets === 'function') {
+        window.initializeSessionWidgets();
+    }
     
     // Initialize Predictive Analytics
-    initializePredictiveCharts();
+    if (typeof window.initializePredictiveCharts === 'function') {
+        window.initializePredictiveCharts();
+    }
     
     // Initialize Geographical Analytics
-    initializeGeographicalCharts();
+    if (typeof window.initializeGeographicalCharts === 'function') {
+        window.initializeGeographicalCharts();
+    }
     
     // Initialize other components (to be implemented)
     // initializeLeaderboards();
     // initializeDataTable();
     
     // Update UI components
-    updateKPIs();
-    updateFilterOptions();
+    updateKPISummary();
+    updateFilterStatus();  // Update filter status indicators
     updateSessionWidgets();
     updateLeaderboards();
     updateDataTable();
@@ -1854,7 +1965,6 @@ function initializeDashboard() {
     // Set up global event listeners
     setupGlobalEventListeners();
     
-    console.log('✅ Dashboard initialization complete!');
 }
 
 function setupGlobalEventListeners() {
@@ -1887,7 +1997,6 @@ function setupGlobalEventListeners() {
 
 // Update the main update function to include all chart sections
 function updateAllCharts() {
-    console.log('🔄 Updating all charts with filtered data...');
     
     // Update Driver Performance Overview charts
     createDriverRankingChart();
@@ -1986,14 +2095,16 @@ function performSearch() {
     }
     
     // Filter data based on search term
-    filteredData = rawData.filter(row => {
+    filteredData = kartingData.filter(row => {
         return Object.values(row).some(value => 
             value && value.toString().toLowerCase().includes(searchTerm)
         );
     });
     
+    window.filteredData = filteredData; // Update window object
+    
     updateAllCharts();
-    updateKPIs();
+    updateKPISummary();
     updateSessionWidgets();
     updateLeaderboards();
     updateDataTable();
@@ -2001,4 +2112,3 @@ function performSearch() {
 
 // ========== END OF SCRIPT.JS ==========
 // All chart implementations have been moved to /js/charts-*.js modules
-console.log('🏁 Elite Karting Analytics Platform Script Loaded and Ready!');

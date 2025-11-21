@@ -1,8 +1,8 @@
 // ========== TRACK INSIGHTS CHARTS MODULE ==========
 // Extracted from script.js
 
-function initializeTrackInsightsCharts() {
-    console.log('🗺️ Initializing Track Insights Charts...');
+// Make function globally accessible
+window.initializeTrackInsightsCharts = function() {
     
     // Add event listeners for controls
     addChartEventListener('trackPerformanceMetric', createTrackPerformanceChart);
@@ -16,9 +16,9 @@ function initializeTrackInsightsCharts() {
     createLayoutEfficiencyChart();
     createSurfaceConditionsChart();
     createTrackDifficultyChart();
-}
+}; // End of window.initializeTrackInsightsCharts
 
-// 3.1 Track Performance Comparison Chart
+// 3.1 Track Performance Comparison Chart (Track Characteristics)
 function createTrackPerformanceChart() {
     const ctx = document.getElementById('trackPerformanceChart');
     if (!ctx) return;
@@ -27,25 +27,57 @@ function createTrackPerformanceChart() {
     const tracks = [...new Set(filteredData.map(row => row.Track))];
     
     let chartData = [];
+    let ylabel = '';
+    let chartTitle = '';
     
     if (metric === 'lapTime') {
+        // Show average improvement % from first to best lap at each track
         chartData = tracks.map(track => {
             const trackData = filteredData.filter(row => row.Track === track);
-            const lapTimes = trackData.map(row => parseFloat(row.LapTime || 0)).filter(time => time > 0);
-            return lapTimes.length > 0 ? lapTimes.reduce((sum, time) => sum + time, 0) / lapTimes.length : 0;
+            const sessions = [...new Set(trackData.map(row => row.SessionDate))];
+            
+            let totalImprovement = 0;
+            let sessionCount = 0;
+            
+            sessions.forEach(session => {
+                const sessionLaps = trackData.filter(row => row.SessionDate === session)
+                                            .map(row => parseFloat(row.LapTime || 0))
+                                            .filter(time => time > 0);
+                if (sessionLaps.length >= 2) {
+                    const firstLap = sessionLaps[0];
+                    const bestLap = Math.min(...sessionLaps);
+                    const improvement = ((firstLap - bestLap) / firstLap) * 100;
+                    totalImprovement += improvement;
+                    sessionCount++;
+                }
+            });
+            
+            return sessionCount > 0 ? totalImprovement / sessionCount : 0;
         });
+        ylabel = 'Average Improvement (%)';
+        chartTitle = 'Session Improvement Rate';
     } else if (metric === 'bestLap') {
+        // Show average speed (km/h) at each track
         chartData = tracks.map(track => {
             const trackData = filteredData.filter(row => row.Track === track);
+            const trackDistance = trackData.length > 0 ? parseFloat(trackData[0].TrackDistance || 1000) : 1000;
             const lapTimes = trackData.map(row => parseFloat(row.LapTime || 0)).filter(time => time > 0);
-            return lapTimes.length > 0 ? Math.min(...lapTimes) : 0;
+            
+            if (lapTimes.length === 0) return 0;
+            const bestLap = Math.min(...lapTimes);
+            return (trackDistance / bestLap) * 3.6; // Convert m/s to km/h
         });
+        ylabel = 'Best Lap Speed (km/h)';
+        chartTitle = 'Track Record Speeds';
     } else if (metric === 'consistency') {
+        // Consistency is comparable across tracks
         chartData = tracks.map(track => {
             const trackData = filteredData.filter(row => row.Track === track);
             const lapTimes = trackData.map(row => parseFloat(row.LapTime || 0)).filter(time => time > 0);
             return lapTimes.length > 0 ? calculateStandardDeviation(lapTimes) : 0;
         });
+        ylabel = 'Lap Time Std Dev (s)';
+        chartTitle = 'Consistency Index';
     }
 
     destroyChart('trackPerformance');
@@ -54,8 +86,7 @@ function createTrackPerformanceChart() {
         data: {
             labels: tracks,
             datasets: [{
-                label: metric === 'lapTime' ? 'Average Lap Time' : 
-                       metric === 'bestLap' ? 'Best Lap Time' : 'Consistency Index',
+                label: chartTitle,
                 data: chartData,
                 backgroundColor: tracks.map((_, index) => getTrackColor(index) + 'CC'),
                 borderColor: tracks.map((_, index) => getTrackColor(index)),
@@ -69,10 +100,10 @@ function createTrackPerformanceChart() {
             maintainAspectRatio: false,
             scales: {
                 y: {
-                    beginAtZero: metric === 'consistency',
+                    beginAtZero: true,
                     title: {
                         display: true,
-                        text: metric === 'consistency' ? 'Standard Deviation (s)' : 'Lap Time (seconds)',
+                        text: ylabel,
                         color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
                     },
                     ticks: {
@@ -777,7 +808,6 @@ function updateSessionWidgets() {
             }
         });
     } catch (error) {
-        console.error('Error updating session widgets:', error);
     }
 }
 
@@ -814,7 +844,6 @@ function updateLeaderboards() {
             `).join('');
         }
     } catch (error) {
-        console.error('Error updating leaderboards:', error);
     }
 }
 
@@ -846,7 +875,6 @@ function updateDataTable() {
             tableFooter.textContent = `Showing ${Math.min(50, filteredData.length)} of ${filteredData.length} records`;
         }
     } catch (error) {
-        console.error('Error updating data table:', error);
     }
 }
 
@@ -854,7 +882,6 @@ function updateDataTable() {
 
 // Initialize the dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Initializing Elite Karting Analytics Platform...');
     
     // Initialize UI components first (before showing loading screen)
     initializeTheme();
@@ -868,11 +895,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load and process data (loadData will hide overlay in finally)
     loadData()
         .then(() => {
-            console.log('✅ Data loaded successfully');
             initializeDashboard();
         })
         .catch(error => {
-            console.error('❌ Error loading data:', error);
             showErrorState(error);
         });
 });
@@ -911,74 +936,8 @@ function showErrorState(error) {
     }
 }
 
-function initializeDashboard() {
-    console.log('🎯 Initializing dashboard components...');
-    
-    // Initialize all chart sections
-    initializeDriverPerformanceCharts();
-    initializeLapSessionCharts();
-    initializeTrackInsightsCharts();
-    initializeDriverBattleCharts();
-    initializeFinancialCharts();
-    initializeTemporalCharts();
-    
-    // Initialize Session Management Widgets
-    initializeSessionWidgets();
-    
-    // Initialize Predictive Analytics
-    initializePredictiveCharts();
-    
-    // Initialize Geographical Analytics
-    initializeGeographicalCharts();
-    
-    // Initialize other components (to be implemented)
-    // initializeLeaderboards();
-    // initializeDataTable();
-    
-    // Update UI components
-    updateKPIs();
-    updateFilterOptions();
-    updateSessionWidgets();
-    updateLeaderboards();
-    updateDataTable();
-    
-    // Set up global event listeners
-    setupGlobalEventListeners();
-    
-    console.log('✅ Dashboard initialization complete!');
-}
-
-function setupGlobalEventListeners() {
-    // Filter controls
-    const filterElements = [
-        'filterDriver', 'filterTrack', 'filterSession',
-        'filterDateFrom', 'filterDateTo'
-    ];
-    
-    filterElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('change', applyFilters);
-        }
-    });
-    
-    // Search functionality
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(performSearch, 300));
-    }
-    
-    // Print functionality
-    const printBtn = document.getElementById('printDashboard');
-    if (printBtn) {
-        printBtn.addEventListener('click', () => window.print());
-    }
-}
-
-
 // Update the main update function to include all chart sections
 function updateAllCharts() {
-    console.log('🔄 Updating all charts with filtered data...');
     
     // Update Driver Performance Overview charts
     createDriverRankingChart();
@@ -1084,7 +1043,7 @@ function performSearch() {
     });
     
     updateAllCharts();
-    updateKPIs();
+    updateKPISummary();
     updateSessionWidgets();
     updateLeaderboards();
     updateDataTable();

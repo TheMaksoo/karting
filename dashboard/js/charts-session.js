@@ -1,8 +1,8 @@
 // ========== LAP & SESSION CHARTS MODULE ==========
 // Extracted from script.js
 
-function initializeLapSessionCharts() {
-    console.log('🏁 Initializing Lap & Session Analysis Charts...');
+// Make function globally accessible
+window.initializeLapSessionCharts = function() {
     
     // Add event listeners for controls
     addChartEventListener('sessionSummaryMetric', createSessionSummaryChart);
@@ -19,61 +19,53 @@ function initializeLapSessionCharts() {
     createWeatherImpactChart();
     createSessionComparisonChart();
     createStintAnalysisChart();
-}
+}; // End of window.initializeLapSessionCharts
 
-// 2.1 Session Summary Chart
+// 2.1 Session Summary Chart (Track-Grouped)
 function createSessionSummaryChart() {
     const ctx = document.getElementById('sessionSummaryChart');
     if (!ctx) return;
 
     const metric = document.getElementById('sessionSummaryMetric')?.value || 'lapTime';
-    const sessions = [...new Set(filteredData.map(row => row.SessionDate))].sort();
+    
+    // Group sessions by track to avoid cross-track comparisons
+    const tracks = [...new Set(filteredData.map(row => row.Track))];
+    
+    // Use CHART_COLORS from window or fallback colors
+    const colors = window.CHART_COLORS || ['#ff6b35', '#004e89', '#ffd23f', '#06d6a0', '#f18701', '#e63946'];
     
     let datasets = [];
     
     if (metric === 'lapTime') {
-        const avgLapTimes = sessions.map(session => {
-            const sessionData = filteredData.filter(row => row.SessionDate === session);
-            const lapTimes = sessionData.map(row => parseFloat(row.LapTime || 0)).filter(time => time > 0);
-            return lapTimes.length > 0 ? lapTimes.reduce((sum, time) => sum + time, 0) / lapTimes.length : 0;
-        });
-        
-        const fastestLaps = sessions.map(session => {
-            const sessionData = filteredData.filter(row => row.SessionDate === session);
-            const lapTimes = sessionData.map(row => parseFloat(row.LapTime || 0)).filter(time => time > 0);
-            return lapTimes.length > 0 ? Math.min(...lapTimes) : 0;
-        });
+        datasets = tracks.map((track, index) => {
+            const trackSessions = [...new Set(filteredData.filter(row => row.Track === track).map(row => row.SessionDate))].sort();
+            
+            const avgLapTimes = trackSessions.map(session => {
+                const sessionData = filteredData.filter(row => row.SessionDate === session && row.Track === track);
+                const lapTimes = sessionData.map(row => parseFloat(row.LapTime || 0)).filter(time => time > 0);
+                return lapTimes.length > 0 ? lapTimes.reduce((sum, time) => sum + time, 0) / lapTimes.length : null;
+            });
 
-        datasets = [
-            {
-                label: 'Average Lap Time',
-                data: avgLapTimes,
-                borderColor: '#3B82F6',
-                backgroundColor: '#3B82F640',
+            return {
+                label: track,
+                data: trackSessions.map((session, idx) => ({x: session, y: avgLapTimes[idx]})),
+                borderColor: colors[index % colors.length],
+                backgroundColor: colors[index % colors.length] + '40',
                 borderWidth: 3,
                 fill: false,
                 tension: 0.4,
                 pointRadius: 6
-            },
-            {
-                label: 'Fastest Lap',
-                data: fastestLaps,
-                borderColor: '#22C55E',
-                backgroundColor: '#22C55E40',
-                borderWidth: 3,
-                fill: false,
-                tension: 0.4,
-                pointRadius: 6
-            }
-        ];
+            };
+        });
     } else if (metric === 'lapCount') {
+        const sessions = [...new Set(filteredData.map(row => row.SessionDate))].sort();
         const lapCounts = sessions.map(session => {
             return filteredData.filter(row => row.SessionDate === session).length;
         });
         
         datasets = [{
             label: 'Total Laps',
-            data: lapCounts,
+            data: sessions.map((session, idx) => ({x: session, y: lapCounts[idx]})),
             backgroundColor: '#8B5CF6CC',
             borderColor: '#8B5CF6',
             borderWidth: 2,
@@ -85,7 +77,6 @@ function createSessionSummaryChart() {
     charts.sessionSummary = new Chart(ctx, {
         type: metric === 'lapCount' ? 'bar' : 'line',
         data: {
-            labels: sessions,
             datasets: datasets
         },
         options: {
@@ -96,7 +87,7 @@ function createSessionSummaryChart() {
                     beginAtZero: metric === 'lapCount',
                     title: {
                         display: true,
-                        text: metric === 'lapCount' ? 'Number of Laps' : 'Lap Time (seconds)',
+                        text: metric === 'lapCount' ? 'Number of Laps' : 'Avg Lap Time (s) - By Track',
                         color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
                     },
                     ticks: {
@@ -107,6 +98,7 @@ function createSessionSummaryChart() {
                     }
                 },
                 x: {
+                    type: 'category',
                     title: {
                         display: true,
                         text: 'Session Date',
@@ -157,8 +149,8 @@ function createLapProgressionChart() {
         return {
             label: driver,
             data: lapTimes.map((time, i) => ({x: lapNumbers[i], y: time})),
-            borderColor: getDriverColor(index),
-            backgroundColor: getDriverColor(index) + '20',
+            borderColor: window.getDriverColor(driver),
+            backgroundColor: window.getDriverColor(driver) + '20',
             borderWidth: 2,
             fill: false,
             tension: 0.3,
@@ -225,50 +217,67 @@ function createLapProgressionChart() {
     });
 }
 
-// 2.3 Fuel Efficiency Analysis Chart
+// 2.3 Fuel Efficiency Analysis Chart (Track-Specific)
 function createFuelEfficiencyChart() {
     const ctx = document.getElementById('fuelEfficiencyChart');
     if (!ctx) return;
 
     const drivers = [...new Set(filteredData.map(row => row.Driver))];
     
-    // Simulated fuel efficiency based on lap consistency and speed
-    const fuelEfficiencyData = drivers.map(driver => {
-        const driverData = filteredData.filter(row => row.Driver === driver);
-        const lapTimes = driverData.map(row => parseFloat(row.LapTime || 0)).filter(time => time > 0);
+    // Use CHART_COLORS from window or fallback colors
+    const colors = window.CHART_COLORS || ['#ff6b35', '#004e89', '#ffd23f', '#06d6a0', '#f18701', '#e63946'];
+    
+    // Get track distance from CSV (assuming it's consistent per track)
+    const trackDistances = {};
+    filteredData.forEach(row => {
+        if (row.Track && row.TrackDistance) {
+            trackDistances[row.Track] = parseFloat(row.TrackDistance);
+        }
+    });
+    
+    // Calculate efficiency per driver PER TRACK
+    const datasets = Object.keys(trackDistances).map((track, trackIndex) => {
+        const trackData = filteredData.filter(row => row.Track === track);
+        const trackDistance = trackDistances[track] || 1000; // default 1km
         
-        if (lapTimes.length === 0) return { driver, efficiency: 0, avgSpeed: 0 };
-        
-        const avgLapTime = lapTimes.reduce((sum, time) => sum + time, 0) / lapTimes.length;
-        const consistency = calculateStandardDeviation(lapTimes);
-        
-        // Simulate fuel efficiency (lower lap time + better consistency = better efficiency)
-        const efficiency = Math.max(10, 50 - (avgLapTime * 2) - (consistency * 5));
-        const avgSpeed = avgLapTime > 0 ? (2400 / avgLapTime) : 0; // Assuming 2.4km track
-        
-        return { driver, efficiency: Math.round(efficiency * 100) / 100, avgSpeed: Math.round(avgSpeed * 100) / 100 };
+        const efficiencyData = drivers.map(driver => {
+            const driverTrackData = trackData.filter(row => row.Driver === driver);
+            const lapTimes = driverTrackData.map(row => parseFloat(row.LapTime || 0)).filter(time => time > 0);
+            
+            if (lapTimes.length === 0) return null;
+            
+            const avgLapTime = lapTimes.reduce((sum, time) => sum + time, 0) / lapTimes.length;
+            const consistency = calculateStandardDeviation(lapTimes);
+            
+            // Calculate actual average speed in km/h
+            const avgSpeed = avgLapTime > 0 ? (trackDistance / avgLapTime) * 3.6 : 0; // m/s to km/h
+            
+            // Efficiency score based on consistency (lower std dev = better efficiency)
+            const efficiencyScore = consistency > 0 ? Math.max(0, 100 - (consistency * 10)) : 100;
+            
+            return {
+                x: avgSpeed,
+                y: efficiencyScore,
+                driver: driver,
+                track: track
+            };
+        }).filter(item => item !== null);
+
+        return {
+            label: track,
+            data: efficiencyData,
+            backgroundColor: colors[trackIndex % colors.length],
+            borderColor: colors[trackIndex % colors.length],
+            pointRadius: 8,
+            pointHoverRadius: 10
+        };
     });
 
     destroyChart('fuelEfficiency');
     charts.fuelEfficiency = new Chart(ctx, {
         type: 'scatter',
         data: {
-            datasets: [{
-                label: 'Fuel Efficiency vs Speed',
-                data: fuelEfficiencyData.map((item, index) => ({
-                    x: item.avgSpeed,
-                    y: item.efficiency,
-                    driver: item.driver,
-                    backgroundColor: getDriverColor(index),
-                    borderColor: getDriverColor(index),
-                    pointRadius: 8,
-                    pointHoverRadius: 10
-                })),
-                backgroundColor: fuelEfficiencyData.map((_, index) => getDriverColor(index)),
-                borderColor: fuelEfficiencyData.map((_, index) => getDriverColor(index)),
-                pointRadius: 8,
-                pointHoverRadius: 10
-            }]
+            datasets: datasets
         },
         options: {
             responsive: true,
@@ -290,7 +299,7 @@ function createFuelEfficiencyChart() {
                 y: {
                     title: {
                         display: true,
-                        text: 'Fuel Efficiency Score',
+                        text: 'Consistency Score (0-100)',
                         color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
                     },
                     ticks: {
@@ -303,7 +312,9 @@ function createFuelEfficiencyChart() {
             },
             plugins: {
                 legend: {
-                    display: false
+                    labels: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
+                    }
                 },
                 tooltip: {
                     backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--card-bg'),
@@ -355,8 +366,8 @@ function createPositionChangesChart() {
         return {
             label: driver,
             data: positions,
-            borderColor: getDriverColor(index),
-            backgroundColor: getDriverColor(index) + '20',
+            borderColor: window.getDriverColor(driver),
+            backgroundColor: window.getDriverColor(driver) + '20',
             borderWidth: 3,
             fill: false,
             tension: 0.4,
@@ -688,8 +699,8 @@ function createStintAnalysisChart() {
         return {
             label: driver,
             data: stints,
-            borderColor: getDriverColor(index),
-            backgroundColor: getDriverColor(index) + '40',
+            borderColor: window.getDriverColor(driver),
+            backgroundColor: window.getDriverColor(driver) + '40',
             borderWidth: 3,
             fill: false,
             tension: 0.4,

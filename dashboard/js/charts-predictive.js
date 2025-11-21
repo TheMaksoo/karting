@@ -1,8 +1,8 @@
 // ========== PREDICTIVE CHARTS MODULE ==========
 // Extracted from script.js
 
-function initializePredictiveCharts() {
-    console.log('🔮 Initializing Predictive Analytics Charts...');
+// Make function globally accessible
+window.initializePredictiveCharts = function() {
     
     createLapTimePredictionChart();
     createPerformanceForecastChart();
@@ -10,8 +10,7 @@ function initializePredictiveCharts() {
     createSeasonalForecastChart();
     createOptimalStrategyChart();
     
-    console.log('✅ Predictive Analytics Charts initialized');
-}
+}; // End of window.initializePredictiveCharts
 
 // ==============================================
 // PREDICTIVE ANALYTICS SECTION
@@ -151,9 +150,7 @@ function createLapTimePredictionChart() {
             }
         });
 
-        console.log('✅ Lap Time Prediction Chart created');
     } catch (error) {
-        console.error('❌ Error creating Lap Time Prediction Chart:', error);
     }
 }
 
@@ -270,9 +267,7 @@ function createPerformanceForecastChart() {
             }
         });
 
-        console.log('✅ Performance Forecast Chart created');
     } catch (error) {
-        console.error('❌ Error creating Performance Forecast Chart:', error);
     }
 }
 
@@ -395,9 +390,7 @@ function createDriverRankingPredictionChart() {
             }
         });
 
-        console.log('✅ Driver Ranking Prediction Chart created');
     } catch (error) {
-        console.error('❌ Error creating Driver Ranking Prediction Chart:', error);
     }
 }
 
@@ -484,9 +477,7 @@ function createSeasonalForecastChart() {
             }
         });
 
-        console.log('✅ Seasonal Forecast Chart created');
     } catch (error) {
-        console.error('❌ Error creating Seasonal Forecast Chart:', error);
     }
 }
 
@@ -566,9 +557,7 @@ function createOptimalStrategyChart() {
             }
         });
 
-        console.log('✅ Optimal Strategy Chart created');
     } catch (error) {
-        console.error('❌ Error creating Optimal Strategy Chart:', error);
     }
 }
 

@@ -1,6 +1,7 @@
 // ========== ELITE KARTING ANALYTICS PLATFORM - CORE MODULE ==========
 // Global state, constants, theme, utilities, and loading functions
 
+
 // ========== GLOBAL VARIABLES & STATE ==========
 window.kartingData = [];
 window.filteredData = [];
@@ -17,12 +18,68 @@ window.trackStats = {};
 window.sessionStats = {};
 window.temporalStats = {};
 
-// Chart Colors
-window.CHART_COLORS = [
+// Chart Colors - Load from localStorage if customized
+const defaultColors = [
     '#ff6b35', '#004e89', '#ffd23f', '#06d6a0', '#f18701', '#e63946',
     '#9c27b0', '#4caf50', '#3f51b5', '#ff9800', '#00bcd4', '#795548',
     '#607d8b', '#8bc34a', '#ffeb3b', '#e91e63', '#2196f3', '#ff5722'
 ];
+
+// Try to load custom colors from localStorage
+const savedColors = localStorage.getItem('CHART_COLORS');
+if (savedColors) {
+    try {
+        window.CHART_COLORS = JSON.parse(savedColors);
+    } catch (e) {
+        window.CHART_COLORS = defaultColors;
+    }
+} else {
+    window.CHART_COLORS = defaultColors;
+}
+
+
+// Driver to color mapping - ensures consistent colors across all charts
+window.driverColorMap = {};
+window.driverColorIndex = 0;
+
+// Helper function to get consistent color for a specific driver
+window.getDriverColor = function(driverName) {
+    // Safety check: ensure CHART_COLORS is loaded
+    if (!window.CHART_COLORS || window.CHART_COLORS.length === 0) {
+        window.CHART_COLORS = defaultColors;
+    }
+    
+    // If driver already has a color, return it
+    if (window.driverColorMap[driverName]) {
+        return window.driverColorMap[driverName];
+    }
+    
+    // Assign new color to driver
+    const color = window.CHART_COLORS[window.driverColorIndex % window.CHART_COLORS.length];
+    window.driverColorMap[driverName] = color;
+    window.driverColorIndex++;
+    return color;
+};
+
+// Helper function to get color by index (for non-driver charts)
+window.getColorByIndex = function(index) {
+    return window.CHART_COLORS[index % window.CHART_COLORS.length];
+};
+
+// Helper function to get driver display name (nickname if set, otherwise real name)
+window.getDriverDisplayName = function(driverName) {
+    const nicknames = localStorage.getItem('driverNicknames');
+    if (nicknames) {
+        try {
+            const parsed = JSON.parse(nicknames);
+            return parsed[driverName] || driverName;
+        } catch (e) {
+            return driverName;
+        }
+    }
+    return driverName;
+};
+
 
 // Default chart options to prevent scaling issues
 window.DEFAULT_CHART_OPTIONS = {
@@ -217,6 +274,6 @@ window.showErrorState = showErrorState;
 window.formatTime = formatTime;
 window.formatCurrency = formatCurrency;
 window.formatNumber = formatNumber;
+
 window.initializeAOS = initializeAOS;
 
-console.log('✅ Core module loaded');
