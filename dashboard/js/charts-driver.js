@@ -2830,6 +2830,7 @@ function destroyChart(chartId) {
     if (charts[chartId]) {
         charts[chartId].destroy();
         delete charts[chartId];
+    
     }
 }
 
