@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        input {
+            padding: 8px;
+            margin: 5px 0;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Laravel API Tester</h1>
+    
+    <div class="section">
+        <h2>1. Login</h2>
+        <input type="email" id="email" placeholder="Email" value="maxvanlierop05@gmail.com">
+        <input type="password" id="password" placeholder="Password" value="admin123">
+        <button onclick="testLogin()">Login</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Get All Drivers</h2>
+        <button onclick="testGetDrivers()">Get Drivers</button>
+        <div id="drivers-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Get Driver Stats</h2>
+        <button onclick="testDriverStats()">Get Driver Stats</button>
+        <div id="driver-stats-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Get All Tracks</h2>
+        <button onclick="testGetTracks()">Get Tracks</button>
+        <div id="tracks-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. Get Settings</h2>
+        <button onclick="testGetSettings()">Get Settings</button>
+        <div id="settings-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>6. Get Sessions</h2>
+        <button onclick="testGetSessions()">Get Sessions</button>
+        <div id="sessions-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>7. Get Laps Overview</h2>
+        <button onclick="testLapsOverview()">Get Overview</button>
+        <div id="laps-overview-result"></div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('api_token') || '';
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    token = data.token;
+                    localStorage.setItem('api_token', token);
+                    document.getElementById('login-result').innerHTML = 
+                        `<p class="success">✓ Logged in successfully!</p>
+                         <p><strong>Token:</strong> ${token.substring(0, 20)}...</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('login-result').innerHTML = 
+                        `<p class="error">✗ Login failed (${response.status})</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('login-result').innerHTML = 
+                    `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testGetDrivers() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/drivers', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'include',
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('drivers-result').innerHTML = 
+                        `<p class="success">✓ Fetched ${data.length} drivers</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('drivers-result').innerHTML = 
+                        `<p class="error">✗ Failed (${response.status})</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('drivers-result').innerHTML = 
+                    `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testDriverStats() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/stats/drivers', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('driver-stats-result').innerHTML = 
+                        `<p class="success">✓ Fetched driver statistics</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('driver-stats-result').innerHTML = 
+                        `<p class="error">✗ Failed</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('driver-stats-result').innerHTML = 
+                    `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testGetTracks() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/tracks', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('tracks-result').innerHTML = 
+                        `<p class="success">✓ Fetched ${data.length} tracks</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('tracks-result').innerHTML = 
+                        `<p class="error">✗ Failed</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('tracks-result').innerHTML = 
+                    `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testGetSettings() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/settings', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('settings-result').innerHTML = 
+                        `<p class="success">✓ Fetched settings</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('settings-result').innerHTML = 
+                        `<p class="error">✗ Failed</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('settings-result').innerHTML = 
+                    `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testGetSessions() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/sessions', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('sessions-result').innerHTML = 
+                        `<p class="success">✓ Fetched sessions</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('sessions-result').innerHTML = 
+                        `<p class="error">✗ Failed</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('sessions-result').innerHTML = 
+                    `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testLapsOverview() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/stats/overview', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('laps-overview-result').innerHTML = 
+                        `<p class="success">✓ Fetched laps overview</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('laps-overview-result').innerHTML = 
+                        `<p class="error">✗ Failed</p>
+                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('laps-overview-result').innerHTML = 
+                    `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Check if we already have a token
+        if (token) {
+            document.getElementById('login-result').innerHTML = 
+                `<p class="success">✓ Token found in localStorage</p>`;
+        }
+    </script>
+</body>
+</html>
