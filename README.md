@@ -1,101 +1,192 @@
-# Karting Session Data Processor
+# 🏎️ Karting Portal# 🏎️ Karting Management Portal
 
-A Python script that processes karting session emails from multiple tracks and extracts lap time data for specified drivers, then adds it to a karting CSV database with intelligent weather detection.
 
-## Features
 
-- **Multi-track support**: De Voltage, Experience Factory Antwerp, Circuit Park Berghem, Goodwill Karting
-- **Email parsing**: Extracts data from SMS Timing email files (.eml)
-- **API integration**: Apex Timing data fetching
-- **Weather detection**: Real-time weather API + intelligent rain detection based on lap times
-- **Individual lap tracking**: Records every lap time, not just best times
-- **Duplicate prevention**: Avoids adding the same session twice
+Professional karting analytics dashboard with **automatic deployment** to Namecheap.Modern web application for comprehensive karting session management, lap time analysis, and driver performance tracking.
 
-## Setup
 
-### 1. Install Dependencies
 
-```bash
+**Vue 3 + Laravel 12 + Auto-Deploy via GitHub Actions**> **Note**: This project has been restructured. Legacy Python scripts moved to `data-importer/`. Main application is in `portal/`.
+
+
+
+---## ✨ Features
+
+
+
+## 🚀 Deploy to Production- 📊 **Real-time Analytics** - Interactive charts and performance metrics
+
+- 🗺️ **Geographic Analysis** - Track locations and regional statistics
+
+**See [DEPLOY.md](DEPLOY.md)** - 3 steps, 5 minutes total.- 👥 **Driver Management** - Multi-driver tracking and comparisons
+
+- 🏁 **Track Database** - Complete track specs, pricing, and features
+
+1. Fill in `secrets.json` with your values- 📤 **Smart Upload** - Parse EML/CSV/TXT files automatically
+
+2. Push to GitHub- ✍️ **Manual Entry** - Add individual laps when needed
+
+3. Add secrets from `secrets.json` to GitHub- 🔐 **Admin Controls** - Secure track and data management
+
+4. Push again → Live in 5 minutes! 🎉- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
+
+
+
+---## 🚀 Quick Start
+
+
+
+## 💻 Local Development### Option 1: Use the Portal (Recommended)
+
+
+
+### Backend (Laravel)```bash
+
+```bash# Backend
+
+cd portal/backendcd portal/backend
+
+composer installcomposer install
+
+cp .env.example .envcp .env.example .env
+
+php artisan key:generatephp artisan key:generate
+
+php artisan migratephp artisan migrate
+
+php artisan servephp artisan serve
+
+```
+
+# Frontend (new terminal)
+
+### Frontend (Vue)cd portal/frontend
+
+```bashnpm install
+
+cd portal/frontendnpm run dev
+
+npm install```
+
+npm run dev
+
+```Visit `http://localhost:5173` and login with:
+
+- Email: `maxvanlierop05@gmail.com`
+
+**Access:** http://localhost:5173  - Password: `admin123`
+
+**API:** http://127.0.0.1:8000
+
+### Option 2: Legacy Python Scripts
+
+**Login:**
+
+- Admin: admin@karting.com / password```bash
+
+- Driver: driver@karting.com / passwordcd data-importer/scripts
+
 pip install requests beautifulsoup4
-```
 
-### 2. Configure API Keys
-
-1. Get a free API key from [OpenWeatherMap](https://openweathermap.org/api)
-2. Copy `secrets.example.json` to `secrets.json`
-3. Add your API key to `secrets.json`:
-
-```json
-{
-  "openweather_api_key": "your_actual_api_key_here"
-}
-```
-
-Alternatively, set environment variable:
-```bash
-export OPENWEATHER_API_KEY="your_actual_api_key_here"
-```
-
-### 3. Organize Your Files
+---python process_karting_sessions.py
 
 ```
-karting/
-├── process_karting_sessions.py
-├── config.py
-├── secrets.json (your API keys - not in git)
-├── Karten.csv (your database)
-├── De Voltage/
-│   ├── Results - Session 1.eml
-│   └── Results - Session 2.eml
-├── Circuit Park Berghem/
-│   ├── Results - Session 75.eml
-│   └── Results - Session 76.eml
-└── ... other track folders
+
+## ✨ Features
+
+See `data-importer/README.md` for details.
+
+- 📊 Real-time Analytics
+
+- 🗺️ Track Mapping (OpenStreetMap)## 📁 Project Structure
+
+- 📈 Performance Charts
+
+- 🔐 Secure Authentication```
+
+- 🎨 Elite Dark Themekarting/
+
+- 🚀 Auto-Deploy to Namecheap├── portal/                      # Main application
+
+│   ├── backend/                 # Laravel API
+
+---│   └── frontend/                # Vue 3 UI
+
+│
+
+## 🔧 Tech Stack├── data-importer/               # Legacy tools
+
+│   ├── scripts/                 # Python scripts
+
+**Frontend:** Vue 3, TypeScript, Vite, Chart.js, Leaflet  │   ├── data/                    # CSV files
+
+**Backend:** Laravel 12, MySQL, JWT  │   └── eml-samples/             # Sample EML files
+
+**Deploy:** GitHub Actions, FTP│
+
+└── docs/                        # Documentation
+
+---```
+
+## 🏗️ Tech Stack
+
+## 📚 Documentation
+
+- **Backend**: Laravel 12, MySQL, Sanctum authentication
+
+- **[DEPLOY.md](DEPLOY.md)** - Production deployment guide- **Frontend**: Vue 3, TypeScript, Pinia, Chart.js
+
+- **secrets.json** - Your deployment credentials (edit this!)- **Legacy**: Python scripts for historical data import
+
+- **secrets.example.json** - Template for secrets
+
+## 📖 Documentation
+
+---
+
+- **Portal Guide**: See `portal/README.md`
+
+**Built with ❤️ for karting enthusiasts**  - **API Docs**: See `portal/backend/BACKEND_COMPLETE.md`
+
+🏁 Just push to deploy! 🚀- **Legacy Tools**: See `data-importer/README.md`
+
+- **Restructure Plan**: See `RESTRUCTURE_PLAN.md`
+
+## 🔐 Default Credentials
+
+```
+Email: maxvanlierop05@gmail.com
+Password: admin123
+Role: Admin
 ```
 
-## Usage
+## 🎯 Key Features
 
-```bash
-python process_karting_sessions.py
-```
+### For Admins
+- ✅ Track management (add/edit/delete)
+- ✅ Upload session data (EML/CSV/TXT)
+- ✅ Manual lap entry
+- ✅ Driver management
+- ✅ System settings
 
-The script will:
-1. Clear and recreate the CSV database
-2. Process all EML files from track folders
-3. Fetch recent data from Apex Timing
-4. Add weather data (with intelligent rain detection)
-5. Generate comprehensive lap-by-lap records
+### For All Users
+- ✅ View analytics and charts
+- ✅ Track personal performance
+- ✅ Compare with other drivers
+- ✅ Geographic analysis
+- ✅ Session history
 
-## Weather Detection
+## 🤝 Contributing
 
-The system uses a smart multi-layered approach:
+This is a private project. For questions or issues, contact the project owner.
 
-1. **Lap Time Analysis**: For outdoor tracks, analyzes driver lap times to detect rain conditions
-   - Circuit Park Berghem: If average lap > 70s or max lap > 80s, likely rain conditions
-2. **Real Weather API**: Gets current weather from OpenWeatherMap
-3. **Seasonal Fallback**: Uses reasonable seasonal weather if API unavailable
+## 📄 License
 
-## Supported Tracks
+Private project - All rights reserved.
 
-- **De Voltage** (Indoor, Tilburg, NL)
-- **Experience Factory Antwerp** (Indoor, Antwerp, BE) 
-- **Circuit Park Berghem** (Outdoor, Berghem, NL)
-- **Goodwill Karting** (Indoor, Olen, BE)
+---
 
-## Driver Configuration
-
-Update `DRIVER_ALIASES` in the script for your drivers and their track-specific aliases.
-
-## CSV Output
-
-Generated CSV includes:
-- Individual lap times for each driver
-- Session details (date, time, track, weather)
-- Position and ranking data
-- Best lap indicators
-- Comprehensive session notes
-
-## Security
+**Made with ❤️ for karting enthusiasts**
 
 - `secrets.json` is in `.gitignore` - never commit API keys
 - Use environment variables in production

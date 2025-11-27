@@ -1,14 +1,33 @@
 ---
+# cPanel Deployment Configuration
+# This file is used by cPanel's Git Version Control integration
+# For GitHub Actions deployment, see .github/workflows/deploy.yml
+
 deployment:
   tasks:
     - export DEPLOYPATH=/home/themgbpn/public_html/karting
-    - echo "Deploying to $DEPLOYPATH..."
+    - echo "🚀 Deploying Karting Portal to $DEPLOYPATH..."
     - mkdir -p "$DEPLOYPATH"
-    - >-
-      if command -v rsync >/dev/null 2>&1; then
-        rsync -av --delete dashboard/ "$DEPLOYPATH/"
-      else
-        cp -a dashboard/. "$DEPLOYPATH/"
-      fi
+    
+    # Deploy frontend (Vue.js)
+    - echo "📦 Deploying frontend..."
+    - cp -r portal/frontend/dist/* "$DEPLOYPATH/"
+    
+    # Deploy backend (Laravel API)
+    - echo "🔧 Deploying backend API..."
+    - mkdir -p "$DEPLOYPATH/api"
+    - cp -r portal/backend/* "$DEPLOYPATH/api/"
+    
+    # Set permissions
+    - chmod -R 755 "$DEPLOYPATH"
+    - chmod -R 775 "$DEPLOYPATH/api/storage"
+    - chmod -R 775 "$DEPLOYPATH/api/bootstrap/cache"
+    
+    # Install composer dependencies
+    - cd "$DEPLOYPATH/api" && composer install --no-dev --optimize-autoloader
+    
+    # Clear and cache Laravel
+    - cd "$DEPLOYPATH/api" && php artisan config:cache
+    - cd "$DEPLOYPATH/api" && php artisan route:cache
+    
     - echo "✅ Deployment complete!"
-      - echo "✅ Deployment complete!"

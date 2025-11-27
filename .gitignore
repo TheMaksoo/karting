@@ -85,12 +85,19 @@ celerybeat-schedule
 
 # Environments
 .env
+.env.local
+.env.*.local
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# But keep production/development env templates
+!.env.production
+!.env.development
+!.env.example
 
 # Spyder project settings
 .spyderproject
@@ -125,6 +132,7 @@ Thumbs.db
 
 # Project specific
 secrets.json
+!secrets.example.json
 *.eml
 Karten.csv
 Karten.xlsx
