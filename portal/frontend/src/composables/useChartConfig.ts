@@ -140,7 +140,8 @@ export function useChartConfig() {
 
   // Helper function to get color from palette
   const getColor = (index: number): string => {
-    return colorPalette[index % colorPalette.length] || colorPalette[0]
+    const color = colorPalette[index % colorPalette.length]
+    return color || colorPalette[0]!
   }
 
   // Helper function to generate dataset colors

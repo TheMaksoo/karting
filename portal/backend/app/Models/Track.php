@@ -13,6 +13,8 @@ class Track extends Model
         'city',
         'country',
         'region',
+        'latitude',
+        'longitude',
         'distance',
         'corners',
         'width',

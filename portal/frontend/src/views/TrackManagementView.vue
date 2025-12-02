@@ -428,7 +428,7 @@ const loadTracks = async () => {
   loading.value = true
   try {
     const response = await apiService.tracks.getAll()
-    tracks.value = response.data.map((track: any) => ({
+    tracks.value = response.map((track: any) => ({
       ...track,
       emlSupported: track.eml_supported || false
     }))
@@ -452,10 +452,30 @@ const confirmDelete = (track: Track) => {
 const saveTrack = async () => {
   saving.value = true
   try {
+    // Transform form data to API Track format
+    const apiTrackData: any = {
+      name: formData.value.name,
+      city: formData.value.city,
+      country: formData.value.country,
+      distance: formData.value.distance_km || undefined,
+      corners: formData.value.corners || undefined,
+      width: formData.value.width_m || undefined,
+      elevation_change: formData.value.elevation_m || undefined,
+      contact: {
+        phone: formData.value.phone || undefined,
+        email: formData.value.email || undefined,
+        website: formData.value.website || undefined,
+      },
+      coordinates: formData.value.latitude && formData.value.longitude ? {
+        lat: formData.value.latitude,
+        lng: formData.value.longitude,
+      } : undefined,
+    }
+
     if (showEditModal.value && formData.value.id) {
-      await apiService.tracks.update(formData.value.id, formData.value)
+      await apiService.tracks.update(formData.value.id, apiTrackData)
     } else {
-      await apiService.tracks.create(formData.value)
+      await apiService.tracks.create(apiTrackData)
     }
     await loadTracks()
     closeModals()

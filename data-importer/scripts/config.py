@@ -42,6 +42,30 @@ def load_config():
                 'timezone': 'UTC',
                 'distance': 400,  # meters (default)
                 'corners': 10     # default
+            },
+            'Elche': {
+                'indoor': False,
+                'city': 'Elche',
+                'country': 'Spain',
+                'timezone': 'CET',
+                'distance': 800,
+                'corners': 15
+            },
+            'Experience Factory Antwerp': {
+                'indoor': True,
+                'city': 'Antwerp',
+                'country': 'Belgium',
+                'timezone': 'CET',
+                'distance': 500,
+                'corners': 12
+            },
+            'Gilesias': {
+                'indoor': False,
+                'city': 'Gilesias',
+                'country': 'Italy',
+                'timezone': 'CET',
+                'distance': 1000,
+                'corners': 20
             }
         }
     
@@ -63,6 +87,18 @@ def load_config():
         config['driver_aliases'] = {
             'Default Track': {
                 driver: [driver] for driver in config['default_drivers']
+            },
+            'Elche': {
+                'Max van Lierop': ['Max', 'M. Lierop'],
+                'Quinten van Wesel': ['Quinten', 'Q. Wesel']
+            },
+            'Experience Factory Antwerp': {
+                'Max van Lierop': ['Max', 'M. Lierop'],
+                'Quinten van Wesel': ['Quinten', 'Q. Wesel']
+            },
+            'Gilesias': {
+                'Max van Lierop': ['Max', 'M. Lierop'],
+                'Quinten van Wesel': ['Quinten', 'Q. Wesel']
             }
         }
     
@@ -73,7 +109,10 @@ def load_config():
     # Default track IDs if not provided
     if not config.get('track_ids'):
         config['track_ids'] = {
-            'default': 'TRK-001'
+            'default': 'TRK-001',
+            'Elche': 'TRK-002',
+            'Experience Factory Antwerp': 'TRK-003',
+            'Gilesias': 'TRK-004'
         }
     
     # CSV filename

@@ -209,9 +209,9 @@ async function handleLogin() {
     var(--shadow-lg),
     0 0 80px rgba(88, 166, 255, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  padding: 2.5rem;
+  padding: 1.875rem;
   width: 100%;
-  max-width: 420px;
+  max-width: 315px;
   position: relative;
   z-index: 1;
   backdrop-filter: blur(20px) saturate(180%);
@@ -231,11 +231,11 @@ async function handleLogin() {
 
 .logo-section {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .logo-icon {
-  font-size: 4rem;
+  font-size: 3rem;
   margin-bottom: 0.5rem;
   animation: bounce 2s ease-in-out infinite;
   display: inline-block;
@@ -248,7 +248,7 @@ async function handleLogin() {
 }
 
 .logo-section h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: var(--text-primary);
   margin: 0 0 0.5rem 0;
   font-weight: 700;
@@ -276,7 +276,7 @@ async function handleLogin() {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.9375rem;
 }
 
 .form-group {
@@ -315,10 +315,10 @@ async function handleLogin() {
 }
 
 .form-group input {
-  padding: 0.75rem 1rem;
+  padding: 0.5625rem 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.703125rem;
   background: rgba(22, 27, 34, 0.5);
   color: var(--text-primary);
   transition: all var(--transition-fast);
@@ -368,9 +368,9 @@ async function handleLogin() {
   background: linear-gradient(135deg, #58A6FF, #F97316);
   color: white;
   border: none;
-  padding: 0.875rem 1.25rem;
+  padding: 0.65625rem 0.9375rem;
   border-radius: var(--radius-md);
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -434,9 +434,9 @@ async function handleLogin() {
 }
 
 .help-text {
-  margin-top: 1.25rem;
+  margin-top: 0.9375rem;
   text-align: center;
-  padding-top: 1.25rem;
+  padding-top: 0.9375rem;
   border-top: 1px solid var(--border-color);
   animation: fadeIn 0.6s ease-out 0.4s backwards;
 }
@@ -456,34 +456,34 @@ async function handleLogin() {
   }
   
   .login-card {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1.125rem;
     max-width: 100%;
   }
   
   .logo-icon {
-    font-size: 3rem;
+    font-size: 2.25rem;
   }
   
   .logo-section h1 {
-    font-size: 1.75rem;
+    font-size: 1.3125rem;
   }
   
   .logo-section p {
-    font-size: 0.8125rem;
+    font-size: 0.609375rem;
   }
   
   .login-form {
-    gap: 1rem;
+    gap: 0.75rem;
   }
   
   .form-group input {
-    padding: 0.7rem 0.9rem;
-    font-size: 0.875rem;
+    padding: 0.525rem 0.675rem;
+    font-size: 0.703125rem;
   }
   
   .login-button {
-    padding: 0.8rem 1rem;
-    font-size: 0.9375rem;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.703125rem;
   }
   
   .shape {
@@ -493,47 +493,47 @@ async function handleLogin() {
 
 @media (max-width: 480px) {
   .login-card {
-    padding: 1.5rem 1rem;
+    padding: 1.125rem 0.75rem;
     border-radius: var(--radius-md);
   }
   
   .logo-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.125rem;
   }
   
   .logo-icon {
-    font-size: 2.5rem;
+    font-size: 1.875rem;
   }
   
   .logo-section h1 {
-    font-size: 1.5rem;
+    font-size: 1.125rem;
   }
   
   .logo-section p {
-    font-size: 0.75rem;
+    font-size: 0.5625rem;
   }
   
   .form-group label {
-    font-size: 0.8125rem;
+    font-size: 0.609375rem;
   }
   
   .form-group input {
-    padding: 0.65rem 0.85rem;
-    font-size: 0.8125rem;
+    padding: 0.4875rem 0.6375rem;
+    font-size: 0.609375rem;
   }
   
   .login-button {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.5625rem 0.75rem;
+    font-size: 0.65625rem;
   }
   
   .error-message {
-    padding: 0.65rem 0.85rem;
-    font-size: 0.8125rem;
+    padding: 0.4875rem 0.6375rem;
+    font-size: 0.65625rem;
   }
   
   .help-text p {
-    font-size: 0.6875rem;
+    font-size: 0.515625rem;
   }
   
   .shape {
@@ -543,25 +543,25 @@ async function handleLogin() {
 
 @media (max-width: 374px) {
   .login-card {
-    padding: 1.25rem 0.85rem;
+    padding: 0.9375rem 0.6375rem;
   }
   
   .logo-icon {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
   
   .logo-section h1 {
-    font-size: 1.375rem;
+    font-size: 1.03125rem;
   }
   
   .form-group input {
-    padding: 0.6rem 0.75rem;
-    font-size: 0.75rem;
+    padding: 0.45rem 0.5625rem;
+    font-size: 0.5625rem;
   }
   
   .login-button {
-    padding: 0.7rem 0.9rem;
-    font-size: 0.8125rem;
+    padding: 0.525rem 0.675rem;
+    font-size: 0.609375rem;
   }
 }
 </style>

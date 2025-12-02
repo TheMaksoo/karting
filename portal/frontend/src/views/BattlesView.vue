@@ -1,15 +1,15 @@
 <template>
   <div class="battles-view">
-    <div class="page-header">
+    <header class="page-header">
       <h1>⚔️ Head-to-Head Battles</h1>
-      <p class="subtitle">Compare performance against other drivers</p>
-    </div>
+      <p>Compare performance against other drivers</p>
+    </header>
 
     <!-- Driver Selector -->
     <div class="battle-selector">
       <div class="driver-select">
         <label>Driver 1</label>
-        <select v-model="driver1" class="select-input">
+        <select v-model="driver1" @change="resetComparison" class="select-input">
           <option v-for="driver in drivers" :key="driver.id" :value="driver.id">
             {{ driver.name }}
           </option>
@@ -18,124 +18,105 @@
       <div class="vs-icon">⚔️</div>
       <div class="driver-select">
         <label>Driver 2</label>
-        <select v-model="driver2" class="select-input">
+        <select v-model="driver2" @change="resetComparison" class="select-input">
           <option v-for="driver in drivers" :key="driver.id" :value="driver.id">
             {{ driver.name }}
           </option>
         </select>
       </div>
-      <button @click="loadBattle" class="btn-primary">
-        <span>Compare</span>
+      <button @click="loadBattle" :disabled="loading" class="btn-primary">
+        <span v-if="loading">Loading...</span>
+        <span v-else>Compare</span>
       </button>
     </div>
 
+    <!-- Loading/Error States -->
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Analyzing battle data...</p>
+    </div>
+
+    <div v-else-if="error" class="error-state">
+      <p>❌ {{ error }}</p>
+      <button @click="loadBattle" class="retry-btn">Retry</button>
+    </div>
+
     <!-- Battle Stats -->
-    <div class="battle-stats">
+    <div v-else-if="battleData.totalBattles > 0" class="battle-stats">
       <div class="driver-card left">
-        <div class="driver-avatar">{{ getInitials(getDriverName(driver1)) }}</div>
-        <h3>{{ getDriverName(driver1) }}</h3>
-        <div class="score-badge winner">{{ battleScore.driver1Wins }}</div>
+        <div class="driver-avatar">{{ driver1 ? getInitials(getDriverName(driver1)) : '?' }}</div>
+        <h3>{{ driver1 ? getDriverName(driver1) : 'Unknown' }}</h3>
+        <div class="score-badge winner">{{ battleData.driver1Wins }}</div>
         <p class="score-label">Wins</p>
       </div>
 
       <div class="battle-info">
         <div class="battle-metric">
           <div class="metric-label">Total Battles</div>
-          <div class="metric-value">{{ battleScore.totalBattles }}</div>
+          <div class="metric-value">{{ battleData.totalBattles }}</div>
         </div>
         <div class="battle-metric">
           <div class="metric-label">Avg Gap</div>
-          <div class="metric-value">{{ battleScore.avgGap }}s</div>
+          <div class="metric-value">{{ formatTime(battleData.avgGap) }}</div>
+        </div>
+        <div class="battle-metric">
+          <div class="metric-label">Closest Battle</div>
+          <div class="metric-value">{{ formatTime(battleData.closestGap) }}</div>
         </div>
       </div>
 
       <div class="driver-card right">
-        <div class="driver-avatar">{{ getInitials(getDriverName(driver2)) }}</div>
-        <h3>{{ getDriverName(driver2) }}</h3>
-        <div class="score-badge winner">{{ battleScore.driver2Wins }}</div>
+        <div class="driver-avatar">{{ driver2 ? getInitials(getDriverName(driver2)) : '?' }}</div>
+        <h3>{{ driver2 ? getDriverName(driver2) : 'Unknown' }}</h3>
+        <div class="score-badge winner">{{ battleData.driver2Wins }}</div>
         <p class="score-label">Wins</p>
       </div>
     </div>
 
+    <!-- No Data State -->
+    <div v-else-if="!loading && !error" class="empty-state">
+      <p>⚔️ No battle data available</p>
+      <p class="hint">Select two different drivers to compare their performance</p>
+    </div>
+
     <!-- Comparison Charts -->
-    <div class="charts-grid">
-      <div class="chart-card">
+    <div v-if="battleData.totalBattles > 0 && !loading" class="charts-section">
+      <div class="chart-container">
         <h3>📊 Lap Time Comparison</h3>
-        <div class="chart-placeholder">
-          <div class="chart-icon">📈</div>
-          <p>Line chart comparing lap times over sessions</p>
-          <small>Chart.js multi-line chart ready</small>
-        </div>
+        <canvas ref="lapTimeChart"></canvas>
       </div>
 
-      <div class="chart-card">
-        <h3>🎯 Consistency Battle</h3>
-        <div class="chart-placeholder">
-          <div class="chart-icon">📊</div>
-          <p>Box plot showing consistency comparison</p>
-          <small>Chart.js box plot ready</small>
-        </div>
+      <div class="chart-container">
+        <h3>🎯 Performance Gap</h3>
+        <canvas ref="gapChart"></canvas>
       </div>
 
-      <div class="chart-card full-width">
-        <h3>🏁 Track-by-Track Showdown</h3>
-        <div class="chart-placeholder">
-          <div class="chart-icon">🏆</div>
-          <p>Bar chart showing wins per track</p>
-          <small>Chart.js grouped bar chart ready</small>
-        </div>
+      <div class="chart-container full-width">
+        <h3>🏁 Track-by-Track Results</h3>
+        <canvas ref="trackComparisonChart"></canvas>
       </div>
     </div>
 
     <!-- Battle History -->
-    <div class="history-card">
+    <div v-if="battleHistory.length > 0" class="history-card">
       <h3>📜 Battle History</h3>
       <div class="battle-timeline">
-        <div v-for="(battle, index) in battleHistory" :key="index" class="battle-item">
+        <div v-for="(battle, index) in battleHistory.slice(0, 10)" :key="index" class="battle-item">
           <div class="battle-date">{{ formatDate(battle.date) }}</div>
-          <div class="battle-track">{{ battle.track }}</div>
+          <div class="battle-track">{{ battle.track_name }}</div>
           <div class="battle-times">
-            <div :class="['time-box', battle.winner === 1 ? 'winner' : '']">
-              <span class="driver-name">{{ getDriverName(driver1) }}</span>
-              <span class="time">{{ formatTime(battle.time1) }}</span>
+            <div :class="['time-box', battle.winner === driver1 ? 'winner' : '']">
+              <span class="driver-name">{{ driver1 ? getDriverName(driver1) : 'Unknown' }}</span>
+              <span class="time">{{ formatTime(battle.driver1_time) }}</span>
             </div>
             <div class="vs-divider">vs</div>
-            <div :class="['time-box', battle.winner === 2 ? 'winner' : '']">
-              <span class="driver-name">{{ getDriverName(driver2) }}</span>
-              <span class="time">{{ formatTime(battle.time2) }}</span>
+            <div :class="['time-box', battle.winner === driver2 ? 'winner' : '']">
+              <span class="driver-name">{{ driver2 ? getDriverName(driver2) : 'Unknown' }}</span>
+              <span class="time">{{ formatTime(battle.driver2_time) }}</span>
             </div>
           </div>
           <div class="battle-gap">
-            Gap: {{ Math.abs(battle.time1 - battle.time2).toFixed(3) }}s
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Leaderboard -->
-    <div class="leaderboard-card">
-      <h3>🏆 Overall Leaderboard</h3>
-      <div class="leaderboard">
-        <div v-for="(driver, index) in leaderboard" :key="index" class="leaderboard-item">
-          <div class="rank">
-            <span v-if="index === 0">🥇</span>
-            <span v-else-if="index === 1">🥈</span>
-            <span v-else-if="index === 2">🥉</span>
-            <span v-else>{{ index + 1 }}</span>
-          </div>
-          <div class="driver-info">
-            <div class="driver-avatar-small">{{ getInitials(driver.name) }}</div>
-            <span class="driver-name">{{ driver.name }}</span>
-          </div>
-          <div class="driver-stats">
-            <div class="stat">
-              <span class="stat-label">Wins</span>
-              <span class="stat-value">{{ driver.wins }}</span>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Best Time</span>
-              <span class="stat-value">{{ formatTime(driver.bestTime) }}</span>
-            </div>
+            Gap: {{ formatTime(Math.abs(battle.driver1_time - battle.driver2_time)) }}
           </div>
         </div>
       </div>
@@ -144,107 +125,373 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import apiService from '@/services/api'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { Chart, registerables } from 'chart.js'
+import { useChartConfig } from '@/composables/useChartConfig'
+import { useKartingAPI } from '@/composables/useKartingAPI'
 
-interface Driver {
-  id: number
-  name: string
-}
+// Register Chart.js components
+Chart.register(...registerables)
 
-interface BattleHistory {
-  date: string
-  track: string
-  time1: number
-  time2: number
-  winner: number
-}
+const { getColor } = useChartConfig()
+const { getAllLaps, getDriverStats, loading, error } = useKartingAPI()
 
-interface LeaderboardEntry {
-  name: string
-  wins: number
-  bestTime: number
-}
-
-const driver1 = ref(1)
-const driver2 = ref(2)
-const drivers = ref<Driver[]>([])
-
-const battleScore = ref({
+// State
+const driver1 = ref<number | null>(null)
+const driver2 = ref<number | null>(null)
+const drivers = ref<any[]>([])
+const battleData = ref({
   totalBattles: 0,
   driver1Wins: 0,
   driver2Wins: 0,
   avgGap: 0,
+  closestGap: 0,
 })
+const battleHistory = ref<any[]>([])
 
-const battleHistory = ref<BattleHistory[]>([])
+// Chart refs
+const lapTimeChart = ref<HTMLCanvasElement>()
+const gapChart = ref<HTMLCanvasElement>()
+const trackComparisonChart = ref<HTMLCanvasElement>()
 
-const leaderboard = ref<LeaderboardEntry[]>([])
+// Chart instances
+let lapTimeChartInstance: Chart | null = null
+let gapChartInstance: Chart | null = null
+let trackComparisonChartInstance: Chart | null = null
 
-const loading = ref(true)
-const error = ref('')
+async function loadDrivers() {
+  try {
+    const driverStats = await getDriverStats()
+    if (driverStats && driverStats.length > 0) {
+      drivers.value = driverStats.map(d => ({
+        id: d.driver_id,
+        name: d.driver_name
+      }))
 
-const getDriverName = (id: number): string => {
+      // Set default drivers if available
+      if (drivers.value.length >= 2) {
+        driver1.value = drivers.value[0].id
+        driver2.value = drivers.value[1].id
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load drivers:', err)
+  }
+}
+
+function resetComparison() {
+  battleData.value = {
+    totalBattles: 0,
+    driver1Wins: 0,
+    driver2Wins: 0,
+    avgGap: 0,
+    closestGap: 0,
+  }
+  battleHistory.value = []
+}
+
+async function loadBattle() {
+  if (!driver1.value || !driver2.value || driver1.value === driver2.value) {
+    error.value = 'Please select two different drivers'
+    return
+  }
+
+  loading.value = true
+  error.value = ''
+
+  try {
+    // Get lap data for both drivers
+    const [driver1Laps, driver2Laps] = await Promise.all([
+      getAllLaps(driver1.value),
+      getAllLaps(driver2.value)
+    ])
+
+    if (!driver1Laps || !driver2Laps) {
+      throw new Error('Failed to load lap data')
+    }
+
+    // Group laps by track and session to find battles
+    const battles = findBattles(driver1Laps, driver2Laps)
+
+    // Calculate battle statistics
+    calculateBattleStats(battles)
+
+    // Create battle history
+    battleHistory.value = battles
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 20) // Keep most recent 20
+
+    await nextTick()
+    createCharts()
+
+  } catch (err: any) {
+    error.value = err.message || 'Failed to load battle data'
+    console.error('Battle load error:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+function findBattles(driver1Laps: any[], driver2Laps: any[]) {
+  const battles: any[] = []
+
+  // Group laps by track
+  const driver1ByTrack = groupBy(driver1Laps, 'track_id')
+  const driver2ByTrack = groupBy(driver2Laps, 'track_id')
+
+  // Find tracks where both drivers have laps
+  const commonTracks = Object.keys(driver1ByTrack).filter(trackId =>
+    driver2ByTrack[trackId]
+  )
+
+  commonTracks.forEach(trackId => {
+    const d1Laps = driver1ByTrack[trackId]
+    const d2Laps = driver2ByTrack[trackId]
+
+    // Find sessions where both drivers participated
+    const d1Sessions = groupBy(d1Laps, 'session_id')
+    const d2Sessions = groupBy(d2Laps, 'session_id')
+
+    const commonSessions = Object.keys(d1Sessions).filter(sessionId =>
+      d2Sessions[sessionId]
+    )
+
+    commonSessions.forEach(sessionId => {
+      const sessionD1Laps = d1Sessions[sessionId]
+      const sessionD2Laps = d2Sessions[sessionId]
+
+      // Get best lap for each driver in this session
+      const d1Best = sessionD1Laps.reduce((best: any, lap: any) =>
+        !best || lap.lap_time < best.lap_time ? lap : best
+      )
+      const d2Best = sessionD2Laps.reduce((best: any, lap: any) =>
+        !best || lap.lap_time < best.lap_time ? lap : best
+      )
+
+      if (d1Best && d2Best) {
+        battles.push({
+          track_id: trackId,
+          track_name: d1Best.track_name,
+          session_id: sessionId,
+          date: d1Best.created_at,
+          driver1_time: d1Best.lap_time,
+          driver2_time: d2Best.lap_time,
+          winner: d1Best.lap_time < d2Best.lap_time ? driver1.value : driver2.value,
+          gap: Math.abs(d1Best.lap_time - d2Best.lap_time)
+        })
+      }
+    })
+  })
+
+  return battles
+}
+
+function calculateBattleStats(battles: any[]) {
+  if (battles.length === 0) {
+    battleData.value = {
+      totalBattles: 0,
+      driver1Wins: 0,
+      driver2Wins: 0,
+      avgGap: 0,
+      closestGap: 0,
+    }
+    return
+  }
+
+  const driver1Wins = battles.filter(b => b.winner === driver1.value).length
+  const driver2Wins = battles.filter(b => b.winner === driver2.value).length
+  const gaps = battles.map(b => b.gap)
+  const avgGap = gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length
+  const closestGap = Math.min(...gaps)
+
+  battleData.value = {
+    totalBattles: battles.length,
+    driver1Wins,
+    driver2Wins,
+    avgGap,
+    closestGap,
+  }
+}
+
+function groupBy(array: any[], key: string) {
+  return array.reduce((groups, item) => {
+    const group = item[key]
+    groups[group] = groups[group] || []
+    groups[group].push(item)
+    return groups
+  }, {})
+}
+
+function createCharts() {
+  if (battleHistory.value.length === 0) return
+
+  // Destroy existing charts
+  if (lapTimeChartInstance) lapTimeChartInstance.destroy()
+  if (gapChartInstance) gapChartInstance.destroy()
+  if (trackComparisonChartInstance) trackComparisonChartInstance.destroy()
+
+  const battles = battleHistory.value.slice().reverse() // Chronological order
+
+  // Lap Time Comparison Chart
+  if (lapTimeChart.value) {
+    const labels = battles.map((_, i) => `Battle ${i + 1}`)
+
+    lapTimeChartInstance = new Chart(lapTimeChart.value, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: driver1.value ? getDriverName(driver1.value) : 'Driver 1',
+            data: battles.map(b => b.driver1_time),
+            borderColor: getColor(0),
+            backgroundColor: getColor(0) + '20',
+            tension: 0.4,
+          },
+          {
+            label: driver2.value ? getDriverName(driver2.value) : 'Driver 2',
+            data: battles.map(b => b.driver2_time),
+            borderColor: getColor(1),
+            backgroundColor: getColor(1) + '20',
+            tension: 0.4,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            ticks: {
+              callback: (value) => formatTime(Number(value))
+            }
+          }
+        }
+      }
+    })
+  }
+
+  // Performance Gap Chart
+  if (gapChart.value) {
+    const gaps = battles.map(b => b.gap)
+
+    gapChartInstance = new Chart(gapChart.value, {
+      type: 'bar',
+      data: {
+        labels: battles.map((_, i) => `Battle ${i + 1}`),
+        datasets: [{
+          label: 'Time Gap (seconds)',
+          data: gaps,
+          backgroundColor: gaps.map(gap => gap < 1 ? '#10B981' : gap < 2 ? '#F59E0B' : '#EF4444'),
+          borderColor: gaps.map(gap => gap < 1 ? '#10B981' : gap < 2 ? '#F59E0B' : '#EF4444'),
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => formatTime(Number(value))
+            }
+          }
+        }
+      }
+    })
+  }
+
+  // Track Comparison Chart
+  if (trackComparisonChart.value) {
+    const trackStats = calculateTrackStats(battles)
+    const tracks = Object.keys(trackStats)
+
+    trackComparisonChartInstance = new Chart(trackComparisonChart.value, {
+      type: 'bar',
+      data: {
+        labels: tracks,
+        datasets: [
+          {
+            label: `${driver1.value ? getDriverName(driver1.value) : 'Driver 1'} Wins`,
+            data: tracks.map(track => trackStats[track].driver1Wins),
+            backgroundColor: getColor(0),
+          },
+          {
+            label: `${driver2.value ? getDriverName(driver2.value) : 'Driver 2'} Wins`,
+            data: tracks.map(track => trackStats[track].driver2Wins),
+            backgroundColor: getColor(1),
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
+    })
+  }
+}
+
+function calculateTrackStats(battles: any[]) {
+  const trackStats: any = {}
+
+  battles.forEach(battle => {
+    const track = battle.track_name
+    if (!trackStats[track]) {
+      trackStats[track] = { driver1Wins: 0, driver2Wins: 0 }
+    }
+
+    if (battle.winner === driver1.value) {
+      trackStats[track].driver1Wins++
+    } else {
+      trackStats[track].driver2Wins++
+    }
+  })
+
+  return trackStats
+}
+
+function getDriverName(id: number): string {
   return drivers.value.find(d => d.id === id)?.name || 'Unknown'
 }
 
-const getInitials = (name: string): string => {
+function getInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').toUpperCase()
 }
 
-const formatTime = (seconds: number): string => {
+function formatTime(seconds: number): string {
+  if (!seconds) return '0.000'
   const mins = Math.floor(seconds / 60)
   const secs = (seconds % 60).toFixed(3)
-  return `${mins}:${secs.padStart(6, '0')}`
+  return mins > 0 ? `${mins}:${secs.padStart(6, '0')}` : secs
 }
 
-const formatDate = (date: string): string => {
-  return new Date(date).toLocaleDateString('en-US', {
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric'
   })
 }
 
-const loadBattle = async () => {
-  loading.value = true
-  error.value = ''
-  try {
-    // Load drivers
-    const driverData = await apiService.drivers.getAll()
-    drivers.value = driverData
-    
-    // If we have at least 2 drivers, set them
-    if (drivers.value.length >= 2 && drivers.value[0] && drivers.value[1]) {
-      driver1.value = drivers.value[0].id
-      driver2.value = drivers.value[1].id
-    }
-    
-    // TODO: Load real battle data from API when endpoint exists
-    // For now, show empty state
-    battleScore.value = {
-      totalBattles: 0,
-      driver1Wins: 0,
-      driver2Wins: 0,
-      avgGap: 0,
-    }
-    battleHistory.value = []
-    leaderboard.value = []
-    
-  } catch (err: any) {
-    error.value = 'Failed to load battle data'
-    console.error('Failed to load battle:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-const loadData = async () => {
-  await loadBattle()
-}
-
-onMounted(() => {
-  loadData()
+onMounted(async () => {
+  await loadDrivers()
 })
 </script>
 
@@ -343,12 +590,12 @@ onMounted(() => {
 .battle-stats {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 3rem 2rem;
+  padding: 1.5rem;
   margin-bottom: 2rem;
   align-items: center;
 }
@@ -358,36 +605,36 @@ onMounted(() => {
 }
 
 .driver-avatar {
-  width: 100px;
-  height: 100px;
+  width: 60px;
+  height: 60px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: white;
-  margin: 0 auto 1rem;
+  margin: 0 auto 0.75rem;
 }
 
 .driver-card h3 {
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.75rem 0;
 }
 
 .score-badge {
   display: inline-block;
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #48bb78;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .score-label {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -397,8 +644,8 @@ onMounted(() => {
 .battle-info {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 0 2rem;
+  gap: 1rem;
+  padding: 0 1rem;
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -408,13 +655,13 @@ onMounted(() => {
 }
 
 .metric-label {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .metric-value {
-  font-size: 2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: white;
 }
@@ -422,8 +669,8 @@ onMounted(() => {
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .chart-card {
@@ -431,7 +678,8 @@ onMounted(() => {
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1rem;
+  height: 280px;
 }
 
 .chart-card.full-width {
@@ -439,10 +687,10 @@ onMounted(() => {
 }
 
 .chart-card h3 {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 1rem 0;
 }
 
 .chart-placeholder {

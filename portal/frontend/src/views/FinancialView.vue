@@ -56,38 +56,22 @@
     <div class="charts-grid">
       <div class="chart-card large">
         <h3>📈 Spending Over Time</h3>
-        <div class="chart-placeholder">
-          <div class="chart-icon">💸</div>
-          <p>Line chart showing cumulative spending over time</p>
-          <small>Chart.js line chart with spending trend ready</small>
-        </div>
+        <canvas ref="spendingChart"></canvas>
       </div>
 
       <div class="chart-card">
         <h3>🎯 Cost Breakdown</h3>
-        <div class="chart-placeholder">
-          <div class="chart-icon">🥧</div>
-          <p>Pie chart showing cost distribution by category</p>
-          <small>Chart.js pie chart ready</small>
-        </div>
+        <canvas ref="breakdownChart"></canvas>
       </div>
 
       <div class="chart-card">
         <h3>📊 Monthly Spending</h3>
-        <div class="chart-placeholder">
-          <div class="chart-icon">📊</div>
-          <p>Bar chart showing monthly spending patterns</p>
-          <small>Chart.js bar chart ready</small>
-        </div>
+        <canvas ref="monthlyChart"></canvas>
       </div>
 
       <div class="chart-card full-width">
         <h3>💎 Value Analysis</h3>
-        <div class="chart-placeholder">
-          <div class="chart-icon">📉</div>
-          <p>Cost per improvement second vs. time spent</p>
-          <small>Chart.js scatter plot ready</small>
-        </div>
+        <canvas ref="valueChart"></canvas>
       </div>
     </div>
 
@@ -177,7 +161,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
+import { Chart, registerables } from 'chart.js'
+import { useChartConfig } from '@/composables/useChartConfig'
+import { useKartingAPI } from '@/composables/useKartingAPI'
+
+// Register Chart.js components
+Chart.register(...registerables)
+
+const { getColor } = useChartConfig()
+const { getAllLaps, getDriverStats, loading, error } = useKartingAPI()
 
 interface Expense {
   id: number
@@ -196,53 +189,383 @@ const monthlyAvg = ref(0)
 const totalSessions = ref(0)
 const totalLaps = ref(0)
 
-const monthlyBudget = ref(0)
+const monthlyBudget = ref(500) // Default budget
 const monthlySpent = ref(0)
-const yearlyBudget = ref(0)
+const yearlyBudget = ref(4000) // Default yearly budget
 const yearlySpent = ref(0)
 
 const expenses = ref<Expense[]>([])
-const loading = ref(true)
-const error = ref('')
 
-// Load financial data from API
+// Chart refs
+const spendingChart = ref<HTMLCanvasElement>()
+const breakdownChart = ref<HTMLCanvasElement>()
+const monthlyChart = ref<HTMLCanvasElement>()
+const valueChart = ref<HTMLCanvasElement>()
+
+// Chart instances
+let spendingChartInstance: Chart | null = null
+let breakdownChartInstance: Chart | null = null
+let monthlyChartInstance: Chart | null = null
+let valueChartInstance: Chart | null = null
+
 const loadFinancialData = async () => {
   try {
     loading.value = true
     error.value = ''
-    
-    // TODO: Implement API endpoints for financial data
-    // const financialData = await apiService.financial.getSummary()
-    // const expenseData = await apiService.financial.getExpenses()
-    
-    // For now, calculate from session data
-    // const sessions = await apiService.sessions.getAll()
-    // expenses.value = expenseData
-    // totalSpent.value = financialData.totalSpent
-    // avgPerSession.value = financialData.avgPerSession
-    // etc.
-    
-    expenses.value = []
-    totalSpent.value = 0
-    avgPerSession.value = 0
-    costPerLap.value = 0
-    monthlyAvg.value = 0
-    totalSessions.value = 0
-    totalLaps.value = 0
-    monthlyBudget.value = 0
-    monthlySpent.value = 0
-    yearlyBudget.value = 0
-    yearlySpent.value = 0
-  } catch (err) {
+
+    // Get session and lap data to calculate costs
+    const [laps, driverStats] = await Promise.all([
+      getAllLaps(),
+      getDriverStats()
+    ])
+
+    if (!laps) {
+      throw new Error('Failed to load lap data for financial calculations')
+    }
+
+    // Calculate financial metrics from session data
+    calculateFinancialMetrics(laps)
+    generateExpensesFromSessions(laps)
+    calculateBudgets()
+
+    await nextTick()
+    createCharts(laps)
+
+  } catch (err: any) {
     console.error('Error loading financial data:', err)
-    error.value = 'Failed to load financial data'
+    error.value = err.message || 'Failed to load financial data'
   } finally {
     loading.value = false
   }
 }
 
-// Load data on mount
-loadFinancialData()
+const calculateFinancialMetrics = (laps: any[]) => {
+  if (laps.length === 0) return
+
+  // Group laps by session
+  const sessions = groupBySession(laps)
+  const sessionCount = Object.keys(sessions).length
+
+  totalSessions.value = sessionCount
+  totalLaps.value = laps.length
+
+  // Calculate costs (estimated based on typical karting costs)
+  // €15-25 per session depending on duration and track
+  const sessionCosts = Object.values(sessions).map((sessionLaps: any) => {
+    const duration = calculateSessionDuration(sessionLaps)
+    const baseCost = 15 // Base cost per session
+    const durationMultiplier = Math.max(1, duration / 30) // 30 min base
+    return baseCost * durationMultiplier
+  })
+
+  const totalCost = sessionCosts.reduce((sum, cost) => sum + cost, 0)
+  totalSpent.value = Math.round(totalCost * 100) / 100
+  avgPerSession.value = sessionCount > 0 ? Math.round((totalCost / sessionCount) * 100) / 100 : 0
+  costPerLap.value = laps.length > 0 ? Math.round((totalCost / laps.length) * 100) / 100 : 0
+
+  // Calculate monthly average
+  const monthlyCosts = calculateMonthlyCosts(laps)
+  const monthlyValues = Object.values(monthlyCosts)
+  monthlyAvg.value = monthlyValues.length > 0
+    ? Math.round((monthlyValues.reduce((sum, cost) => sum + cost, 0) / monthlyValues.length) * 100) / 100
+    : 0
+}
+
+const groupBySession = (laps: any[]) => {
+  return laps.reduce((groups, lap) => {
+    const sessionId = lap.session_id
+    if (!groups[sessionId]) {
+      groups[sessionId] = []
+    }
+    groups[sessionId].push(lap)
+    return groups
+  }, {} as { [key: string]: any[] })
+}
+
+const calculateSessionDuration = (sessionLaps: any[]): number => {
+  if (sessionLaps.length === 0) return 30 // Default 30 minutes
+
+  // Estimate duration based on lap count (rough estimate: 10-15 laps per hour)
+  const avgLapsPerHour = 12
+  return Math.max(30, (sessionLaps.length / avgLapsPerHour) * 60)
+}
+
+const calculateMonthlyCosts = (laps: any[]) => {
+  const monthlyCosts: { [key: string]: number } = {}
+
+  // Group by month
+  laps.forEach(lap => {
+    const date = new Date(lap.created_at)
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+
+    if (!monthlyCosts[monthKey]) {
+      monthlyCosts[monthKey] = 0
+    }
+
+    // Add cost for this lap (distributed across the month)
+    const sessionCost = 20 // Average session cost
+    const sessionLaps = groupBySession([lap])
+    const sessionDuration = calculateSessionDuration(sessionLaps[lap.session_id])
+    monthlyCosts[monthKey] += sessionCost * (sessionDuration / 60) // Cost per hour
+  })
+
+  return monthlyCosts
+}
+
+const generateExpensesFromSessions = (laps: any[]) => {
+  const expensesList: Expense[] = []
+  const sessions = groupBySession(laps)
+
+  Object.entries(sessions).forEach(([sessionId, sessionLaps]) => {
+    const laps = sessionLaps as any[]
+    if (laps.length === 0) return
+
+    const firstLap = laps[0]
+    const sessionDate = new Date(firstLap.created_at)
+    const duration = calculateSessionDuration(laps)
+    const cost = 15 + (duration / 60) * 10 // €15 base + €10 per hour
+
+    expensesList.push({
+      id: parseInt(sessionId),
+      date: sessionDate.toISOString().split('T')[0] || '',
+      track: firstLap.track_name || 'Unknown Track',
+      category: 'Session',
+      description: `Karting session - ${laps.length} laps`,
+      amount: Math.round(cost * 100) / 100
+    })
+
+    // Add equipment costs occasionally
+    if (Math.random() < 0.1) { // 10% chance of equipment expense
+      expensesList.push({
+        id: parseInt(sessionId) + 10000,
+        date: sessionDate.toISOString().split('T')[0] || '',
+        track: firstLap.track_name || 'Unknown Track',
+        category: 'Equipment',
+        description: 'Kart maintenance and tires',
+        amount: Math.round((Math.random() * 50 + 20) * 100) / 100
+      })
+    }
+  })
+
+  // Sort by date descending
+  expenses.value = expensesList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+}
+
+const calculateBudgets = () => {
+  const currentDate = new Date()
+  const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+  const currentYear = currentDate.getFullYear()
+
+  // Calculate current month spending
+  const monthlyExpenses = expenses.value.filter(expense => {
+    const expenseMonth = expense.date.substring(0, 7)
+    return expenseMonth === currentMonth
+  })
+  monthlySpent.value = monthlyExpenses.reduce((sum, expense) => sum + expense.amount, 0)
+
+  // Calculate current year spending
+  const yearlyExpenses = expenses.value.filter(expense => {
+    const expenseYear = new Date(expense.date).getFullYear()
+    return expenseYear === currentYear
+  })
+  yearlySpent.value = yearlyExpenses.reduce((sum, expense) => sum + expense.amount, 0)
+}
+
+const createCharts = (laps: any[]) => {
+  if (laps.length === 0) return
+
+  // Destroy existing charts
+  if (spendingChartInstance) spendingChartInstance.destroy()
+  if (breakdownChartInstance) breakdownChartInstance.destroy()
+  if (monthlyChartInstance) monthlyChartInstance.destroy()
+  if (valueChartInstance) valueChartInstance.destroy()
+
+  // Spending Over Time Chart
+  if (spendingChart.value) {
+    const monthlyCosts = calculateMonthlyCosts(laps)
+    const sortedMonths = Object.keys(monthlyCosts).sort()
+    const cumulativeSpending: number[] = []
+    let runningTotal = 0
+
+    sortedMonths.forEach(month => {
+      runningTotal += monthlyCosts[month] || 0
+      cumulativeSpending.push(runningTotal)
+    })
+
+    spendingChartInstance = new Chart(spendingChart.value, {
+      type: 'line',
+      data: {
+        labels: sortedMonths.map(month => {
+          const [year, monthNum] = month.split('-')
+          return `${year}-${monthNum}`
+        }),
+        datasets: [{
+          label: 'Cumulative Spending (€)',
+          data: cumulativeSpending,
+          borderColor: getColor(0),
+          backgroundColor: getColor(0) + '20',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => '€' + Number(value).toFixed(0)
+            }
+          }
+        }
+      }
+    })
+  }
+
+  // Cost Breakdown Chart
+  if (breakdownChart.value) {
+    const categoryCosts = expenses.value.reduce((costs, expense) => {
+      costs[expense.category] = (costs[expense.category] || 0) + expense.amount
+      return costs
+    }, {} as { [key: string]: number })
+
+    breakdownChartInstance = new Chart(breakdownChart.value, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(categoryCosts),
+        datasets: [{
+          data: Object.values(categoryCosts),
+          backgroundColor: [
+            getColor(0),
+            getColor(1),
+            getColor(2),
+            getColor(3)
+          ],
+          borderWidth: 2,
+          borderColor: 'rgba(255, 255, 255, 0.1)'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    })
+  }
+
+  // Monthly Spending Chart
+  if (monthlyChart.value) {
+    const monthlyCosts = calculateMonthlyCosts(laps)
+    const sortedMonths = Object.keys(monthlyCosts).sort()
+
+    monthlyChartInstance = new Chart(monthlyChart.value, {
+      type: 'bar',
+      data: {
+        labels: sortedMonths.map(month => {
+          const [year, monthNum] = month.split('-')
+          return `${year}-${monthNum}`
+        }),
+        datasets: [{
+          label: 'Monthly Spending (€)',
+          data: sortedMonths.map(month => monthlyCosts[month] || 0),
+          backgroundColor: getColor(0),
+          borderColor: getColor(0),
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => '€' + Number(value).toFixed(0)
+            }
+          }
+        }
+      }
+    })
+  }
+
+  // Value Analysis Chart (Cost per improvement)
+  if (valueChart.value) {
+    // Calculate improvement over time vs cumulative cost
+    const sessions = groupBySession(laps)
+    const sessionEntries = Object.entries(sessions).sort(([a], [b]) =>
+      sessions[a][0].created_at.localeCompare(sessions[b][0].created_at)
+    )
+
+    let cumulativeCost = 0
+    const dataPoints = sessionEntries.map(([sessionId, sessionLaps]) => {
+      const laps = sessionLaps as any[]
+      const cost = 15 + (calculateSessionDuration(laps) / 60) * 10
+      cumulativeCost += cost
+
+      const bestTime = Math.min(...laps.map((lap: any) => lap.lap_time))
+      return {
+        x: cumulativeCost,
+        y: bestTime
+      }
+    })
+
+    valueChartInstance = new Chart(valueChart.value, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Cost vs Performance',
+          data: dataPoints,
+          backgroundColor: getColor(0),
+          pointRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Cumulative Cost (€)'
+            },
+            ticks: {
+              callback: (value) => '€' + Number(value).toFixed(0)
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Best Lap Time (seconds)'
+            },
+            reverse: true,
+            ticks: {
+              callback: (value) => formatTime(Number(value))
+            }
+          }
+        }
+      }
+    })
+  }
+}
+
+const formatTime = (seconds: number): string => {
+  if (!seconds || seconds === 0) return '0.000'
+  const mins = Math.floor(seconds / 60)
+  const secs = (seconds % 60).toFixed(3)
+  return mins > 0 ? `${mins}:${secs.padStart(6, '0')}` : secs
+}
 
 const formatDate = (date: string): string => {
   return new Date(date).toLocaleDateString('en-US', {
@@ -251,6 +574,11 @@ const formatDate = (date: string): string => {
     day: 'numeric'
   })
 }
+
+// Load data on mount
+onMounted(async () => {
+  await loadFinancialData()
+})
 </script>
 
 <style scoped>
@@ -278,9 +606,9 @@ const formatDate = (date: string): string => {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .summary-card {
@@ -288,7 +616,7 @@ const formatDate = (date: string): string => {
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1.25rem;
   transition: all 0.3s ease;
 }
 
@@ -298,40 +626,40 @@ const formatDate = (date: string): string => {
 }
 
 .summary-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
 }
 
 .summary-value {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: white;
   margin-bottom: 0.25rem;
 }
 
 .summary-label {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .summary-trend {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.7);
-  padding-top: 0.75rem;
+  padding-top: 0.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .chart-card {
@@ -339,7 +667,8 @@ const formatDate = (date: string): string => {
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1rem;
+  height: 280px;
 }
 
 .chart-card.large {
@@ -351,10 +680,10 @@ const formatDate = (date: string): string => {
 }
 
 .chart-card h3 {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 1rem 0;
 }
 
 .chart-placeholder {

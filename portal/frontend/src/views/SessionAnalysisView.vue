@@ -193,10 +193,10 @@ const loadData = async () => {
     stats.value.totalSessions = sessions.value.length
     stats.value.totalLaps = sessions.value.reduce((sum, s) => sum + (s.lap_count || 0), 0)
     
-    const lapTimes = sessions.value.map(s => s.avg_lap).filter(t => t)
+    const lapTimes = sessions.value.map(s => s.avg_lap).filter((t): t is number => t !== null && t !== undefined)
     stats.value.averageLapTime = lapTimes.length ? lapTimes.reduce((a, b) => a + b, 0) / lapTimes.length : 0
     
-    const bestTimes = sessions.value.map(s => s.best_lap).filter(t => t)
+    const bestTimes = sessions.value.map(s => s.best_lap).filter((t): t is number => t !== null && t !== undefined)
     stats.value.bestLapTime = bestTimes.length ? Math.min(...bestTimes) : 0
   } catch (error) {
     console.error('Failed to load session data:', error)

@@ -87,7 +87,8 @@ function formatTime(seconds: number | null): string {
 
 function getDriverColor(driverId: number): string {
   const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
-  return colors[(driverId - 1) % colors.length]
+  const color = colors[(driverId - 1) % colors.length]
+  return color || colors[0]!
 }
 </script>
 

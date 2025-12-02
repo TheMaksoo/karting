@@ -51,7 +51,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->command->info('📍 Seeding tracks...');
         
-        $tracksJson = file_get_contents(base_path('../tracks.json'));
+        $tracksJson = file_get_contents(base_path('../../tracks.json'));
         $data = json_decode($tracksJson, true);
 
         foreach ($data['tracks'] as $trackData) {
@@ -81,7 +81,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info('🏎️  Seeding drivers...');
         
         // Get unique drivers from CSV
-        $csvPath = base_path('../Karten.csv');
+        $csvPath = base_path('../../Karten.csv');
         $drivers = [];
         
         if (($handle = fopen($csvPath, 'r')) !== false) {
@@ -152,7 +152,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->command->info('🏁 Seeding karting sessions and laps...');
         
-        $csvPath = base_path('../Karten.csv');
+        $csvPath = base_path('../../Karten.csv');
         
         if (!file_exists($csvPath)) {
             $this->command->error('CSV file not found!');
@@ -177,10 +177,16 @@ class DatabaseSeeder extends Seeder
                 
                 // Get track
                 $trackId = $row[$colMap['TrackID']] ?? null;
-                if (!$trackId) continue;
+                if (!$trackId) {
+                    $this->command->warn("Row $rowCount skipped: Missing TrackID.");
+                    continue;
+                }
                 
                 $track = Track::where('track_id', $trackId)->first();
-                if (!$track) continue;
+                if (!$track) {
+                    $this->command->warn("Row $rowCount skipped: TrackID $trackId not found.");
+                    continue;
+                }
                 
                 // Create unique session key
                 $sessionKey = sprintf(
@@ -209,10 +215,16 @@ class DatabaseSeeder extends Seeder
                 
                 // Get driver
                 $driverName = $row[$colMap['Driver']] ?? null;
-                if (!$driverName) continue;
+                if (!$driverName) {
+                    $this->command->warn("Row $rowCount skipped: Missing Driver.");
+                    continue;
+                }
                 
                 $driver = Driver::where('name', $driverName)->first();
-                if (!$driver) continue;
+                if (!$driver) {
+                    $this->command->warn("Row $rowCount skipped: Driver $driverName not found.");
+                    continue;
+                }
                 
                 // Create lap
                 Lap::create([
@@ -228,7 +240,7 @@ class DatabaseSeeder extends Seeder
                     'gap_to_best_lap' => $row[$colMap['GapToBestLap']] ?: null,
                     'interval' => $row[$colMap['Interval']] ?: null,
                     'gap_to_previous' => $row[$colMap['GapToPrevious']] ?: null,
-                    'avg_speed' => $row[$colMap['AvgSpeed']] ?: null,
+                    // 'avg_speed' => $row[$colMap['AvgSpeed']] ?: null, // Not in CSV
                     'kart_number' => $row[$colMap['Kart']] ?: null,
                     'tyre' => $row[$colMap['Tyre']] ?: null,
                     'cost_per_lap' => $row[$colMap['CostPerLap']] ?: null,
