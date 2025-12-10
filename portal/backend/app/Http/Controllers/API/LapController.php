@@ -20,8 +20,20 @@ class LapController extends Controller
         if ($request->has('session_id')) {
             $query->where('karting_session_id', $request->session_id);
         }
+        
+        if ($request->has('track_id')) {
+            $query->whereHas('kartingSession', function($q) use ($request) {
+                $q->where('track_id', $request->track_id);
+            });
+        }
 
-        $laps = $query->orderBy('created_at', 'desc')->paginate(50);
+        // Default ordering: Session → Driver → Lap Number
+        $query->orderBy('karting_session_id', 'desc')
+              ->orderBy('driver_id', 'asc')
+              ->orderBy('lap_number', 'asc');
+
+        $perPage = $request->get('per_page', 25);
+        $laps = $query->paginate($perPage);
         return response()->json($laps);
     }
 

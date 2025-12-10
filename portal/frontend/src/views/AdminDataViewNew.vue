@@ -29,7 +29,6 @@
       :tracks="allTracks"
       @refresh="fetchSessions"
       @page-change="handleSessionPageChange"
-      @filter-change="handleSessionFilterChange"
     />
 
     <!-- Laps Tab -->
@@ -207,7 +206,6 @@ const trackTotal = ref(0)
 // Filters
 const selectedDriver = ref('')
 const selectedTrack = ref('')
-const sessionFilters = ref<any>({})
 
 const tabs = computed(() => [
   { id: 'sessions', label: 'Sessions', icon: '🏁', count: sessionTotal.value },
@@ -222,12 +220,7 @@ const fetchSessions = async () => {
   sessionsError.value = ''
   
   try {
-    const params: any = { 
-      page: sessionPage.value, 
-      per_page: 25,
-      ...sessionFilters.value
-    }
-    const response = await apiService.getSessions(params)
+    const response = await apiService.getSessions({ page: sessionPage.value, per_page: 25 })
     sessions.value = response.data
     sessionTotalPages.value = response.last_page
     sessionTotal.value = response.total
@@ -243,10 +236,7 @@ const fetchLaps = async () => {
   lapsError.value = ''
   
   try {
-    const params: any = { 
-      page: lapPage.value, 
-      per_page: 25
-    }
+    const params: any = { page: lapPage.value, per_page: 25 }
     if (selectedDriver.value) params.driver_id = selectedDriver.value
     if (selectedTrack.value) params.track_id = selectedTrack.value
     
@@ -335,39 +325,13 @@ const handleFilterChange = (filters: { driver: string, track: string }) => {
   fetchLaps()
 }
 
-const handleSessionFilterChange = (filters: any) => {
-  sessionFilters.value = filters
-  sessionPage.value = 1
-  fetchSessions()
-}
-
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString()
 }
 
-onMounted(async () => {
-  // Load counts for all tabs first
-  loadFilters()
-  
-  // Fetch initial counts
-  try {
-    const [sessionsRes, lapsRes, driversRes, tracksRes] = await Promise.all([
-      apiService.getSessions({ page: 1, per_page: 1 }),
-      apiService.getLaps({ page: 1, per_page: 1 }),
-      apiService.getDrivers(),
-      apiService.getTracks()
-    ])
-    
-    sessionTotal.value = sessionsRes.total || 0
-    lapTotal.value = lapsRes.total || 0
-    driverTotal.value = Array.isArray(driversRes) ? driversRes.length : 0
-    trackTotal.value = Array.isArray(tracksRes) ? tracksRes.length : 0
-  } catch (error) {
-    console.error('Failed to load counts:', error)
-  }
-  
-  // Fetch sessions for active tab
+onMounted(() => {
   fetchSessions()
+  loadFilters()
 })
 </script>
 

@@ -1,0 +1,77 @@
+/* Consistency Gauge Styles */
+.gauge-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  min-height: 180px;
+  position: relative;
+}
+
+.gauge-score {
+  position: absolute;
+  top: 70%;
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--primary-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.consistency-change {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.consistency-change.positive {
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.consistency-change.negative {
+  color: #EF4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Mobile Styles for Consistency Gauge */
+@media (max-width: 768px) {
+  .gauge-container {
+    max-width: 100%;
+  }
+
+  .gauge-container canvas {
+    max-width: 250px !important;
+    min-height: 220px !important;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .gauge-container {
+    max-width: 200px;
+    margin: 0.75rem auto;
+    padding: 0.75rem;
+    min-height: 220px;
+  }
+  
+  .gauge-container canvas {
+    max-width: 100% !important;
+    width: 100% !important;
+    min-height: 200px !important;
+    height: 200px !important;
+  }
+  
+  .gauge-score {
+    font-size: 1.5rem;
+  }
+}

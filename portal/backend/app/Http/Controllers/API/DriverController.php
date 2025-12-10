@@ -11,7 +11,14 @@ class DriverController extends Controller
 {
     public function index()
     {
-        $drivers = Driver::with('laps')->get();
+        // Return all drivers without pagination for dropdown/list usage
+        $drivers = Driver::withCount('laps')->get();
+        
+        // Add sessions count manually using a subquery for better performance
+        $drivers->each(function ($driver) {
+            $driver->sessions_count = $driver->laps()->distinct('karting_session_id')->count('karting_session_id');
+        });
+        
         return response()->json($drivers);
     }
 

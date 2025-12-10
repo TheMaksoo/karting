@@ -1,0 +1,1145 @@
+/* Trophy Case Styles */
+.trophy-case {
+  margin-bottom: 2rem;
+}
+
+.trophy-case-card {
+  min-width: 280px;
+}
+
+.trophies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.trophies-grid-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.trophy-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.trophy-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.trophy-card:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.trophy-card:hover::before {
+  opacity: 1;
+}
+
+.trophy-card.emblem {
+  background: linear-gradient(135deg, #DC2626, #991B1B);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.trophy-card.gold {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.trophy-card.silver {
+  background: linear-gradient(135deg, #94A3B8, #64748B);
+  box-shadow: 0 4px 12px rgba(148, 163, 184, 0.3);
+}
+
+.trophy-card.bronze {
+  background: linear-gradient(135deg, #CD7F32, #A0522D);
+  box-shadow: 0 4px 12px rgba(205, 127, 50, 0.3);
+}
+
+.trophy-card.coal {
+  background: linear-gradient(135deg, #374151, #1F2937);
+  box-shadow: 0 4px 12px rgba(55, 65, 81, 0.3);
+}
+
+.trophy-card.dimmed {
+  opacity: 0.3;
+  filter: grayscale(0.8);
+}
+
+.trophy-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.trophy-count {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  margin-bottom: 0.25rem;
+}
+
+.trophy-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trophy-card-compact {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.trophy-card-compact.emblem {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.1));
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.trophy-card-compact.gold {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 193, 7, 0.1));
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.trophy-card-compact.silver {
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(169, 169, 169, 0.1));
+  border-color: rgba(192, 192, 192, 0.3);
+}
+
+.trophy-card-compact.bronze {
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(184, 115, 51, 0.1));
+  border-color: rgba(205, 127, 50, 0.3);
+}
+
+.trophy-card-compact.coal {
+  background: linear-gradient(135deg, rgba(100, 100, 100, 0.15), rgba(70, 70, 70, 0.1));
+  border-color: rgba(100, 100, 100, 0.3);
+}
+
+.trophy-card-compact.dimmed {
+  opacity: 0.3;
+  filter: grayscale(0.8);
+}
+
+.trophy-card-compact:not(.dimmed):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.trophy-card-compact:not(.dimmed):active {
+  transform: translateY(0);
+}
+
+.trophy-icon-compact {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.trophy-count-compact {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 2rem;
+  text-align: center;
+}
+
+.trophy-label-compact {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+/* Trophy Details Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+.empty-message {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+}
+
+.trophy-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.trophy-details-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.trophy-details-list::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.trophy-details-list::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.trophy-details-list::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light);
+}
+
+.trophy-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.trophy-detail-item:hover {
+  border-color: var(--border-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.detail-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.detail-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.detail-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.detail-position {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--bg-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.detail-meta {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.detail-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.detail-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.detail-time {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detail-gaps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gap-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.gap-value-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detail-time .label,
+.gap-item .label,
+.detail-opponents .label {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.detail-time .value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: var(--text-primary);
+}
+
+.gap-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+}
+
+.gap-losing {
+  color: #EF4444;
+}
+
+.gap-winning {
+  color: #10B981;
+}
+
+.gap-driver {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+}
+
+.detail-opponents {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.drivers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.driver-result {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.driver-result:hover {
+  background: var(--bg-secondary);
+}
+
+.driver-result.current-driver {
+  border-left-color: var(--accent);
+  background: var(--bg-secondary);
+  font-weight: 600;
+}
+
+.driver-position {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 2rem;
+}
+
+.driver-name {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.driver-result.current-driver .driver-name {
+  color: var(--accent);
+}
+
+.driver-time {
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.detail-opponents .value {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.trophy-modal .modal-content {
+  max-width: 700px;
+  max-height: 85vh;
+}
+
+/* Track Record Specific Styles */
+.track-record-item {
+  background: linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%);
+  border: 2px solid #FFD700;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
+}
+
+.track-record-item .detail-icon {
+  font-size: 3rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.record-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #FFD700;
+  margin-bottom: 1rem;
+}
+
+.record-track {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.record-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  font-size: 1rem;
+  font-weight: 900;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.1em;
+  width: fit-content;
+}
+
+.record-track-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #FFD700;
+  margin: 0;
+}
+
+.record-time-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.record-label {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.record-value {
+  font-size: 2.5rem;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.record-date {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.record-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.leaderboard-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.leaderboard-entry {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.leaderboard-entry:hover {
+  transform: translateX(4px);
+  background: var(--bg-primary);
+}
+
+.leaderboard-entry.is-record-holder {
+  border-left-color: #FFD700;
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, var(--bg-secondary) 50%);
+  font-weight: 700;
+}
+
+.leaderboard-entry.is-podium {
+  border-left-color: var(--accent);
+}
+
+.leaderboard-position {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.position-number {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+}
+
+.position-medal {
+  font-size: 1.25rem;
+}
+
+.leaderboard-driver {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.leaderboard-entry.is-record-holder .leaderboard-driver {
+  color: #FFD700;
+  font-weight: 700;
+}
+
+.leaderboard-time {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.leaderboard-gap {
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  color: #EF4444;
+  text-align: right;
+  min-width: 4.5rem;
+}
+
+/* Position-Based Trophy Styling */
+.position-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid;
+}
+
+.position-header.position-1 {
+  border-bottom-color: #FFD700;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, transparent 100%);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+}
+
+.position-header.position-2 {
+  border-bottom-color: #C0C0C0;
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.05) 0%, transparent 100%);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+}
+
+.position-header.position-3 {
+  border-bottom-color: #CD7F32;
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.05) 0%, transparent 100%);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+}
+
+.position-track {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.position-badge {
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 900;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.1em;
+  width: fit-content;
+}
+
+.position-1 .position-badge {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+}
+
+.position-2 .position-badge {
+  background: linear-gradient(135deg, #C0C0C0, #A8A8A8);
+  color: #000;
+}
+
+.position-3 .position-badge {
+  background: linear-gradient(135deg, #CD7F32, #B8860B);
+  color: #000;
+}
+
+.position-track-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.position-1 .position-track-name {
+  color: #FFD700;
+}
+
+.position-2 .position-track-name {
+  color: #C0C0C0;
+}
+
+.position-3 .position-track-name {
+  color: #CD7F32;
+}
+
+.position-time-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.position-label {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.position-value {
+  font-size: 2rem;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+}
+
+.position-1 .position-value {
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.position-2 .position-value {
+  color: #C0C0C0;
+  text-shadow: 0 0 10px rgba(192, 192, 192, 0.3);
+}
+
+.position-3 .position-value {
+  color: #CD7F32;
+  text-shadow: 0 0 10px rgba(205, 127, 50, 0.3);
+}
+
+.position-date {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.position-gaps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+
+.gap-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid;
+}
+
+.gap-stat.winning {
+  background: rgba(16, 185, 129, 0.1);
+  border-left-color: #10B981;
+}
+
+.gap-stat.losing {
+  background: rgba(239, 68, 68, 0.1);
+  border-left-color: #EF4444;
+}
+
+.gap-label {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.gap-content {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.gap-value {
+  font-size: 1.25rem;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+}
+
+.gap-stat.winning .gap-value {
+  color: #10B981;
+}
+
+.gap-stat.losing .gap-value {
+  color: #EF4444;
+}
+
+.gap-driver {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+.session-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.session-leaderboard .leaderboard-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.session-leaderboard .leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.session-leaderboard .leaderboard-entry.is-current-driver {
+  border-left-width: 3px;
+  border-left-style: solid;
+  font-weight: 700;
+}
+
+.session-leaderboard .position-1 ~ * .leaderboard-entry.is-current-driver {
+  border-left-color: #FFD700;
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, var(--bg-secondary) 50%);
+}
+
+.session-leaderboard .position-2 ~ * .leaderboard-entry.is-current-driver {
+  border-left-color: #C0C0C0;
+  background: linear-gradient(90deg, rgba(192, 192, 192, 0.1) 0%, var(--bg-secondary) 50%);
+}
+
+.session-leaderboard .position-3 ~ * .leaderboard-entry.is-current-driver {
+  border-left-color: #CD7F32;
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.1) 0%, var(--bg-secondary) 50%);
+}
+
+.session-leaderboard .leaderboard-entry.is-current-driver .leaderboard-driver {
+  font-weight: 700;
+}
+
+/* Mobile Responsive Styles for Trophy Modal */
+@media (max-width: 480px) {
+  .trophies-grid-compact {
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+  }
+  
+  .trophy-card-compact {
+    padding: 0.5rem 0.7rem;
+    gap: 0.7rem;
+  }
+  
+  .trophy-icon-compact {
+    font-size: 1.1rem;
+  }
+  
+  .trophy-details-compact {
+    gap: 0.15rem;
+  }
+  
+  .trophy-name-compact {
+    font-size: 1rem;
+  }
+  
+  .trophy-count-compact {
+    font-size: 1rem;
+  }
+
+  .modal-content {
+    width: 96%;
+    max-height: 92vh;
+    max-width: 100%;
+    border-radius: var(--radius-md);
+  }
+  
+  .modal-header {
+    padding: 0.75rem 0.85rem;
+    flex-wrap: wrap;
+  }
+  
+  .modal-header h2 {
+    font-size: 1rem;
+    flex: 1;
+  }
+  
+  .modal-close {
+    font-size: 1.4rem;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .modal-body {
+    padding: 0.75rem;
+  }
+  
+  .trophy-details-list {
+    gap: 0.6rem;
+    max-height: 75vh;
+  }
+  
+  .trophy-detail-item {
+    gap: 0.6rem;
+    padding: 0.65rem;
+    flex-direction: column;
+  }
+  
+  .detail-icon {
+    font-size: 1.5rem;
+    align-self: flex-start;
+  }
+  
+  .detail-info {
+    width: 100%;
+  }
+  
+  .record-header {
+    gap: 0.65rem;
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.65rem;
+  }
+  
+  .record-badge {
+    font-size: 1rem;
+    padding: 0.15rem 0.4rem;
+  }
+  
+  .record-track-name {
+    font-size: 1rem !important;
+    line-height: 1.2;
+  }
+  
+  .record-time-main {
+    padding: 0.6rem;
+    gap: 0.2rem;
+  }
+  
+  .record-label {
+    font-size: 1rem;
+  }
+  
+  .record-value {
+    font-size: 1.3rem !important;
+  }
+  
+  .record-date {
+    font-size: 1rem;
+  }
+  
+  .position-header {
+    gap: 0.65rem;
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.65rem;
+  }
+  
+  .position-badge {
+    font-size: 1rem;
+    padding: 0.15rem 0.4rem;
+  }
+  
+  .position-track-name {
+    font-size: 1rem !important;
+    line-height: 1.2;
+  }
+  
+  .position-time-main {
+    padding: 0.6rem;
+    gap: 0.2rem;
+  }
+  
+  .position-label {
+    font-size: 1rem;
+  }
+  
+  .position-value {
+    font-size: 1.3rem !important;
+  }
+  
+  .position-date {
+    font-size: 1rem;
+  }
+  
+  .leaderboard-title {
+    font-size: 1rem;
+    padding: 0.35rem;
+  }
+  
+  .record-leaderboard,
+  .session-leaderboard {
+    gap: 0.6rem;
+  }
+  
+  .leaderboard-list {
+    gap: 0.3rem;
+    padding: 0.35rem;
+    max-height: 200px;
+  }
+  
+  .leaderboard-entry {
+    grid-template-columns: 2.2rem 1fr 3.5rem 3rem;
+    gap: 0.35rem;
+    padding: 0.35rem 0.4rem;
+    font-size: 1rem;
+  }
+  
+  .leaderboard-position {
+    font-size: 1rem;
+  }
+  
+  .position-number {
+    font-size: 1rem;
+  }
+  
+  .position-medal {
+    font-size: 1rem;
+  }
+  
+  .leaderboard-driver {
+    font-size: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .leaderboard-time {
+    font-size: 1rem;
+  }
+  
+  .leaderboard-gap {
+    font-size: 1rem;
+  }
+  
+  .position-gaps {
+    gap: 0.45rem;
+  }
+  
+  .gap-stat {
+    padding: 0.45rem;
+  }
+  
+  .gap-label {
+    font-size: 1rem;
+  }
+  
+  .gap-value {
+    font-size: 1rem;
+  }
+  
+  .gap-driver {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 374px) {
+  .trophies-grid-compact {
+    gap: 0.3rem;
+    margin-top: 0.4rem;
+  }
+  
+  .trophy-card-compact {
+    padding: 0.3rem 0.4rem;
+    gap: 0.4rem;
+  }
+  
+  .trophy-icon-compact {
+    font-size: 1rem;
+  }
+  
+  .trophy-count-compact {
+    font-size: 1rem;
+    min-width: 1.2rem;
+  }
+  
+  .trophy-label-compact {
+    font-size: 1rem;
+  }
+  
+  .trophy-label-compact {
+    font-size: 1rem;
+  }
+}

@@ -1,14 +1,28 @@
 import { computed } from 'vue'
 import type { ChartOptions } from 'chart.js'
+import { getColorPalette, getDriverColor, getDriverColors } from '@/utils/driverColors'
 
 export function useChartConfig() {
-  // Color palette from your original dashboard
-  const colorPalette = [
-    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-    '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384',
-    '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
-    '#FF6384', '#C9CBCF', '#4BC0C0'
-  ]
+  // Use centralized color palette
+  const colorPalette = getColorPalette()
+
+  /**
+   * Get colors for specific drivers
+   * @param driverIds - Array of driver IDs
+   * @param dbColors - Optional map of driver IDs to their database colors
+   */
+  const getColorsForDrivers = (driverIds: number[], dbColors?: Map<number, string>): string[] => {
+    return getDriverColors(driverIds, dbColors)
+  }
+
+  /**
+   * Get single driver color
+   * @param driverId - Driver ID
+   * @param dbColor - Optional database color
+   */
+  const getColorForDriver = (driverId: number, dbColor?: string): string => {
+    return getDriverColor(driverId, dbColor)
+  }
 
   // Base chart options
   const baseOptions: ChartOptions<any> = {
@@ -182,6 +196,8 @@ export function useChartConfig() {
     scatterChartOptions,
     getColor,
     generateColors,
+    getColorsForDrivers,
+    getColorForDriver,
     formatLapTime,
     formatNumber,
   }

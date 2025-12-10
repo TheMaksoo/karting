@@ -10,17 +10,17 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.18);
   padding: 0.75rem 1rem;
   z-index: 100;
-  font-size: 0.95rem;
+  font-size: 1rem;
   pointer-events: none;
   transition: opacity 0.15s;
 }
 .heatmap-tooltip-modern .tooltip-title {
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1rem;
   margin-bottom: 0.25rem;
 }
 .heatmap-tooltip-modern .tooltip-gap {
-  font-size: 0.95rem;
+  font-size: 1rem;
   margin-bottom: 0.15rem;
 }
 .heatmap-tooltip-modern .tooltip-record {
@@ -61,7 +61,7 @@
 }
 
 .loading-state p {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: var(--text-secondary);
 }
 
@@ -84,7 +84,7 @@
 }
 
 .error-state .error-message {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: var(--text-primary);
   max-width: 600px;
   margin: 0.5rem 0;
@@ -129,7 +129,7 @@
 }
 
 .error-state .hint {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-top: 0.5rem;
   max-width: 500px;
@@ -160,7 +160,7 @@
 }
 
 .empty-state .hint {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--primary-color);
   background: rgba(255, 107, 53, 0.1);
   padding: 0.75rem 1.5rem;
@@ -209,7 +209,7 @@
 }
 
 .date {
-  font-size: 0.625rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-top: 0.125rem;
 }
@@ -265,7 +265,7 @@
   color: #F9FAFB;
   padding: 0.5rem 0.75rem;
   border-radius: 0.375rem;
-  font-size: 0.7rem;
+  font-size: 1rem;
   font-weight: 500;
   line-height: 1.4;
   white-space: normal;
@@ -316,7 +316,7 @@
 }
 
 .stat-value {
-  font-size: clamp(0.875rem, 2.5vw, 1.25rem);
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
@@ -325,7 +325,7 @@
 }
 
 .stat-label {
-  font-size: clamp(0.625rem, 1.5vw, 0.875rem);
+  font-size: 0.8rem;
   color: rgba(255,255,255,0.8);
   text-transform: uppercase;
   letter-spacing: 0.025em;
@@ -361,7 +361,7 @@
 }
 
 .category-title {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
@@ -432,14 +432,14 @@
 }
 
 .chart-title {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.25rem;
 }
 
 .chart-subtitle {
-  font-size: 0.6875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-bottom: 0.25rem;
 }
@@ -448,7 +448,7 @@
   background: var(--bg-tertiary);
   padding: 0.625rem;
   border-radius: var(--radius-md);
-  font-size: 0.6875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-bottom: 0.75rem;
   line-height: 1.5;
@@ -461,7 +461,7 @@
   padding: 0.625rem 0.75rem;
   margin-bottom: 0.875rem;
   border-radius: var(--radius-sm);
-  font-size: 0.6875rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -487,7 +487,7 @@
 
 .section-description {
   color: var(--text-secondary);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 1.5rem;
   padding: 1rem;
@@ -576,7 +576,6 @@
 .trophy-item-modern:hover {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.1);
-  transform: translateX(2px);
 }
 
 .trophy-item-modern.emblem {
@@ -610,7 +609,7 @@
 }
 
 .trophy-icon-modern {
-  font-size: 0.875rem;
+  font-size: 1rem;
   flex-shrink: 0;
   opacity: 0.8;
   display: flex;
@@ -652,14 +651,14 @@
 }
 
 .trophy-count-modern {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
 }
 
 .trophy-label-modern {
-  font-size: 0.5rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.025em;
@@ -672,7 +671,7 @@
 }
 
 .heatmap-header-modern h3 {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -701,7 +700,7 @@
 .heatmap-table-modern {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.625rem;
+  font-size: 1rem;
   background: transparent;
 }
 
@@ -726,7 +725,7 @@
 .hm-corner-modern {
   background: rgba(255, 255, 255, 0.05);
   font-weight: 600;
-  font-size: 0.5625rem;
+  font-size: 1rem;
   color: var(--text-primary);
   position: sticky;
   left: 0;
@@ -735,10 +734,9 @@
 
 .hm-track-col-modern {
   background: rgba(255, 255, 255, 0.03);
-  font-size: 0.5625rem;
+  font-size: 1rem;
   position: sticky;
   top: 0;
-  z-index: 5;
 }
 
 .track-header-modern {
@@ -749,19 +747,19 @@
 }
 
 .track-icon-modern {
-  font-size: 0.625rem;
+  font-size: 1rem;
   opacity: 0.7;
 }
 
 .track-name-modern {
   font-weight: 600;
-  font-size: 0.5625rem;
+  font-size: 1rem;
   line-height: 1.1;
   color: var(--text-primary);
 }
 
 .track-laps-modern {
-  font-size: 0.4375rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   opacity: 0.7;
 }
@@ -769,7 +767,7 @@
 .hm-driver-row-modern {
   background: rgba(255, 255, 255, 0.03);
   font-weight: 600;
-  font-size: 0.5625rem;
+  font-size: 1rem;
   color: var(--text-primary);
   text-align: left;
   position: sticky;
@@ -782,7 +780,7 @@
   min-width: 42px;
   max-width: 42px;
   padding: 0.125rem;
-  font-size: 0.5rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.15s ease;
   background: rgba(255, 255, 255, 0.01);
@@ -801,7 +799,7 @@
 }
 
 .hm-trophy-modern {
-  font-size: 0.4375rem;
+  font-size: 1rem;
   color: #FFD700;
   margin-bottom: 0.125rem;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
@@ -810,7 +808,7 @@
 .hm-time-modern {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.4375rem;
+  font-size: 1rem;
   color: white;
   text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   line-height: 1;
@@ -830,14 +828,14 @@
   background: rgba(255, 255, 255, 0.02);
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.5625rem;
+  font-size: 1rem;
 }
 
 .legend-title-modern {
   font-weight: 600;
   color: var(--text-primary);
   margin-right: 0.5rem;
-  font-size: 0.5rem;
+  font-size: 1rem;
 }
 
 .legend-items-modern {
@@ -859,7 +857,7 @@
 }
 
 .legend-item-modern span {
-  font-size: 0.4375rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   font-weight: 600;
 }
@@ -878,7 +876,7 @@
 }
 
 .chart-title {
-  font-size: 0.6875rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.25rem;
@@ -888,7 +886,7 @@
   background: var(--bg-tertiary);
   padding: 0.375rem;
   border-radius: 3px;
-  font-size: 0.5625rem;
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-bottom: 0.5rem;
   line-height: 1.3;
@@ -900,7 +898,7 @@
 }
 
 .chart-info li {
-  font-size: 0.5rem;
+  font-size: 1rem;
   margin-bottom: 0.125rem;
 }
 
@@ -938,7 +936,7 @@
 }
 
 .control-label {
-  font-size: 0.25rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 0.125rem;
@@ -962,7 +960,7 @@
   border-radius: 18px;
   background: var(--bg-secondary);
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1068,13 +1066,13 @@
   }
   
   .chart-title {
-    font-size: 0.625rem;
+    font-size: 1rem;
     margin-bottom: 0.1875rem;
   }
   
   .chart-info {
     padding: 0.25rem;
-    font-size: 0.5rem;
+    font-size: 1rem;
     margin-bottom: 0.375rem;
   }
   
@@ -1084,19 +1082,19 @@
   }
   
   .trophy-icon-modern {
-    font-size: 0.75rem;
+    font-size: 1rem;
   }
   
   .trophy-count-modern {
-    font-size: 0.75rem;
+    font-size: 1rem;
   }
   
   .trophy-label-modern {
-    font-size: 0.4375rem;
+    font-size: 1rem;
   }
   
   .heatmap-table-modern {
-    font-size: 0.5625rem;
+    font-size: 1rem;
   }
   
   .hm-cell-modern {
@@ -1104,11 +1102,11 @@
     min-width: 36px;
     max-width: 36px;
     padding: 0.125rem;
-    font-size: 0.4375rem;
+    font-size: 1rem;
   }
   
   .hm-time-modern {
-    font-size: 0.375rem;
+    font-size: 1rem;
   }
   
   .gauge-score {
@@ -1117,11 +1115,10 @@
   
   .driver-chip {
     padding: 0.03125rem 0.0625rem;
-    font-size: 0.1875rem;
+    font-size: 1rem;
   }
   
   .control-btn {
     padding: 0.03125rem 0.0625rem;
-    font-size: 0.1875rem;
-  }
+    font-size: 0.1875  }
 }

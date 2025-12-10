@@ -161,8 +161,9 @@ const analyticsMenu = [
 const adminMenu = [
   { path: '/admin/data', label: 'Database Overview', icon: '📊' },
   { path: '/admin/tracks', label: 'Track Management', icon: '🏁' },
-  { path: '/admin/upload', label: 'Upload Data', icon: '📤' },
-  { path: '/admin/drivers', label: 'Driver Management', icon: '👥' },
+  { path: '/admin/driver-management', label: 'Driver Management', icon: '👥' },
+  { path: '/admin/eml-upload', label: 'EML Upload', icon: '📧' },
+  { path: '/admin/styling', label: 'Styling', icon: '🎨' },
   { path: '/admin/settings', label: 'Settings', icon: '⚙️' },
 ]
 
@@ -201,8 +202,9 @@ const pageSubtitle = computed(() => {
     '/predictive': 'Performance predictions and insights',
     '/admin/data': 'View all database records - Sessions, laps, drivers, tracks',
     '/admin/tracks': 'Manage track database',
-    '/admin/upload': 'Import session data',
-    '/admin/drivers': 'Manage driver profiles',
+    '/admin/driver-management': 'Manage driver profiles',
+    '/admin/eml-upload': 'Upload and parse EML session files with duplicate detection',
+    '/admin/styling': 'Customize dashboard appearance and styling',
     '/admin/settings': 'System configuration',
   }
   return subtitles[route.path] || 'Welcome to your karting portal'

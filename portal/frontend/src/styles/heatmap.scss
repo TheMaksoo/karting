@@ -1,0 +1,599 @@
+/* Professional Table-Based Heatmap Styles */
+
+.info-badge {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60A5FA;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.heatmap-container-pro {
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.heatmap-wrapper {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.heatmap-scroll-container {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  max-width: calc(100vw - 3rem);
+  padding-bottom: 1rem;
+}
+
+.heatmap-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  min-width: 600px;
+}
+
+.heatmap-legend-inline {
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.heatmap-legend-inline p {
+  margin: 0 0 0.5rem 0;
+  color: rgba(255,255,255,0.9);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.heatmap-legend-inline p:last-child {
+  margin-bottom: 0;
+  margin-top: 0.5rem;
+}
+
+.legend-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255,255,255,0.85);
+  font-size: 1rem;
+}
+
+.color-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.track-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.6rem 0.5rem;
+  height: 100%;
+}
+
+.track-icon {
+  color: var(--primary-color);
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+  line-height: 1;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  display: inline-block;
+}
+
+.track-icon.fa-flag-checkered::before {
+  content: "\f11e" !important;
+}
+
+.track-name {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+  font-size: 1rem;
+  max-width: 100%;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.track-laps {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.5);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.hm-gap {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  margin-top: 0;
+  line-height: 1.2;
+}
+
+.hm-corner {
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  position: sticky;
+  left: 0;
+  z-index: 11;
+  min-width: 140px;
+  max-width: 140px;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.hm-track-col {
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-left: 1px solid rgba(255,255,255,0.1);
+  min-width: 130px;
+  max-width: 130px;
+  width: 130px;
+  display: table-cell;
+  vertical-align: middle;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+}
+
+.hm-driver-row {
+  background: linear-gradient(135deg, #2d3748, #374151);
+  padding: 0.6rem 0.85rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: rgba(255,255,255,0.9);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 85px;
+  max-width: 85px;
+  text-align: center;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+.hm-cell {
+  padding: 0;
+  text-align: center;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  min-width: 130px;
+  max-width: 130px;
+  width: 130px;
+  height: 85px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.hm-cell:hover {
+  z-index: 10;
+  box-shadow: inset 0 0 0 2px var(--primary-color);
+  filter: brightness(1.1);
+}
+
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  height: 100%;
+  padding: 0.75rem 0.5rem;
+  position: relative;
+}
+
+.hm-trophy {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: #FFD700;
+  font-size: 1rem;
+  filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.6));
+  line-height: 1;
+  z-index: 1;
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  display: inline-block;
+}
+
+.hm-trophy::before {
+  content: "\f091" !important;
+}
+
+.hm-time {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  line-height: 1.2;
+  margin-top: 0;
+}
+
+.hm-laps {
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  line-height: 1.2;
+}
+
+.no-data {
+  font-size: 1.2rem;
+  color: rgba(255,255,255,0.15);
+  font-weight: 300;
+  line-height: 1;
+}
+
+.hm-cell:has(.no-data) {
+  background: rgba(30, 35, 45, 0.4) !important;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.hm-cell:has(.no-data):hover {
+  box-shadow: none;
+  filter: none;
+}
+
+/* Heatmap Stats Panel */
+.heatmap-stats-panel {
+  min-width: 160px;
+  max-width: 160px;
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  align-self: flex-start;
+  position: sticky;
+  top: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.stats-panel-header {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+  padding: 0.5rem 0.6rem;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.stats-panel-header i {
+  font-size: 1rem;
+}
+
+.stats-panel-content {
+  padding: 0.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-row.stat-highlight {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.1));
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.6rem;
+  margin: 0.25rem -0.35rem;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.stat-label {
+  color: rgba(255,255,255,0.6);
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.stat-highlight .stat-label {
+  color: rgba(255,255,255,0.85);
+}
+
+.stat-value {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.stat-highlight .stat-value {
+  color: #fdba74;
+  font-size: 1rem;
+}
+
+.stat-highlight {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.15) 0%, rgba(255, 107, 53, 0.05) 100%);
+  border-left: 3px solid var(--primary-color);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin: 0.75rem 0;
+}
+
+.stat-highlight .stat-label {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.stat-highlight .stat-value {
+  color: var(--primary-color);
+  font-size: 1.125rem;
+}
+
+/* Heatmap Legend */
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.75rem;
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+.legend-title {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.8);
+  white-space: nowrap;
+}
+
+.legend-items {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.legend-box {
+  width: 40px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.legend-item span {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.8);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+/* Responsive Styles for Heatmap */
+@media (max-width: 1200px) {
+  .heatmap-wrapper {
+    flex-direction: column;
+  }
+  
+  .heatmap-stats-panel {
+    position: relative;
+    top: 0;
+    min-width: 100%;
+    max-width: 100%;
+    margin-top: 1rem;
+  }
+  
+  .stats-panel-header {
+    padding: 0.65rem 0.85rem;
+    font-size: 1rem;
+  }
+  
+  .stats-panel-content {
+    padding: 0.6rem;
+    max-height: 55vh;
+    font-size: 1rem;
+  }
+  
+  .stat-row {
+    padding: 0.4rem 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+  
+  .stat-label {
+    font-size: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 1rem;
+  }
+  
+  .stat-highlight .stat-value {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .heatmap-scroll-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem;
+  }
+  
+  .hm-track-col,
+  .hm-cell {
+    min-width: 110px;
+    max-width: 110px;
+  }
+  
+  .hm-time {
+    font-size: 1rem;
+  }
+  
+  .hm-laps {
+    font-size: 1rem;
+  }
+  
+  .hm-gap {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .heatmap-legend-inline {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .heatmap-legend-inline p {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .heatmap-legend-inline p i {
+    margin: 0 0.25rem;
+  }
+  
+  .legend-list {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+  
+  .legend-list li {
+    font-size: 1rem;
+  }
+  
+  .color-dot {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .hm-corner,
+  .hm-driver-row {
+    min-width: 120px;
+    max-width: 120px;
+    font-size: 1rem;
+    padding: 0.75rem 0.85rem;
+  }
+  
+  .hm-track-col,
+  .hm-cell {
+    min-width: 95px;
+    max-width: 95px;
+    height: 72px;
+  }
+  
+  .track-header-content {
+    padding: 0.5rem 0.35rem;
+    gap: 0.25rem;
+  }
+  
+  .track-icon {
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+  }
+  
+  .track-name {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+  
+  .track-laps {
+    font-size: 1rem;
+  }
+  
+  .cell-content {
+    gap: 0.3rem;
+    padding: 0.65rem;
+  }
+  
+  .hm-time {
+    font-size: 1rem;
+    line-height: 1.1;
+  }
+  
+  .hm-laps {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hm-gap {
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,452 @@
+<?php
+
+namespace App\Http\Controllers\API;
+
+use App\Http\Controllers\Controller;
+use App\Models\KartingSession;
+use App\Models\Lap;
+use App\Models\Driver;
+use App\Models\Track;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+class EmlUploadController extends Controller
+{
+    public function parseEml(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:eml,txt|max:10240',
+        ]);
+
+        $file = $request->file('file');
+        
+        // Read EML file
+        $content = file_get_contents($file->getRealPath());
+        
+        // Parse email
+        $emailData = $this->parseEmailContent($content);
+        
+        // Auto-detect track from email
+        $track = $this->detectTrack($emailData);
+        
+        if (!$track) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not detect track from email. Please add track manually.',
+                'available_tracks' => Track::select('id', 'name', 'city')->get()
+            ], 400);
+        }
+        
+        // Extract session data based on track
+        $sessionData = $this->extractSessionData($emailData, $track);
+        
+        // Check for duplicates
+        $duplicate = $this->checkDuplicate($sessionData, $track->id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $sessionData,
+            'duplicate' => $duplicate,
+            'track' => $track
+        ]);
+    }
+
+    public function saveSession(Request $request)
+    {
+        $request->validate([
+            'track_id' => 'required|exists:tracks,id',
+            'session_date' => 'required|date',
+            'heat_price' => 'nullable|numeric',
+            'laps' => 'required|array',
+            'laps.*.driver_name' => 'required|string',
+            'laps.*.lap_number' => 'required|integer',
+            'laps.*.lap_time' => 'required|numeric',
+            'laps.*.position' => 'nullable|integer',
+            'laps.*.kart_number' => 'nullable|string',
+        ]);
+
+        DB::beginTransaction();
+        
+        try {
+            // Create session
+            $session = KartingSession::create([
+                'track_id' => $request->track_id,
+                'session_date' => $request->session_date,
+                'heat_price' => $request->heat_price ?? 0,
+                'session_type' => $request->session_type ?? 'race',
+                'session_number' => $request->session_number,
+            ]);
+
+            // Process laps grouped by driver
+            $driverLaps = collect($request->laps)->groupBy('driver_name');
+            
+            foreach ($driverLaps as $driverName => $laps) {
+                // Find or create driver
+                $driver = Driver::firstOrCreate(
+                    ['name' => $driverName],
+                    ['email' => null]
+                );
+
+                foreach ($laps as $lapData) {
+                    Lap::create([
+                        'karting_session_id' => $session->id,
+                        'driver_id' => $driver->id,
+                        'lap_number' => $lapData['lap_number'],
+                        'lap_time' => $lapData['lap_time'],
+                        'position' => $lapData['position'] ?? null,
+                        'kart_number' => $lapData['kart_number'] ?? null,
+                        'sector1' => $lapData['sector1'] ?? null,
+                        'sector2' => $lapData['sector2'] ?? null,
+                        'sector3' => $lapData['sector3'] ?? null,
+                        'is_best_lap' => false,
+                        'gap_to_best_lap' => $lapData['gap_to_best_lap'] ?? null,
+                        'interval' => $lapData['interval'] ?? null,
+                        'gap_to_previous' => $lapData['gap_to_previous'] ?? null,
+                        'avg_speed' => $lapData['avg_speed'] ?? null,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'session' => $session->load(['track', 'laps.driver'])
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save session: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function parseEmailContent($content)
+    {
+        $headers = [];
+        $body = '';
+        
+        // Split headers and body at the first blank line
+        $parts = preg_split('/\r?\n\r?\n/', $content, 2);
+        $headerText = $parts[0] ?? '';
+        $bodyText = $parts[1] ?? '';
+        
+        // Parse headers
+        if (preg_match_all('/^([^:]+):\s*(.*)$/m', $headerText, $headerMatches, PREG_SET_ORDER)) {
+            foreach ($headerMatches as $match) {
+                $headers[trim($match[1])] = trim($match[2]);
+            }
+        }
+        
+        // Check for multipart content
+        $boundary = null;
+        if (isset($headers['Content-Type']) && preg_match('/boundary="?([^";\s]+)"?/i', $headers['Content-Type'], $matches)) {
+            $boundary = $matches[1];
+        }
+        
+        // If multipart, extract the text/plain part
+        if ($boundary) {
+            $parts = explode('--' . $boundary, $bodyText);
+            foreach ($parts as $part) {
+                // Look for text/plain part
+                if (stripos($part, 'Content-Type: text/plain') !== false) {
+                    // Check if base64 encoded
+                    if (preg_match('/Content-Transfer-Encoding:\s*base64/i', $part)) {
+                        // Extract base64 content (everything after the headers)
+                        if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
+                            $base64Content = preg_replace('/\s+/', '', $contentMatch[1]);
+                            $body = base64_decode($base64Content);
+                        }
+                    } else {
+                        // Plain text content
+                        if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
+                            $body = $contentMatch[1];
+                        }
+                    }
+                    break;
+                }
+            }
+        } else {
+            // Single part message
+            if (preg_match('/Content-Transfer-Encoding:\s*base64/i', $content)) {
+                // Extract base64 content after headers
+                $base64Content = preg_replace('/\s+/', '', $bodyText);
+                $body = base64_decode($base64Content);
+            } else {
+                $body = $bodyText;
+            }
+        }
+        
+        return [
+            'headers' => $headers,
+            'subject' => $headers['Subject'] ?? '',
+            'from' => $headers['From'] ?? '',
+            'date' => $headers['Date'] ?? '',
+            'body' => $body
+        ];
+    }
+
+    private function detectTrack($emailData)
+    {
+        $subject = strtolower($emailData['subject']);
+        $from = strtolower($emailData['from']);
+        $body = strtolower($emailData['body']);
+        
+        // Track detection patterns
+        $trackPatterns = [
+            'De Voltage' => ['devoltage', 'de voltage'],
+            'Experience Factory' => ['experience factory', 'experiencefactory'],
+            'Goodwill Karting' => ['goodwill', 'goodwill karting'],
+            'Circuit Park Berghem' => ['berghem', 'circuit park berghem'],
+            'Fastkart Elche' => ['fastkart', 'elche'],
+            'Lot66' => ['lot66', 'lot 66'],
+        ];
+        
+        foreach ($trackPatterns as $trackName => $patterns) {
+            foreach ($patterns as $pattern) {
+                if (stripos($subject, $pattern) !== false || 
+                    stripos($from, $pattern) !== false || 
+                    stripos($body, $pattern) !== false) {
+                    
+                    // Find track in database by name (case insensitive)
+                    $track = Track::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($trackName) . '%'])->first();
+                    
+                    if ($track) {
+                        return $track;
+                    }
+                    
+                    // Create track if it doesn't exist
+                    return Track::create([
+                        'track_id' => 'TRK-' . strtoupper(substr(md5($trackName), 0, 6)),
+                        'name' => $trackName,
+                        'city' => $this->getTrackCity($trackName),
+                        'country' => 'Netherlands', // Default, can be improved
+                    ]);
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    private function getTrackCity($trackName)
+    {
+        $cities = [
+            'De Voltage' => 'Tilburg',
+            'Experience Factory' => 'Antwerp',
+            'Goodwill Karting' => 'Veenendaal',
+            'Circuit Park Berghem' => 'Berghem',
+            'Fastkart Elche' => 'Elche',
+            'Lot66' => 'Oosterhout',
+        ];
+        
+        return $cities[$trackName] ?? null;
+    }
+
+    private function extractSessionData($emailData, $track)
+    {
+        $body = $emailData['body'];
+        $subject = $emailData['subject'];
+        
+        // Extract session number from subject or body
+        $sessionNumber = null;
+        if (preg_match('/Sessie\s+(\d+)/i', $subject, $matches)) {
+            $sessionNumber = $matches[1];
+        }
+        
+        // Extract session date from email headers
+        $sessionDate = $this->parseEmailDate($emailData['date']);
+        
+        // Extract lap data based on track format
+        $laps = $this->extractLapsData($body, $track);
+        
+        return [
+            'session_number' => $sessionNumber,
+            'session_date' => $sessionDate,
+            'track_name' => $track->name,
+            'laps_count' => count($laps),
+            'drivers_detected' => count(array_unique(array_column($laps, 'driver_name'))),
+            'laps' => $laps
+        ];
+    }
+
+    private function extractLapsData($body, $track)
+    {
+        $laps = [];
+        
+        // Remove HTML tags to get clean text
+        $text = strip_tags($body);
+        
+        // Pattern for De Voltage format - looks for lap time tables
+        // The format is: driver names in header row, then lap numbers and times in subsequent rows
+        
+        // Extract best scores overview (final positions)
+        $lines = explode("\n", $text);
+        $bestScoresSection = false;
+        $driverPositions = [];
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            
+            // Find the "Heat overview" section
+            if (stripos($line, 'Heat overview') !== false || stripos($line, 'Best score') !== false) {
+                $bestScoresSection = true;
+                continue;
+            }
+            
+            // Stop at "Thank you" or other end markers
+            if (stripos($line, 'Thank you') !== false || stripos($line, 'Detailed results') !== false) {
+                $bestScoresSection = false;
+                continue;
+            }
+            
+            // Parse position lines (format: "1.      Driver Name      39.761")
+            if ($bestScoresSection && preg_match('/^(\d+)\.\s+(.+?)\s+([\d:.]+)$/', $line, $matches)) {
+                $position = (int)$matches[1];
+                $driverName = trim($matches[2]);
+                $bestTime = $this->convertTimeToSeconds($matches[3]);
+                
+                if ($bestTime > 0 && !empty($driverName)) {
+                    $driverPositions[$driverName] = [
+                        'position' => $position,
+                        'best_time' => $bestTime
+                    ];
+                }
+            }
+        }
+        
+        // Extract detailed lap-by-lap data from the table
+        // Format: columns are drivers, rows are lap numbers
+        $detailedSection = false;
+        $driverNames = [];
+        $lapNumber = 0;
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            
+            if (stripos($line, 'Detailed results') !== false) {
+                $detailedSection = true;
+                continue;
+            }
+            
+            if ($detailedSection) {
+                // First line after "Detailed results" contains driver names
+                if (empty($driverNames) && strlen($line) > 50) {
+                    // Split by multiple spaces to get driver names
+                    $driverNames = array_filter(preg_split('/\s{2,}/', $line), function($name) {
+                        return strlen(trim($name)) > 2 && !is_numeric(trim($name));
+                    });
+                    $driverNames = array_values(array_map('trim', $driverNames));
+                    continue;
+                }
+                
+                // Parse lap data rows (format: "1       48.762  48.646  48.383  ...")
+                if (!empty($driverNames) && preg_match('/^(\d+)\s+(.+)$/', $line, $matches)) {
+                    $lapNum = (int)$matches[1];
+                    $times = preg_split('/\s+/', trim($matches[2]));
+                    
+                    foreach ($times as $index => $time) {
+                        if (isset($driverNames[$index]) && !empty($time)) {
+                            $lapTime = $this->convertTimeToSeconds($time);
+                            if ($lapTime > 0 && $lapTime < 300) { // Valid lap time (less than 5 minutes)
+                                $driverName = $driverNames[$index];
+                                $position = isset($driverPositions[$driverName]) ? 
+                                    $driverPositions[$driverName]['position'] : null;
+                                
+                                $laps[] = [
+                                    'driver_name' => $driverName,
+                                    'lap_number' => $lapNum,
+                                    'lap_time' => $lapTime,
+                                    'position' => $position,
+                                    'kart_number' => null,
+                                ];
+                            }
+                        }
+                    }
+                }
+                
+                // Stop at summary rows (Avg., Hist., etc.)
+                if (preg_match('/^(Avg\.|Hist\.|Best scores)/i', $line)) {
+                    break;
+                }
+            }
+        }
+        
+        // If detailed lap data wasn't found, use best scores as single laps
+        if (empty($laps) && !empty($driverPositions)) {
+            foreach ($driverPositions as $driverName => $data) {
+                $laps[] = [
+                    'driver_name' => $driverName,
+                    'lap_number' => 1,
+                    'lap_time' => $data['best_time'],
+                    'position' => $data['position'],
+                    'kart_number' => null,
+                ];
+            }
+        }
+        
+        return $laps;
+    }
+
+    private function convertTimeToSeconds($timeStr)
+    {
+        $timeStr = trim($timeStr);
+        
+        // Handle format like "39.761" (seconds.milliseconds)
+        if (preg_match('/^(\d+)\.(\d+)$/', $timeStr, $matches)) {
+            return (float)$timeStr;
+        }
+        
+        // Handle format like "1:23.456" (minutes:seconds.milliseconds)
+        if (preg_match('/^(\d+):(\d+\.\d+)$/', $timeStr, $matches)) {
+            $minutes = (int)$matches[1];
+            $seconds = (float)$matches[2];
+            return $minutes * 60 + $seconds;
+        }
+        
+        return 0;
+    }
+
+    private function parseEmailDate($dateStr)
+    {
+        try {
+            $date = new \DateTime($dateStr);
+            return $date->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            return now()->format('Y-m-d H:i:s');
+        }
+    }
+
+    private function checkDuplicate($sessionData, $trackId)
+    {
+        if (!isset($sessionData['session_date'])) {
+            return null;
+        }
+        
+        // Check if a session exists with same track and date (within 1 hour)
+        $sessionDate = new \DateTime($sessionData['session_date']);
+        
+        $existing = KartingSession::where('track_id', $trackId)
+            ->whereBetween('session_date', [
+                $sessionDate->modify('-1 hour')->format('Y-m-d H:i:s'),
+                $sessionDate->modify('+2 hours')->format('Y-m-d H:i:s')
+            ])
+            ->with(['laps.driver'])
+            ->first();
+        
+        if ($existing) {
+            return [
+                'exists' => true,
+                'session_id' => $existing->id,
+                'session_date' => $existing->session_date,
+                'laps_count' => $existing->laps->count(),
+                'drivers' => $existing->laps->pluck('driver.name')->unique()->values()
+            ];
+        }
+        
+        return null;
+    }
+}

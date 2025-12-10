@@ -1,0 +1,98 @@
+// Design System - Utility Classes
+
+@import './variables';
+@import './mixins';
+
+// ==================== SPACING UTILITIES ====================
+.m-0 { margin: 0; }
+.m-1 { margin: $spacing-1; }
+.m-2 { margin: $spacing-2; }
+.m-3 { margin: $spacing-3; }
+.m-4 { margin: $spacing-4; }
+
+.p-0 { padding: 0; }
+.p-1 { padding: $spacing-1; }
+.p-2 { padding: $spacing-2; }
+.p-3 { padding: $spacing-3; }
+.p-4 { padding: $spacing-4; }
+
+.gap-1 { gap: $spacing-1; }
+.gap-2 { gap: $spacing-2; }
+.gap-3 { gap: $spacing-3; }
+.gap-4 { gap: $spacing-4; }
+
+// ==================== FLEX UTILITIES ====================
+.flex { display: flex; }
+.flex-col { @include flex-column; }
+.flex-center { @include flex-center; }
+.flex-between { @include flex-between; }
+.flex-wrap { flex-wrap: wrap; }
+
+// ==================== TEXT UTILITIES ====================
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.text-truncate { @include text-truncate; }
+
+.font-mono { font-family: $font-mono; }
+.font-bold { font-weight: $font-bold; }
+.font-semibold { font-weight: $font-semibold; }
+
+.text-primary { color: $color-text-primary; }
+.text-secondary { color: $color-text-secondary; }
+.text-accent { color: $color-primary; }
+
+// ==================== BORDER UTILITIES ====================
+.rounded-sm { border-radius: $radius-sm; }
+.rounded-md { border-radius: $radius-md; }
+.rounded-lg { border-radius: $radius-lg; }
+.rounded-full { border-radius: $radius-full; }
+
+.border { border: $border-width-thin solid $color-border; }
+.border-light { border-color: $color-border-light; }
+
+// ==================== CARD UTILITIES ====================
+.card {
+  @include card;
+  padding: $spacing-4;
+}
+
+.card-compact {
+  @include card;
+  padding: $spacing-2 $spacing-3;
+}
+
+// ==================== BUTTON UTILITIES ====================
+.btn-primary {
+  @include button-primary;
+}
+
+.btn-secondary {
+  @include button-secondary;
+}
+
+// ==================== ANIMATION UTILITIES ====================
+.fade-in {
+  @include fade-in;
+}
+
+.slide-up {
+  @include slide-up;
+}
+
+// ==================== VISIBILITY UTILITIES ====================
+.hidden { display: none; }
+.invisible { visibility: hidden; }
+
+@include mobile {
+  .hide-mobile { display: none !important; }
+}
+
+@include tablet {
+  .hide-tablet { display: none !important; }
+}
+
+@include desktop {
+  .hide-desktop { display: none !important; }
+}

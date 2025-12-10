@@ -9,6 +9,8 @@ use App\Http\Controllers\API\LapController;
 use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\UploadController;
 use App\Http\Controllers\API\SessionAnalyticsController;
+use App\Http\Controllers\API\StyleVariableController;
+use App\Http\Controllers\API\EmlUploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,10 +55,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/stats/trophy-case', [SessionAnalyticsController::class, 'trophyCase']);
     Route::get('/stats/trophy-details', [SessionAnalyticsController::class, 'trophyDetails']);
     
+    // Style Variables (Read: all authenticated, Write: admin only)
+    Route::get('/style-variables', [StyleVariableController::class, 'index']);
+    Route::get('/styles.css', [StyleVariableController::class, 'getCSS']);
+    
+    Route::middleware('admin')->group(function () {
+        Route::put('/style-variables/{id}', [StyleVariableController::class, 'update']);
+        Route::post('/style-variables/bulk', [StyleVariableController::class, 'bulkUpdate']);
+        Route::post('/style-variables/reset', [StyleVariableController::class, 'reset']);
+    });
+    
     // Upload & Import (Admin only)
     Route::middleware('admin')->group(function () {
         Route::post('/upload/preview', [UploadController::class, 'preview']);
         Route::post('/upload/import', [UploadController::class, 'import']);
         Route::post('/upload/manual-entry', [UploadController::class, 'manualEntry']);
+        
+        // EML Upload
+        Route::post('/sessions/upload-eml', [EmlUploadController::class, 'parseEml']);
+        Route::post('/sessions/save-parsed', [EmlUploadController::class, 'saveSession']);
     });
 });

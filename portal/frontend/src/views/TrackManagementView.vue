@@ -676,7 +676,7 @@ onMounted(() => {
   background: rgba(72, 187, 120, 0.2);
   border: 1px solid rgba(72, 187, 120, 0.4);
   border-radius: 8px;
-  color: #68d391;
+  color: var(--success-color);
   font-size: 0.75rem;
   font-weight: 600;
   display: flex;
@@ -707,12 +707,18 @@ onMounted(() => {
   font-weight: 600;
   color: white;
   margin: 0 0 0.25rem 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .track-location {
   color: rgba(255, 255, 255, 0.6);
   font-size: 0.875rem;
   margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .track-stats {
@@ -764,7 +770,7 @@ onMounted(() => {
   background: rgba(66, 153, 225, 0.15);
   border: 1px solid rgba(66, 153, 225, 0.3);
   border-radius: 8px;
-  color: #63b3ed;
+  color: var(--accent);
   font-size: 0.875rem;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -851,7 +857,7 @@ onMounted(() => {
   background: rgba(245, 101, 101, 0.2);
   border: 1px solid rgba(245, 101, 101, 0.4);
   border-radius: 12px;
-  color: #fc8181;
+  color: var(--error-color);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;

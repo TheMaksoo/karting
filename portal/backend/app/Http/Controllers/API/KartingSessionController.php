@@ -13,11 +13,27 @@ class KartingSessionController extends Controller
     {
         $query = KartingSession::with(['track', 'laps.driver']);
         
+        // Track filter
         if ($request->has('track_id')) {
             $query->where('track_id', $request->track_id);
         }
         
-        $sessions = $query->orderBy('session_date', 'desc')->paginate(20);
+        // Session type filter
+        if ($request->has('session_type')) {
+            $query->where('session_type', $request->session_type);
+        }
+        
+        // Date range filters
+        if ($request->has('date_from')) {
+            $query->whereDate('session_date', '>=', $request->date_from);
+        }
+        
+        if ($request->has('date_to')) {
+            $query->whereDate('session_date', '<=', $request->date_to);
+        }
+        
+        $perPage = $request->get('per_page', 25);
+        $sessions = $query->orderBy('session_date', 'desc')->paginate($perPage);
         return response()->json($sessions);
     }
 

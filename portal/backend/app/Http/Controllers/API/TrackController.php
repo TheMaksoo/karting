@@ -12,7 +12,10 @@ class TrackController extends Controller
 {
     public function index()
     {
-        $tracks = Track::with('kartingSessions')->get();
+        // Return all tracks without pagination for dropdown/list usage
+        $tracks = Track::with('kartingSessions')
+            ->withCount('kartingSessions')
+            ->get();
         return response()->json($tracks);
     }
 

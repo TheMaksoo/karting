@@ -291,10 +291,9 @@ class ApiService {
   }
 
   // Session endpoints
-  async getSessions(page = 1, trackId?: number): Promise<PaginatedResponse<KartingSession>> {
-    const params: any = { page }
-    if (trackId) params.track_id = trackId
-    const response = await this.api.get<PaginatedResponse<KartingSession>>('/sessions', { params })
+  async getSessions(params?: any): Promise<PaginatedResponse<KartingSession>> {
+    const queryParams = { per_page: 25, ...params }
+    const response = await this.api.get<PaginatedResponse<KartingSession>>('/sessions', { params: queryParams })
     return response.data
   }
 
@@ -323,11 +322,8 @@ class ApiService {
   }
 
   // Lap endpoints
-  async getLaps(page = 1, driverId?: number, sessionId?: number): Promise<PaginatedResponse<Lap>> {
-    const params: any = { page }
-    if (driverId) params.driver_id = driverId
-    if (sessionId) params.session_id = sessionId
-    const response = await this.api.get<PaginatedResponse<Lap>>('/laps', { params })
+  async getLaps(params?: any): Promise<PaginatedResponse<Lap>> {
+    const response = await this.api.get<PaginatedResponse<Lap>>('/laps', { params: params || {} })
     return response.data
   }
 
@@ -391,7 +387,7 @@ class ApiService {
   }
 
   sessions = {
-    getAll: (page = 1, trackId?: number) => this.getSessions(page, trackId),
+    getAll: (params?: any) => this.getSessions(params),
     get: (id: number) => this.getSession(id),
     create: (data: Partial<KartingSession>) => this.createSession(data),
     update: (id: number, data: Partial<KartingSession>) => this.updateSession(id, data),
@@ -460,6 +456,41 @@ class ApiService {
       notes?: string
     }) => {
       const response = await this.api.post('/upload/manual-entry', data)
+      return response.data
+    },
+    // EML Upload
+    parseEml: async (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
+      const response = await this.api.post('/sessions/upload-eml', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      return response.data
+    },
+    saveParsedSession: async (data: {
+      track_id: number
+      session_date: string
+      heat_price?: number
+      session_type?: string
+      session_number?: string
+      laps: Array<{
+        driver_name: string
+        lap_number: number
+        lap_time: number
+        position?: number
+        kart_number?: string
+        sector1?: number
+        sector2?: number
+        sector3?: number
+        gap_to_best_lap?: number
+        interval?: number
+        gap_to_previous?: number
+        avg_speed?: number
+      }>
+    }) => {
+      const response = await this.api.post('/sessions/save-parsed', data)
       return response.data
     },
   }

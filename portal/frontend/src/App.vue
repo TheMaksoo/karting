@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { useStyleVariables } from '@/composables/useStyleVariables'
+
+// Load dynamic styles from database
+const { applyStyles } = useStyleVariables()
 </script>
 
 <template>
   <RouterView />
 </template>
 
-<style>
+<style lang="scss">
+@import '@/styles/variables.scss';
+
 /* Global full-screen dark mode styling */
 * {
   margin: 0;
@@ -27,6 +33,6 @@ body {
   overflow: hidden;
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-primary);
+  font-family: var(--font-sans);
 }
 </style>

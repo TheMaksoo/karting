@@ -1,0 +1,689 @@
+<template>
+  <div class="admin-data-view">
+    <header class="page-header">
+      <h1>📊 Database Overview</h1>
+      <p>All sessions, laps, and drivers from the database - No fake data</p>
+    </header>
+
+    <div class="tabs">
+      <button
+        v-for="tab in tabs"
+        :key="tab.id"
+        :class="['tab', { active: activeTab === tab.id }]"
+        @click="activeTab = tab.id"
+      >
+        {{ tab.icon }} {{ tab.label }}
+        <span class="count" v-if="tab.count !== undefined">({{ tab.count }})</span>
+      </button>
+    </div>
+
+    <!-- Sessions Tab -->
+    <div v-if="activeTab === 'sessions'" class="tab-content">
+      <div v-if="sessionsLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading sessions...</p>
+      </div>
+      <div v-else-if="sessionsError" class="error">{{ sessionsError }}</div>
+      <div v-else-if="!sessions.length" class="empty-state">
+        <p>📭 No sessions found in database</p>
+        <p class="hint">Upload some .eml files or add manual entries to see data here</p>
+      </div>
+      <div v-else class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Track</th>
+              <th>Driver</th>
+              <th>Total Laps</th>
+              <th>Best Lap</th>
+              <th>Avg Lap</th>
+              <th>Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="session in sessions" :key="session.id">
+              <td class="mono">{{ session.id }}</td>
+              <td>{{ formatDate(session.session_date) }}</td>
+              <td>{{ session.track?.name || 'N/A' }}</td>
+              <td class="driver-name">{{ getSessionDriver(session) }}</td>
+              <td class="number">{{ session.laps?.length || 0 }}</td>
+              <td class="mono highlight">{{ formatTime(getBestLapTime(session)) }}</td>
+              <td class="mono">{{ formatTime(getAverageLapTime(session)) }}</td>
+              <td class="cost">€{{ formatCost(session.heat_price) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination" v-if="sessionTotalPages > 1">
+          <button @click="sessionPage--; fetchSessions()" :disabled="sessionPage === 1">Previous</button>
+          <span>Page {{ sessionPage }} of {{ sessionTotalPages }}</span>
+          <button @click="sessionPage++; fetchSessions()" :disabled="sessionPage === sessionTotalPages">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Laps Tab -->
+    <div v-if="activeTab === 'laps'" class="tab-content">
+      <div class="filter-controls">
+        <select v-model="selectedDriver" @change="loadLapData" class="filter-select">
+          <option value="">All Drivers</option>
+          <option v-for="driver in allDrivers" :key="driver.id" :value="driver.id">
+            {{ driver.name }}
+          </option>
+        </select>
+        <select v-model="selectedTrack" @change="loadLapData" class="filter-select">
+          <option value="">All Tracks</option>
+          <option v-for="track in allTracks" :key="track.id" :value="track.id">
+            {{ track.name }}
+          </option>
+        </select>
+      </div>
+
+      <div v-if="lapsLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading laps...</p>
+      </div>
+      <div v-else-if="lapsError" class="error">{{ lapsError }}</div>
+      <div v-else-if="!filteredLaps.length" class="empty-state">
+        <p>📭 No laps found matching filters</p>
+      </div>
+      <div v-else class="data-table">
+        <div class="table-info">
+          Showing {{ paginatedLaps.length }} of {{ filteredLaps.length }} laps (Page {{ currentPage }}/{{ totalPages }})
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Lap #</th>
+              <th>Session ID</th>
+              <th>Driver</th>
+              <th>Track</th>
+              <th>Lap Time</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(lap, index) in paginatedLaps" :key="lap.id">
+              <td class="mono">{{ lap.lap_number || (index + 1) }}</td>
+              <td class="mono">{{ lap.karting_session_id }}</td>
+              <td class="driver-name">{{ lap.driver?.name || 'Unknown' }}</td>
+              <td>{{ lap.karting_session?.track?.name || 'N/A' }}</td>
+              <td class="mono highlight">{{ formatTime(lap.lap_time) }}</td>
+              <td>{{ formatDate(lap.created_at) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination" v-if="totalPages > 1">
+          <button @click="currentPage--" :disabled="currentPage === 1">Previous</button>
+          <span>Page {{ currentPage }} of {{ totalPages }}</span>
+          <button @click="currentPage++" :disabled="currentPage === totalPages">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drivers Tab -->
+    <div v-if="activeTab === 'drivers'" class="tab-content">
+      <div v-if="driversLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading drivers...</p>
+      </div>
+      <div v-else-if="driversError" class="error">{{ driversError }}</div>
+      <div v-else-if="!drivers.length" class="empty-state">
+        <p>📭 No drivers found in database</p>
+      </div>
+      <div v-else class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Total Sessions</th>
+              <th>Total Laps</th>
+              <th>Best Lap</th>
+              <th>Best Track</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="driver in drivers" :key="driver.id">
+              <td class="mono">{{ driver.id }}</td>
+              <td class="driver-name">{{ driver.name }}</td>
+              <td class="number">{{ driver.sessions_count || 0 }}</td>
+              <td class="number">{{ driver.laps_count || 0 }}</td>
+              <td class="mono highlight">{{ formatTime(driver.best_lap_time) }}</td>
+              <td>{{ driver.best_track || 'N/A' }}</td>
+              <td>{{ formatDate(driver.created_at) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination" v-if="driverTotalPages > 1">
+          <button @click="driverPage--; loadDrivers()" :disabled="driverPage === 1">Previous</button>
+          <span>Page {{ driverPage }} of {{ driverTotalPages }}</span>
+          <button @click="driverPage++; loadDrivers()" :disabled="driverPage === driverTotalPages">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tracks Tab -->
+    <div v-if="activeTab === 'tracks'" class="tab-content">
+      <div v-if="tracksLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading tracks...</p>
+      </div>
+      <div v-else-if="tracksError" class="error">{{ tracksError }}</div>
+      <div v-else-if="!tracks.length" class="empty-state">
+        <p>📭 No tracks found in database</p>
+      </div>
+      <div v-else class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>City</th>
+              <th>Country</th>
+              <th>Track Record</th>
+              <th>Sessions</th>
+              <th>Total Laps</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="track in tracks" :key="track.id">
+              <td class="mono">{{ track.id }}</td>
+              <td class="track-name">{{ track.name }}</td>
+              <td>{{ track.city || 'N/A' }}</td>
+              <td>{{ track.country || 'N/A' }}</td>
+              <td class="mono highlight">{{ formatTime(track.track_record) }}</td>
+              <td class="number">{{ track.sessions_count || 0 }}</td>
+              <td class="number">{{ track.laps_count || 0 }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination" v-if="trackTotalPages > 1">
+          <button @click="trackPage--; loadTracks()" :disabled="trackPage === 1">Previous</button>
+          <span>Page {{ trackPage }} of {{ trackTotalPages }}</span>
+          <button @click="trackPage++; loadTracks()" :disabled="trackPage === trackTotalPages">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import apiService from '@/services/api'
+
+// Sessions state
+const sessions = ref<any[]>([])
+const sessionsLoading = ref(false)
+const sessionsError = ref('')
+const sessionPage = ref(1)
+const sessionTotalPages = ref(1)
+
+const activeTab = ref('sessions')
+const tabs = computed(() => [
+  { id: 'sessions', label: 'Sessions', icon: '🏁', count: sessions.value.length },
+  { id: 'laps', label: 'Laps', icon: '⏱️', count: filteredLaps.value.length },
+  { id: 'drivers', label: 'Drivers', icon: '👥', count: drivers.value.length },
+  { id: 'tracks', label: 'Tracks', icon: '🏎️', count: tracks.value.length },
+])
+
+// Laps state
+const filteredLaps = ref<any[]>([])
+const selectedDriver = ref('')
+const selectedTrack = ref('')
+const lapsLoading = ref(false)
+const lapsError = ref('')
+const currentPage = ref(1)
+const itemsPerPage = 25
+
+// Drivers state
+const drivers = ref<any[]>([])
+const driversLoading = ref(false)
+const driversError = ref('')
+const driverPage = ref(1)
+const driverTotalPages = ref(1)
+const allDrivers = ref<any[]>([])
+
+// Tracks state
+const tracks = ref<any[]>([])
+const tracksLoading = ref(false)
+const tracksError = ref('')
+const trackPage = ref(1)
+const trackTotalPages = ref(1)
+const allTracks = ref<any[]>([])
+
+const paginatedLaps = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredLaps.value.slice(start, end)
+})
+
+const totalPages = computed(() => Math.ceil(filteredLaps.value.length / itemsPerPage))
+
+async function fetchSessions() {
+  sessionsLoading.value = true
+  sessionsError.value = ''
+  
+  try {
+    const response = await apiService.getSessions(sessionPage.value)
+    
+    sessions.value = response.data || []
+    sessionTotalPages.value = response.last_page || 1
+  } catch (error: any) {
+    sessionsError.value = error.response?.data?.message || 'Failed to load sessions'
+    sessions.value = []
+  } finally {
+    sessionsLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  await fetchSessions()
+  await loadDrivers()
+  await loadTracks()
+  await loadAllDriversForFilter()
+  await loadAllTracksForFilter()
+  await loadLapData()
+})
+
+async function loadLapData() {
+  lapsLoading.value = true
+  lapsError.value = ''
+  
+  try {
+    const params: any = { per_page: 1000 }
+    if (selectedDriver.value) params.driver_id = selectedDriver.value
+    if (selectedTrack.value) params.track_id = selectedTrack.value
+    
+    const response = await apiService.getLaps(params)
+    
+    filteredLaps.value = response.data || []
+    currentPage.value = 1
+  } catch (error: any) {
+    lapsError.value = error.response?.data?.message || 'Failed to load laps'
+    filteredLaps.value = []
+  } finally {
+    lapsLoading.value = false
+  }
+}
+
+async function loadDrivers() {
+  driversLoading.value = true
+  driversError.value = ''
+  
+  try {
+    const response = await apiService.getDrivers()
+    
+    drivers.value = response.data || []
+    driverTotalPages.value = response.last_page || 1
+  } catch (error: any) {
+    driversError.value = error.response?.data?.message || 'Failed to load drivers'
+    drivers.value = []
+  } finally {
+    driversLoading.value = false
+  }
+}
+
+async function loadAllDriversForFilter() {
+  try {
+    // Fetch all drivers without pagination for the filter dropdown
+    const token = localStorage.getItem('api_token')
+    const response = await fetch('http://127.0.0.1:8000/api/drivers?per_page=1000', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    })
+    const data = await response.json()
+    allDrivers.value = data.data || []
+  } catch (error) {
+    console.error('Failed to load all drivers:', error)
+  }
+}
+
+async function loadTracks() {
+  tracksLoading.value = true
+  tracksError.value = ''
+  
+  try {
+    const response = await apiService.getTracks()
+    
+    tracks.value = response.data || []
+    trackTotalPages.value = response.last_page || 1
+  } catch (error: any) {
+    tracksError.value = error.response?.data?.message || 'Failed to load tracks'
+    tracks.value = []
+  } finally {
+    tracksLoading.value = false
+  }
+}
+
+async function loadAllTracksForFilter() {
+  try {
+    // Fetch all tracks without pagination for the filter dropdown
+    const token = localStorage.getItem('api_token')
+    const response = await fetch('http://127.0.0.1:8000/api/tracks?per_page=1000', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    })
+    const data = await response.json()
+    allTracks.value = data.data || []
+  } catch (error) {
+    console.error('Failed to load all tracks:', error)
+  }
+}
+
+function getSessionDriver(session: any): string {
+  if (!session.laps || session.laps.length === 0) return 'Unknown'
+  const firstLap = session.laps[0]
+  return firstLap.driver?.name || 'Unknown'
+}
+
+function getBestLapTime(session: any): number | null {
+  if (!session.laps || session.laps.length === 0) return null
+  const times = session.laps.map((lap: any) => lap.lap_time).filter((t: any) => t)
+  return times.length > 0 ? Math.min(...times) : null
+}
+
+function getAverageLapTime(session: any): number | null {
+  if (!session.laps || session.laps.length === 0) return null
+  const times = session.laps.map((lap: any) => lap.lap_time).filter((t: any) => t)
+  if (times.length === 0) return null
+  return times.reduce((a: number, b: number) => a + b, 0) / times.length
+}
+
+function formatDate(dateString: string | null): string {
+  if (!dateString) return 'N/A'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-GB', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+function formatTime(seconds: number | null | undefined): string {
+  if (seconds === null || seconds === undefined) return 'N/A'
+  const mins = Math.floor(seconds / 60)
+  const secs = (seconds % 60).toFixed(3)
+  return mins > 0 ? `${mins}:${secs.padStart(6, '0')}` : `${secs}s`
+}
+
+function formatCost(price: any): string {
+  if (price === null || price === undefined) return '0.00'
+  const num = typeof price === 'string' ? parseFloat(price) : price
+  return isNaN(num) ? '0.00' : num.toFixed(2)
+}
+</script>
+
+<style scoped>
+.admin-data-view {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  margin: 0 0 1rem 0;
+  font-size: var(--text-3xl);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.page-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-5);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.tab {
+  padding: var(--spacing-3) var(--spacing-4);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.tab.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.tab .count {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  margin-left: var(--spacing-1);
+}
+
+.tab.active .count {
+  color: var(--primary-color);
+}
+
+.tab-content {
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.filter-controls {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.filter-select {
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: border-color var(--transition-normal);
+}
+
+.filter-select:hover {
+  border-color: var(--primary-color);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.loading, .error, .empty-state {
+  padding: 4rem var(--spacing-4);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--spacing-4);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error {
+  color: var(--error-color);
+}
+
+.empty-state p {
+  margin: var(--spacing-2) 0;
+  font-size: var(--text-lg);
+}
+
+.empty-state .hint {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  margin-top: var(--spacing-3);
+}
+
+.data-table {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.table-info {
+  padding: var(--spacing-3) var(--spacing-4);
+  background: rgba(255, 107, 53, 0.1);
+  color: var(--primary-color);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: var(--bg-tertiary);
+}
+
+th {
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+tbody tr {
+  transition: background var(--transition-normal);
+}
+
+tbody tr:hover {
+  background: rgba(255, 107, 53, 0.05);
+}
+
+tbody tr:not(:last-child) {
+  border-bottom: 1px solid var(--border-color);
+}
+
+td {
+  padding: var(--spacing-3) var(--spacing-4);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+}
+
+td.mono {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+td.highlight {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+td.number {
+  text-align: center;
+  font-family: var(--font-mono);
+  color: var(--success-color);
+}
+
+td.cost {
+  color: var(--warning-color);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+td.driver-name {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+td.track-name {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  border-top: 1px solid var(--border-color);
+}
+
+.pagination button {
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all var(--transition-normal);
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+.pagination button:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+}
+</style>
