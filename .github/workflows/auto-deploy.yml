@@ -23,7 +23,7 @@ jobs:
     - name: 🔨 Build Frontend
       run: |
         cd portal/frontend
-        npm ci
+        npm ci --legacy-peer-deps
         npm run build
     
     - name: 🐘 Setup PHP
