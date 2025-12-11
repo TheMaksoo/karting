@@ -100,12 +100,12 @@ jobs:
         local-dir: ./deploy/
         server-dir: /public_html/karting/
     
-    - name: ⚙️ Setup & Migrate  
+    - name: ⚙️ Setup & Migrate
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 21098
         script: |
           cd ~/public_html/karting/api || exit 1
@@ -142,5 +142,5 @@ jobs:
           echo "✅ Setup complete!"
     
     - name: ✅ Deployment Complete
-      run: echo "🎉 Deployed and configured!"
+      run: echo "🎉 Fully automated deployment complete!"
 

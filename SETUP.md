@@ -15,25 +15,30 @@ Copy the output (starts with `base64:`)
 
 Go to **Settings → Secrets and variables → Actions → New repository secret**
 
-| Secret Name | Example Value | Description |
-|------------|---------------|-------------|
-| `FTP_SERVER` | `ftp.yourdomain.com` | Namecheap FTP hostname |
-| `FTP_USERNAME` | `username@yourdomain.com` | FTP/SSH username |
-| `FTP_PASSWORD` | `your_password` | FTP/SSH password |
+Add these **11 secrets**:
+
+| Secret Name | Value | Description |
+|------------|-------|-------------|
+| `FTP_SERVER` | `ftp.yourdomain.com` | Your FTP hostname |
+| `FTP_USERNAME` | `username@yourdomain.com` | FTP username |
+| `FTP_PASSWORD` | `your_password` | FTP password |
+| `SSH_HOST` | `premium128.web-hosting.com` | SSH hostname (from cPanel) |
+| `SSH_USERNAME` | `themgbpn` | SSH username (from cPanel) |
+| `SSH_PRIVATE_KEY` | `-----BEGIN OPENSSH...` | **The SSH private key you generated** |
 | `APP_KEY` | `base64:abc123...` | From Step 1 |
-| `APP_URL` | `https://yourdomain.com/karting` | Full URL to app |
-| `DB_HOST` | `localhost` | Database host (usually localhost) |
-| `DB_DATABASE` | `themgbpn_karting` | Your MySQL database name |
-| `DB_USERNAME` | `themgbpn_dbuser` | Database username |
+| `APP_URL` | `https://yourdomain.com/karting` | Full URL |
+| `DB_HOST` | `localhost` | Database host |
+| `DB_DATABASE` | `themgbpn_karting` | Database name |
+| `DB_USERNAME` | `themgbpn_dbuser` | Database user |
 | `DB_PASSWORD` | `db_password` | Database password |
-| `SANCTUM_DOMAINS` | `yourdomain.com` | Your domain (no https://) |
+| `SANCTUM_DOMAINS` | `yourdomain.com` | Domain (no https://) |
 
 ### Step 3: Create Database
 
 In cPanel → MySQL Databases:
 1. Create database: `themgbpn_karting`
-2. Create user with strong password
-3. Grant ALL PRIVILEGES to user on database
+2. Create user with password
+3. Grant ALL PRIVILEGES
 
 ### Step 4: Push to Deploy
 
@@ -46,10 +51,10 @@ git push origin main
 ## ✅ Done!
 
 Every push automatically:
-- Builds frontend
-- Deploys via FTP
-- Creates `.env` from secrets
-- Runs migrations
-- Caches configs
+- ✅ Builds Vue frontend
+- ✅ Deploys via FTP
+- ✅ Creates `.env` via SSH
+- ✅ Runs migrations
+- ✅ Caches configs
 
-No manual steps needed!
+**Zero manual steps!** 🚀
