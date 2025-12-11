@@ -42,6 +42,54 @@ jobs:
         mkdir deploy/api
         cp -r portal/backend/* deploy/api/
         rm -rf deploy/api/.env deploy/api/.git* deploy/api/tests
+        
+        # Create setup script for manual run
+        cat > deploy/api/setup.sh << 'SETUPEOF'
+        #!/bin/bash
+        cd "$(dirname "$0")"
+        
+        # Find PHP
+        PHP_BIN=$(which php82 2>/dev/null || which php 2>/dev/null || echo "php")
+        echo "Using PHP: $PHP_BIN"
+        
+        # Create .env if not exists
+        if [ ! -f .env ]; then
+          echo "Creating .env file..."
+          cat > .env << 'EOF'
+        APP_NAME="Karting Portal"
+        APP_ENV=production
+        APP_KEY=CHANGE_ME
+        APP_DEBUG=false
+        APP_URL=https://yourdomain.com/karting
+        DB_CONNECTION=mysql
+        DB_HOST=localhost
+        DB_PORT=3306
+        DB_DATABASE=your_database
+        DB_USERNAME=your_user
+        DB_PASSWORD=your_password
+        SESSION_DRIVER=database
+        CACHE_STORE=database
+        SANCTUM_STATEFUL_DOMAINS=yourdomain.com
+        EOF
+          echo "⚠️  EDIT .env WITH YOUR DATABASE CREDENTIALS!"
+        fi
+        
+        # Set permissions
+        chmod 644 .env
+        chmod -R 755 storage bootstrap/cache 2>/dev/null || true
+        
+        # Run migrations
+        echo "Running migrations..."
+        $PHP_BIN artisan migrate --force
+        
+        echo "Caching config..."
+        $PHP_BIN artisan config:cache
+        $PHP_BIN artisan route:cache
+        
+        echo "✅ Setup complete!"
+        SETUPEOF
+        
+        chmod +x deploy/api/setup.sh
     
     - name: 🚀 Deploy via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -52,48 +100,15 @@ jobs:
         local-dir: ./deploy/
         server-dir: /public_html/karting/
     
-    - name: ⚙️ Setup & Migrate
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        password: ${{ secrets.SSH_PASSWORD }}
-        port: 22
-        script: |
-          cd ~/public_html/karting/api || exit 1
-          
-          # Find PHP binary (cPanel specific)
-          PHP_BIN=$(which php 2>/dev/null || which /usr/local/bin/php 2>/dev/null || which /usr/bin/php 2>/dev/null || echo "php")
-          echo "Using PHP: $PHP_BIN"
-          $PHP_BIN -v
-          
-          # Create .env file
-          cat > .env << 'EOF'
-          APP_NAME="Karting Portal"
-          APP_ENV=production
-          APP_KEY=${{ secrets.APP_KEY }}
-          APP_DEBUG=false
-          APP_URL=${{ secrets.APP_URL }}
-          DB_CONNECTION=mysql
-          DB_HOST=${{ secrets.DB_HOST }}
-          DB_PORT=3306
-          DB_DATABASE=${{ secrets.DB_DATABASE }}
-          DB_USERNAME=${{ secrets.DB_USERNAME }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          SESSION_DRIVER=database
-          CACHE_STORE=database
-          SANCTUM_STATEFUL_DOMAINS=${{ secrets.SANCTUM_DOMAINS }}
-          EOF
-          
-          # Set permissions
-          chmod 644 .env
-          chmod -R 755 storage bootstrap/cache 2>/dev/null || true
-          
-          # Run Laravel commands
-          $PHP_BIN artisan migrate --force || echo "Migration failed but continuing..."
-          $PHP_BIN artisan config:cache || true
-          $PHP_BIN artisan route:cache || true
-          $PHP_BIN artisan storage:link || true
-          
-          echo "✅ Deployment complete!"
+    - name: ✅ Deployment Complete
+      run: |
+        echo "🎉 Files deployed successfully!"
+        echo ""
+        echo "⚠️  MANUAL SETUP REQUIRED:"
+        echo "1. SSH into your server"
+        echo "2. cd ~/public_html/karting/api"
+        echo "3. Edit .env with your database credentials"
+        echo "4. Run: bash setup.sh"
+        echo ""
+        echo "Or use cPanel File Manager and Terminal"
 

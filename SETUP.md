@@ -1,79 +1,50 @@
-# 🚀 Auto-Deploy Setup
+# Deployment Setup
 
-Just **3 simple steps** to get fully automatic deployments!
+## One-Time Setup
 
-## 1️⃣ Generate Your APP_KEY
+### Step 1: Add GitHub Secrets
 
-```bash
-cd portal/backend
-php artisan key:generate --show
-```
+Go to **Settings → Secrets and variables → Actions → New repository secret**
 
-Copy the output (starts with `base64:...`)
+| Secret Name | Example Value | Description |
+|------------|---------------|-------------|
+| `FTP_SERVER` | `ftp.yourdomain.com` | Namecheap FTP hostname |
+| `FTP_USERNAME` | `username@yourdomain.com` | FTP username |
+| `FTP_PASSWORD` | `your_ftp_password` | FTP password |
 
-## 2️⃣ Add GitHub Secrets
-
-Go to: **Your Repo → Settings → Secrets and variables → Actions → New repository secret**
-
-Add these **10 secrets**:
-
-| Secret Name | Value | Example |
-|------------|-------|---------|
-| `FTP_SERVER` | Your domain's FTP server | `ftp.yourdomain.com` |
-| `FTP_USERNAME` | Your cPanel username | `themgbpn` |
-| `FTP_PASSWORD` | Your cPanel password | `your_password` |
-| `SSH_HOST` | Your domain | `yourdomain.com` |
-| `SSH_USERNAME` | Same as FTP username | `themgbpn` |
-| `SSH_PASSWORD` | Same as FTP password | `your_password` |
-| `APP_KEY` | From step 1 | `base64:xxxxx...` |
-| `APP_URL` | Your site URL | `https://yourdomain.com/karting` |
-| `DB_HOST` | Usually localhost | `localhost` |
-| `DB_DATABASE` | Your MySQL database name | `themgbpn_karting` |
-| `DB_USERNAME` | Your MySQL username | `themgbpn_karting` |
-| `DB_PASSWORD` | Your MySQL password | `db_password` |
-| `SANCTUM_DOMAINS` | Your domain | `yourdomain.com` |
-
-## 3️⃣ Push to Deploy
+### Step 2: Push to Deploy
 
 ```bash
 git add .
-git commit -m "Initial deployment"
+git commit -m "Deploy"
 git push origin main
 ```
 
-## ✨ That's It!
+The workflow will automatically build and deploy to `/public_html/karting/`
 
-Every push to `main` will now automatically:
-- ✅ Build your Vue.js frontend
-- ✅ Install Laravel dependencies
-- ✅ Deploy to your cPanel server
-- ✅ Run database migrations
-- ✅ Cache configs for production
+### Step 3: Manual Server Setup (First Time Only)
 
-## 📊 Monitor Deployment
-
-Watch the progress: **Actions tab** in your GitHub repo
-
-## 🔧 First Time Setup on cPanel
-
-1. **Create MySQL Database** in cPanel:
-   - Database name: `themgbpn_karting`
-   - User: `themgbpn_karting`
-   - Grant ALL PRIVILEGES
-
-2. **Enable SSH** in cPanel (if not enabled)
-
-3. **Push and relax** - GitHub Actions handles everything!
-
-## 🔄 Daily Workflow
+After first deployment, SSH into your server or use cPanel Terminal:
 
 ```bash
-# Make changes locally
-git add .
-git commit -m "Added new feature"
-git push
-
-# ✨ Automatically deploys!
+cd ~/public_html/karting/api
+nano .env  # Edit with your database credentials
+bash setup.sh
 ```
 
-No manual steps. No FTP. No SSH commands. Just code and push! 🎉
+Or use cPanel File Manager:
+1. Navigate to `public_html/karting/api`
+2. Edit `.env` file with your database details
+3. Use Terminal to run: `bash setup.sh`
+
+## Database Setup
+
+Create MySQL database in cPanel:
+1. cPanel → MySQL Databases
+2. Create database: `themgbpn_karting` (or your choice)
+3. Create user and grant ALL PRIVILEGES
+4. Update `.env` with these credentials
+
+## Future Deployments
+
+Just push to GitHub - files will auto-deploy. Migrations run automatically via `setup.sh` if needed.
