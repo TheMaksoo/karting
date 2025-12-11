@@ -145,9 +145,6 @@ class EmlUploadController extends Controller
             ], 500);
         }
     }
-            'track' => $track
-        ]);
-    }
 
     public function saveSession(Request $request)
     {

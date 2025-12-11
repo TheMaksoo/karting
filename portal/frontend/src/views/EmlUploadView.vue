@@ -304,6 +304,8 @@ const handleDrop = async (event: DragEvent) => {
 }
 
 const uploadBatch = async (files: File[]) => {
+  step.value = 'batch-progress'
+  loading.value = true
   batchFiles.value = files
   batchProgress.value = { current: 0, total: files.length, currentFile: '' }
   batchResults.value = { success: 0, failed: 0, errors: [] }
@@ -380,6 +382,7 @@ const uploadBatch = async (files: File[]) => {
     }
   }
   
+  loading.value = false
   step.value = 'batch-complete'
 }
 
