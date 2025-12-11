@@ -100,15 +100,47 @@ jobs:
         local-dir: ./deploy/
         server-dir: /public_html/karting/
     
+    - name: ⚙️ Setup & Migrate  
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        port: 21098
+        script: |
+          cd ~/public_html/karting/api || exit 1
+          
+          # Find PHP
+          PHP_BIN=$(which php82 2>/dev/null || which php 2>/dev/null || echo "php")
+          echo "Using PHP: $PHP_BIN"
+          
+          # Create .env
+          cat > .env << 'EOF'
+          APP_NAME="Karting Portal"
+          APP_ENV=production
+          APP_KEY=${{ secrets.APP_KEY }}
+          APP_DEBUG=false
+          APP_URL=${{ secrets.APP_URL }}
+          DB_CONNECTION=mysql
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=3306
+          DB_DATABASE=${{ secrets.DB_DATABASE }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          SESSION_DRIVER=database
+          CACHE_STORE=database
+          SANCTUM_STATEFUL_DOMAINS=${{ secrets.SANCTUM_DOMAINS }}
+          EOF
+          
+          chmod 644 .env
+          chmod -R 755 storage bootstrap/cache 2>/dev/null || true
+          
+          $PHP_BIN artisan migrate --force
+          $PHP_BIN artisan config:cache
+          $PHP_BIN artisan route:cache
+          
+          echo "✅ Setup complete!"
+    
     - name: ✅ Deployment Complete
-      run: |
-        echo "🎉 Files deployed successfully!"
-        echo ""
-        echo "⚠️  MANUAL SETUP REQUIRED:"
-        echo "1. SSH into your server"
-        echo "2. cd ~/public_html/karting/api"
-        echo "3. Edit .env with your database credentials"
-        echo "4. Run: bash setup.sh"
-        echo ""
-        echo "Or use cPanel File Manager and Terminal"
+      run: echo "🎉 Deployed and configured!"
 

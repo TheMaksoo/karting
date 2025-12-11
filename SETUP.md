@@ -2,17 +2,40 @@
 
 ## One-Time Setup
 
-### Step 1: Add GitHub Secrets
+### Step 1: Generate APP_KEY
+
+```bash
+cd portal/backend
+php artisan key:generate --show
+```
+
+Copy the output (starts with `base64:`)
+
+### Step 2: Add GitHub Secrets
 
 Go to **Settings → Secrets and variables → Actions → New repository secret**
 
 | Secret Name | Example Value | Description |
 |------------|---------------|-------------|
 | `FTP_SERVER` | `ftp.yourdomain.com` | Namecheap FTP hostname |
-| `FTP_USERNAME` | `username@yourdomain.com` | FTP username |
-| `FTP_PASSWORD` | `your_ftp_password` | FTP password |
+| `FTP_USERNAME` | `username@yourdomain.com` | FTP/SSH username |
+| `FTP_PASSWORD` | `your_password` | FTP/SSH password |
+| `APP_KEY` | `base64:abc123...` | From Step 1 |
+| `APP_URL` | `https://yourdomain.com/karting` | Full URL to app |
+| `DB_HOST` | `localhost` | Database host (usually localhost) |
+| `DB_DATABASE` | `themgbpn_karting` | Your MySQL database name |
+| `DB_USERNAME` | `themgbpn_dbuser` | Database username |
+| `DB_PASSWORD` | `db_password` | Database password |
+| `SANCTUM_DOMAINS` | `yourdomain.com` | Your domain (no https://) |
 
-### Step 2: Push to Deploy
+### Step 3: Create Database
+
+In cPanel → MySQL Databases:
+1. Create database: `themgbpn_karting`
+2. Create user with strong password
+3. Grant ALL PRIVILEGES to user on database
+
+### Step 4: Push to Deploy
 
 ```bash
 git add .
@@ -20,31 +43,13 @@ git commit -m "Deploy"
 git push origin main
 ```
 
-The workflow will automatically build and deploy to `/public_html/karting/`
+## ✅ Done!
 
-### Step 3: Manual Server Setup (First Time Only)
+Every push automatically:
+- Builds frontend
+- Deploys via FTP
+- Creates `.env` from secrets
+- Runs migrations
+- Caches configs
 
-After first deployment, SSH into your server or use cPanel Terminal:
-
-```bash
-cd ~/public_html/karting/api
-nano .env  # Edit with your database credentials
-bash setup.sh
-```
-
-Or use cPanel File Manager:
-1. Navigate to `public_html/karting/api`
-2. Edit `.env` file with your database details
-3. Use Terminal to run: `bash setup.sh`
-
-## Database Setup
-
-Create MySQL database in cPanel:
-1. cPanel → MySQL Databases
-2. Create database: `themgbpn_karting` (or your choice)
-3. Create user and grant ALL PRIVILEGES
-4. Update `.env` with these credentials
-
-## Future Deployments
-
-Just push to GitHub - files will auto-deploy. Migrations run automatically via `setup.sh` if needed.
+No manual steps needed!
