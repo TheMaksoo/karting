@@ -298,7 +298,10 @@ class EmlUploadController extends Controller
                     if (preg_match('/Content-Transfer-Encoding:\s*base64/i', $part)) {
                         // Extract base64 content (everything after the headers)
                         if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
-                            $base64Content = preg_replace('/\s+/', '', $contentMatch[1]);
+                            // Remove all whitespace from base64
+                            $base64Content = str_replace(["\r", "\n", " ", "\t"], '', $contentMatch[1]);
+                            // Remove boundary markers
+                            $base64Content = preg_replace('/--' . preg_quote($boundary, '/') . '.*$/s', '', $base64Content);
                             $plainTextBody = base64_decode($base64Content);
                         }
                     } else if (preg_match('/Content-Transfer-Encoding:\s*quoted-printable/i', $part)) {
@@ -317,7 +320,8 @@ class EmlUploadController extends Controller
                 if (stripos($part, 'Content-Type: text/html') !== false) {
                     if (preg_match('/Content-Transfer-Encoding:\s*base64/i', $part)) {
                         if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
-                            $base64Content = preg_replace('/\s+/', '', $contentMatch[1]);
+                            $base64Content = str_replace(["\r", "\n", " ", "\t"], '', $contentMatch[1]);
+                            $base64Content = preg_replace('/--' . preg_quote($boundary, '/') . '.*$/s', '', $base64Content);
                             $htmlBody = base64_decode($base64Content);
                         }
                     } else if (preg_match('/Content-Transfer-Encoding:\s*quoted-printable/i', $part)) {
@@ -338,7 +342,7 @@ class EmlUploadController extends Controller
             // Single part message
             if (preg_match('/Content-Transfer-Encoding:\s*base64/i', $content)) {
                 // Extract base64 content after headers
-                $base64Content = preg_replace('/\s+/', '', $bodyText);
+                $base64Content = str_replace(["\r", "\n", " ", "\t"], '', $bodyText);
                 $body = base64_decode($base64Content);
             } else {
                 $body = $bodyText;
