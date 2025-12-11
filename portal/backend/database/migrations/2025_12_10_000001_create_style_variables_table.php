@@ -82,4 +82,3 @@ return new class extends Migration
         Schema::dropIfExists('style_variables');
     }
 };
-1
