@@ -39,6 +39,7 @@ jobs:
       run: |
         mkdir deploy
         cp -r portal/frontend/dist/* deploy/
+        cp portal/frontend/.htaccess deploy/.htaccess
         mkdir deploy/api
         cp -r portal/backend/* deploy/api/
         rm -rf deploy/api/.env deploy/api/.git* deploy/api/tests

@@ -51,7 +51,14 @@ class DatabaseSeeder extends Seeder
     {
         $this->command->info('📍 Seeding tracks...');
         
-        $tracksJson = file_get_contents(base_path('../../tracks.json'));
+        // Skip tracks seeding if file doesn't exist
+        $tracksFile = base_path('../../tracks.json');
+        if (!file_exists($tracksFile)) {
+            $this->command->warn('⚠️  tracks.json not found - skipping track seeding');
+            return;
+        }
+        
+        $tracksJson = file_get_contents($tracksFile);
         $data = json_decode($tracksJson, true);
 
         foreach ($data['tracks'] as $trackData) {
@@ -82,6 +89,11 @@ class DatabaseSeeder extends Seeder
         
         // Get unique drivers from CSV
         $csvPath = base_path('../../Karten.csv');
+        if (!file_exists($csvPath)) {
+            $this->command->warn('⚠️  Karten.csv not found - skipping driver seeding');
+            return;
+        }
+        
         $drivers = [];
         
         if (($handle = fopen($csvPath, 'r')) !== false) {
@@ -155,6 +167,7 @@ class DatabaseSeeder extends Seeder
         $csvPath = base_path('../../Karten.csv');
         
         if (!file_exists($csvPath)) {
+            $this->command->warn('⚠️  Karten.csv not found - skipping karting data seeding');
             $this->command->error('CSV file not found!');
             return;
         }
