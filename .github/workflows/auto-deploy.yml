@@ -23,7 +23,7 @@ jobs:
         cd portal/frontend
         rm -f package-lock.json
         npm install --force
-        npm run build
+        VITE_API_BASE_URL=https://solyx.gg/karting/api/public/api npm run build
     
     - name: 🐘 Setup PHP
       uses: shivammathur/setup-php@v2
