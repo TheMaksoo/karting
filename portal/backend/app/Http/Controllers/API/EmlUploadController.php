@@ -252,48 +252,12 @@ class EmlUploadController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-            foreach ($driverLaps as $driverName => $laps) {
-                // Find or create driver
-                $driver = Driver::firstOrCreate(
-                    ['name' => $driverName],
-                    ['email' => null]
-                );
-
-                foreach ($laps as $lapData) {
-                    Lap::create([
-                        'karting_session_id' => $session->id,
-                        'driver_id' => $driver->id,
-                        'lap_number' => $lapData['lap_number'],
-                        'lap_time' => $lapData['lap_time'],
-                        'position' => $lapData['position'] ?? null,
-                        'kart_number' => $lapData['kart_number'] ?? null,
-                        'sector1' => $lapData['sector1'] ?? null,
-                        'sector2' => $lapData['sector2'] ?? null,
-                        'sector3' => $lapData['sector3'] ?? null,
-                        'is_best_lap' => false,
-                        'gap_to_best_lap' => $lapData['gap_to_best_lap'] ?? null,
-                        'interval' => $lapData['interval'] ?? null,
-                        'gap_to_previous' => $lapData['gap_to_previous'] ?? null,
-                        'avg_speed' => $lapData['avg_speed'] ?? null,
-                    ]);
-                }
-            }
-
-            // Mark best laps and calculate gaps for each driver
-            $this->markBestLapsAndCalculateGaps($session->id);
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'session' => $session->load(['track', 'laps.driver'])
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
                 'success' => false,
-                'message' => 'Failed to save session: ' . $e->getMessage()
+                'message' => 'Failed to save session: ' . $e->getMessage(),
+                'error_details' => [
+                    'file' => basename($e->getFile()),
+                    'line' => $e->getLine(),
+                ]
             ], 500);
         }
     }

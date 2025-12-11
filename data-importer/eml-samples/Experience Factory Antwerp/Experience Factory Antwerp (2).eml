@@ -1,0 +1,627 @@
+Delivered-To: maxvanlierop05@gmail.com
+Received: by 2002:a05:6a10:d606:b0:68a:d545:18e4 with SMTP id gm6csp1014132pxb;
+        Sat, 22 Nov 2025 11:06:26 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IFyDTN+YdKtZr/c18sfr623zPseHrfhVp3BKXG21IQmMB9X772Fy8BsjmXlLGHHAjuuGtCA
+X-Received: by 2002:a05:6a00:1aca:b0:7b8:d607:41a3 with SMTP id d2e1a72fcca58-7c58c7a6ecemr6153465b3a.13.1763838386381;
+        Sat, 22 Nov 2025 11:06:26 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1763838386; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Autnhvb8h7xdkRGX4n7v+XW0rDIldyAKT/Q/wur3OjMzq5eeEbmA06BYEHfCpVWGXX
+         qPYOLRTBMpL60B4ww7LfpIN7jd8S7PnkDmrpdtC76k8CJefCWk7pSREZL0gdiM3zG0dW
+         V2Z7MH0hmigmpwhbs4lSMNDF7/QchKvMHlpUnafMk6zxGFl4Qip5TTWGzZiyH7m3AU8P
+         sH5llGo3RFBoujXFURj2vn6EYTo+1Fp11hOpYekUTUIaf2fKuigiD7TZM6ZsjEfiP/U3
+         0uEH3SxxxCk0qxqmFxgteoSBsZ7BVpenirk7RF/dN5uJ4oEqne7oJ4L7y3Yoaw8ZXTwX
+         LtLw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-disposition:content-transfer-encoding:apex-id:subject:date
+         :reply-to:mime-version:to:from:dkim-signature:message-id;
+        bh=gb0LrzTqOnxzAaTjwpeTb92sy73/85z9biwVW9tsqP8=;
+        fh=C9pbhhqSY2/q4ln9kRWBvb5ZWyysq+fRRPaTOLQl1Ss=;
+        b=Qp4VseIg+NbsVpuv6qXRKrVgLh5rykvk4iGBebO+Xf+w/l1xOZnxt2e8ItXVzZ1Lr5
+         7eZ8QHI3VZve+m/CRxMDTGE++ppnLT3JH9HOPBtIQgYfnC4q7kQ8IAw3E246PmNFh+Y9
+         1sjpcolYa378IOES2Usl0VUykRePthn9WcBrRqUBGJQyM+MIYQOPvExVGAYyiAZUuZ7Y
+         7sf1OP36G9AHL7PGUD7mlug6Qu/Ng7vpJgw1t/LzEFCaxeCtqvEQyqbG9dq0XFcMN97t
+         1u7VuOHtpS7IqJu5Pq8jcLpiEUxxkow3t6drluSX8uC36ic2ItKyoT1x6OnO+V4DGFxk
+         UfeA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@experience-factory.com header.s=apex header.b=DGHj2XpI;
+       spf=pass (google.com: domain of returnpath@apex-timing.com designates 46.31.194.44 as permitted sender) smtp.mailfrom=returnpath@apex-timing.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=experience-factory.com
+Return-Path: <returnpath@apex-timing.com>
+Received: from smtp1.apex-timing.com (smtp1.apex-timing.com. [46.31.194.44])
+        by mx.google.com with ESMTP id d2e1a72fcca58-7c3f07672d5si4600984b3a.539.2025.11.22.11.06.25
+        for <maxvanlierop05@gmail.com>;
+        Sat, 22 Nov 2025 11:06:26 -0800 (PST)
+Received-SPF: pass (google.com: domain of returnpath@apex-timing.com designates 46.31.194.44 as permitted sender) client-ip=46.31.194.44;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@experience-factory.com header.s=apex header.b=DGHj2XpI;
+       spf=pass (google.com: domain of returnpath@apex-timing.com designates 46.31.194.44 as permitted sender) smtp.mailfrom=returnpath@apex-timing.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=experience-factory.com
+Message-ID: <692209b2.a70a0220.c5d60.34a5SMTPIN_ADDED_MISSING@mx.google.com>
+Received: from WIN-C8JSTGAIEL7 (unknown [141.95.105.108])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by smtp1.apex-timing.com (Postfix) with ESMTPSA id 2DD57106AB62
+	for <maxvanlierop05@gmail.com>; Sat, 22 Nov 2025 13:19:21 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+	d=experience-factory.com; s=apex; t=1763813961;
+	bh=OnDbuvWfrN82FKpX7I1HIITl4V5mZC/EenPgLueeyF4=;
+	h=From:To:Reply-To:Date:Subject;
+	b=DGHj2XpIUn2BYmy0q2ccJsgsUsLvrWqifabdzkieC3Oo1SI2MTq4JleuCXmoLb0BJ
+	 +NOWdMERxuSXD2OofvoQcyKn1caWxWkzIl5d0tOP/a12dlsoXREgQM6Laz70zLhSB2
+	 D7lEm5cHjzFiJudZqY/2D6Lp0x1Rp65whd2t/BJU=
+From: "Experience Factory Antwerp" <antwerp@experience-factory.com>
+To: =?UTF-8?B?wr8=?= <maxvanlierop05@gmail.com>
+MIME-Version: 1.0
+Reply-To: antwerp@experience-factory.com
+Date: Sat, 22 Nov 2025 13:19:21 +0100
+Subject: Experience Factory Antwerp
+Apex-Id: gokarts-795-900125245-31633-A
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+<!DOCTYPE HTML>
+<html><head><meta http-equiv=3D"content-type" content=3D"text/html; ch=
+arset=3Dutf-8"></head>
+<body style=3D"background-color:rgb(255, 255, 255); color:rgb(255, 255=
+, 255); margin:0px; padding:0px; padding-top:40px; padding-bottom:70px=
+; font-size:13px; font-family: Arial, 'Open Sans', sans-serif;"><style=
+ type=3D"text/css">html,body{ background-color:rgb(255, 255, 255); }ta=
+ble,tr,td{ border-collapse:collapse; border-spacing:0; }li{ font-size:=
+13px }p{ margin:0px; padding:0px; font-size:13px; line-height:normal; =
+}h1,h2,h3,h4,h5{ margin:0px; padding:0px; font-weight:normal; font-siz=
+e: 2em; line-height:1.1; }h1{ font-size: 26px; }h2{ font-size: 24px; }=
+h3{ font-size: 22px; }h4{ font-size: 20px; }h5{ font-size: 18px; }h5{ =
+font-size: 16px; }span{ display: inline; }a{ color: inherit; }.button_=
+content:hover{ opacity:0.8; cursor:pointer; }</style><table style=3D"w=
+idth:100%; border-collapse:collapse; border-spacing:0; font-size:13px;=
+"><tr><td style=3D"text-align:center; padding: 0px;"><table width=3D"9=
+00" style=3D"width:900px; margin-left:auto; margin-right:auto; font-fa=
+mily: Arial, 'Open Sans', sans-serif;"><tbody><tr><td><div width=3D"90=
+0" style=3D"width:900px; margin-left:auto; margin-right:auto; display:=
+inline-block; text-align:left; font-family: Arial, 'Open Sans', sans-s=
+erif; background-color:rgb(62, 62, 62);"><table width=3D"100%" style=3D=
+"width:100%;background-color:rgb(0, 0, 0);color:rgb(255, 255, 255);bor=
+der-collapse:collapse; border-spacing:0;"><tbody><tr><td style=3D"vert=
+ical-align:top;padding:0px;width:898px;max-width:898px;" width=3D"898"=
+ ><div style=3D"font-size:0px;"><img width=3D"100%" style=3D"font-size=
+: initial;width:100%;" src=3D"https://www.apex-timing.com/gokarts/medi=
+a/center243/gallery/3da301ed8314b7a7562aa9d922c8f5e50fb73515.jpeg" alt=
+=3D"Image" ></div></td></tr></tbody></table><table width=3D"100%" styl=
+e=3D"width:100%;background-color:rgb(255, 255, 255);color:rgb(85, 87, =
+93);border-collapse:collapse; border-spacing:0;"><tbody><tr><td style=3D=
+"vertical-align:top;padding:0px;width:898px;max-width:898px;" width=3D=
+"898" ><table width=3D"100%" style=3D"color:rgb(85, 87, 93);width:100%=
+; min-height:20px; height:20px;"><tbody><tr><td><div style=3D"word-wra=
+p:break-word; margin:10px; margin-left:12px; margin-right:12px; overfl=
+ow:hidden; min-height:0.1px" ><p><span style=3D"font-family:verdana,ge=
+neva,sans-serif;"><span style=3D"font-size:13px;">Hello =C2=BF,&nbsp;<=
+/span></span></p>
+
+<p>&nbsp;</p>
+
+<p><span style=3D"font-family:verdana,geneva,sans-serif;"><span style=3D=
+"font-size:13px;">Here you can find the&nbsp;results of your last race=
+!</span></span></p>
+
+<p>&nbsp;</p>
+
+<p><span style=3D"font-family:verdana,geneva,sans-serif;"><span style=3D=
+"font-size:13px;">You can find all your results and all rankings on <a=
+ href=3D"https://www.apex-timing.com/gokarts/member.php?center=3D795&m=
+ember=3D900125245">Our website</a></span></span></p>
+</div></td></tr></tbody></table><table width=3D"100%" style=3D"color:r=
+gb(85, 87, 93);width:100%; min-height:20px; height:20px;"><tbody><tr><=
+td><div style=3D"word-wrap:break-word; margin:10px; margin-left:12px; =
+margin-right:12px; overflow:hidden; min-height:0.1px" ><!-- Review Blo=
+ck Start -->
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"margi=
+n-top: 30px;" width=3D"100%">
+	<tbody>
+		<tr>
+			<td align=3D"center" style=3D"padding: 20px; font-family: Arial, sa=
+ns-serif; font-size: 16px; color: #333;"><span style=3D"font-size:13px=
+;"><span style=3D"font-family:verdana,geneva,sans-serif;">Did you have=
+ a great time during your <strong>experience</strong>?<br />
+			Help us improve by leaving a review &ndash; <strong><em>it really m=
+atters to us!</em></strong></span></span></td>
+		</tr>
+	</tbody>
+</table>
+<!-- Review Block End --></div></td></tr></tbody></table></td></tr></t=
+body></table><table width=3D"100%" style=3D"width:100%;background-colo=
+r:rgb(255, 255, 255);color:rgb(85, 87, 93);border-collapse:collapse; b=
+order-spacing:0;"><tbody><tr><td style=3D"vertical-align:top;padding:0=
+px;width:449px;max-width:449px;" width=3D"449" ><div style=3D"text-ali=
+gn:right;font-size:0px;margin:12px; margin-left:14px; margin-right:14p=
+x;"><a href=3D"mailto:events@experience-factory.com?subject=3DSuggesti=
+on%20EFA%20from%20result%20e-mail" target=3D"_blank"><img width=3D"235=
+" style=3D"font-size: initial;width:235px;" src=3D"https://www.apex-ti=
+ming.com/gokarts/media/center795/gallery/2d00f94adee0691c5f3767eed644d=
+43cd7cc7ae8.png" alt=3D"Image" ></a></div></td><td style=3D"vertical-a=
+lign:top;padding:0px;width:449px;max-width:449px;" width=3D"449" ><div=
+ style=3D"text-align:left;font-size:0px;margin:12px; margin-left:14px;=
+ margin-right:14px;"><a href=3D"https://g.page/r/CXxSoVEbJdXgEAE/revie=
+w" target=3D"_blank"><img width=3D"235" style=3D"font-size: initial;wi=
+dth:235px;" src=3D"https://www.apex-timing.com/gokarts/media/center795=
+/gallery/45840f4b16c3fcf7e7e44a639764af95adc8ce3a.png" alt=3D"Image" >=
+</a></div></td></tr></tbody></table><table width=3D"100%" style=3D"wid=
+th:100%;background-color:rgb(255, 255, 255);color:rgb(85, 87, 93);bord=
+er-collapse:collapse; border-spacing:0;"><tbody><tr><td style=3D"verti=
+cal-align:top;padding:0px;width:898px;max-width:898px;" width=3D"898" =
+><table width=3D"100%" style=3D"width:100%;"><tbody><tr><td><div style=
+=3D"margin:12px; margin-left:14px; margin-right:14px;"><table style=3D=
+"width: 100%; border-collapse: collapse; font-weight: bold; background=
+-color: #E1351A; color: #FFFFFF; height: 26px;"><tr><td style=3D"paddi=
+ng: 6px; text-align: center; height: inherit;">25. RACING - 13:00 - 20=
+25-11-22 to 13:00 (E-Karting)</td></tr></table><table style=3D"border-=
+collapse: collapse; border-spacing: 0px; width: 100%; text-shadow: 1px=
+ 1px rgba(0,0,0,0.75);"><tbody><tr><td style=3D"padding: 0px;"><table =
+style=3D"border-collapse: collapse; border-spacing: 0px; text-align: c=
+enter; max-width: 580px; min-width: 470px; width: 100%; font-family: s=
+ans-serif; margin-left: auto; margin-right: auto;"><tbody><tr><td styl=
+e=3D"padding:0px; width: 185px; vertical-align: bottom;"><div style=3D=
+"height: 65px;"></div><div><img alt=3D"" style=3D"width: 80%; margin-b=
+ottom: 6px; margin-top: 8px;" src=3D"https://www.apex-timing.com/gokar=
+ts/images/member_photo_adult_1.png"></div><table style=3D"border-colla=
+pse: collapse; border-spacing: 0px; background-color: #524F4F; width: =
+100%; min-height: 120px;"><tbody style=3D"background-color: rgba(0, 0,=
+ 0, 0.21);"><tr style=3D"height: 5px; background-color: #fff; opacity:=
+ 0.15"><td style=3D"width: 28px;"></td><td></td><td style=3D"width: 28=
+px; background-color: #000; opacity: 0.20"></td></tr><tr><td></td><td>=
+<div style=3D"text-align:center; color:#a5abc1; font-size: 60px; heigh=
+t: 70px; margin-top: 4px;">2</div></td><td style=3D"background-color: =
+#000; opacity: 0.20"></td></tr><tr><td></td><td><div style=3D"text-ali=
+gn:center; color:#a5abc1; font-weight: bold; margin-bottom: 4px; paddi=
+ng: 0px 2px">%</div></td><td style=3D"background-color: #000; opacity:=
+ 0.20"></td></tr><tr><td></td><td></td><td style=3D"background-color: =
+#000; opacity: 0.20"></td></tr><tr style=3D"background-color: #000000;=
+ opacity: 0.13; height: 4px;"><td></td><td></td><td style=3D"backgroun=
+d-color: #000; opacity: 0.20"></td></tr></tbody></table></td><td style=
+=3D"padding:0px; width: 200px; color: #fed413; vertical-align: bottom;=
+"><div><img alt=3D"" style=3D"width: 85%; margin-bottom: 6px;" src=3D"=
+https://www.apex-timing.com/gokarts/images/member_photo_adult_1.png"><=
+/div><table style=3D"border-collapse: collapse; border-spacing: 0px; b=
+ackground-color: #524F4F; width: 100%; min-height: 176px;"><tbody><tr =
+style=3D"height: 5px; background-color: #fff; opacity: 0.15"><td style=
+=3D"width: 2px;"></td><td></td><td style=3D"width: 2px; min-width: 2px=
+; background-color: #000; opacity: 0.10"></td></tr><tr><td></td><td st=
+yle=3D"height: 26px;"><div style=3D"color:#fed413; text-align:center; =
+font-size: 75px;">1</div></td><td style=3D"background-color: #000; opa=
+city: 0.10"></td></tr><tr><td></td><td style=3D"height: 26px;"><div st=
+yle=3D"color:#fed413; text-align:center; font-weight: bold; font-size:=
+ 22px; padding: 0px 2px">=C2=BF</div></td><td style=3D"background-colo=
+r: #000; opacity: 0.10"></td></tr><tr><td></td><td></td><td style=3D"b=
+ackground-color: #000; opacity: 0.10"></td></tr><tr style=3D"backgroun=
+d-color: #000000; opacity: 0.13; height: 4px;"><td></td><td></td><td s=
+tyle=3D"background-color: #000; opacity: 0.10"></td></tr></tbody></tab=
+le></td><td style=3D"padding:0px; width: 175px; color: #e9a35b; vertic=
+al-align: bottom;"><div style=3D"height: 100px;"></div><div><img alt=3D=
+"" style=3D"width: 75%; margin-bottom: 6px; margin-top: 15px;" src=3D"=
+https://www.apex-timing.com/gokarts/images/member_photo_adult_2.png"><=
+/div><table style=3D"border-collapse: collapse; border-spacing: 0px; b=
+ackground-color: #524F4F; width: 100%; min-height: 91px;"><tbody style=
+=3D"background-color: rgba(0, 0, 0, 0.21);"><tr style=3D"height: 5px; =
+background-color: #fff; opacity: 0.15"><td style=3D"width: 28px; backg=
+round-color: #000; opacity: 0.20"></td><td></td><td style=3D"width: 20=
+px;"></td><td style=3D"width: 2px; min-width: 2px; background-color: #=
+000; opacity: 0.10"></td></tr><tr><td style=3D"background-color: #000;=
+ opacity: 0.20"></td><td><div style=3D"color: #e9a35b; text-align:cent=
+er; font-size: 60px; height: 70px; margin-top: 4px;">3</div></td><td s=
+tyle=3D"width: 20px;"></td><td style=3D"background-color: #000; opacit=
+y: 0.10"></td></tr><tr><td style=3D"background-color: #000; opacity: 0=
+=2E20"></td><td><div style=3D"color: #e9a35b; text-align:center; font-=
+weight: bold; margin-bottom: 4px; padding: 0px 2px">=C2=A8</div></td><=
+td style=3D"width: 20px;"></td><td style=3D"background-color: #000; op=
+acity: 0.10"></td></tr><tr><td style=3D"background-color: #000; opacit=
+y: 0.20"></td><td></td><td style=3D"width: 20px;"></td><td style=3D"ba=
+ckground-color: #000; opacity: 0.10"></td></tr><tr style=3D"background=
+-color: #000000; opacity: 0.13; height: 4px;"><td style=3D"background-=
+color: #000; opacity: 0.20"></td><td></td><td style=3D"width: 20px;"><=
+/td><td style=3D"background-color: #000; opacity: 0.10"></td></tr></tb=
+ody></table></td></tr></tbody></table></td></tr><tr style=3D"backgroun=
+d-color: #524F4F;"><td style=3D"padding: 0px;"><div style=3D"height: 1=
+6px; background-color: #fff; opacity: 0.16;"></div><div style=3D"heigh=
+t: 5px; background-color: #000; opacity: 0.25;"></div></td></tr></tbod=
+y></table></div></td></tr></tbody></table></td></tr></tbody></table><t=
+able width=3D"100%" style=3D"width:100%;background-color:rgb(255, 255,=
+ 255);color:rgb(85, 87, 93);border-collapse:collapse; border-spacing:0=
+;"><tbody><tr><td style=3D"vertical-align:top;padding:0px;width:898px;=
+max-width:898px;" width=3D"898" ><table width=3D"100%" style=3D"width:=
+100%;"><tbody><tr><td><div style=3D"margin:12px; margin-left:14px; mar=
+gin-right:14px;"><table style=3D"width:100%;border-collapse:collapse;l=
+ine-height:18px;color:inherit;text-align:center;cursor:default;"><thea=
+d style=3D"font-size:12px;"><tr style=3D"height:24px; font-weight:bold=
+;"><th style=3D"background-color:#524F4F; color:#FCFCFC;width:32px;pad=
+ding-left:4px; padding-right:4px;">Rnk</th><th style=3D"background-col=
+or:#524F4F; color:#FFFFFF;width:42px;padding-left:4px; padding-right:4=
+px;">Kart</th><th style=3D"background-color:#524F4F; color:#FFFFFF;pad=
+ding-left:4px; padding-right:4px;text-align:left">Driver</th><th style=
+=3D"background-color:#524F4F; color:#FFFFFF;padding-left:4px; padding-=
+right:4px;">Laps</th><th style=3D"background-color:#524F4F; color:#FFF=
+FFF;width:80px;padding-left:4px; padding-right:4px;">Sector 1</th><th =
+style=3D"background-color:#524F4F; color:#FFFFFF;width:80px;padding-le=
+ft:4px; padding-right:4px;">Sector 2</th><th style=3D"background-color=
+:#524F4F; color:#FFFFFF;width:80px;padding-left:4px; padding-right:4px=
+;">Sector 3</th><th style=3D"background-color:#524F4F; color:#FCFCFC;w=
+idth:100px;padding-left:4px; padding-right:4px;">Best lap</th><th styl=
+e=3D"background-color:#524F4F; color:#FFFFFF;width:80px;padding-left:4=
+px; padding-right:4px;">Gap</th><th style=3D"background-color:#524F4F;=
+ color:#FFFFFF;width:80px;padding-left:4px; padding-right:4px;">Avg</t=
+h></tr></thead><tbody style=3D"font-size:12px;"><tr style=3D"height:2p=
+x; background-color:transparent;"></tr><tr class=3D"tr" style=3D"heigh=
+t:28px;"><td style=3D"width:32px;background-color:#E1351A;color:#FFFFF=
+F;font-weight:bold;background-color:#FED413; color:#000; font-weight:b=
+old; font-size:14px; padding-left:6px; padding-right:6px;">1</td><td s=
+tyle=3D"width:42px;background-color:#E1351A;color:#FFFFFF;padding-left=
+:6px; padding-right:6px;"><div style=3D"height:20px; line-height:18px;=
+ background-color:#00AAAB; color:#FFFFFF;"><p style=3D"font-weight:bol=
+d; padding-left:4px; padding-right:4px; margin:0px;">42</p></div></td>=
+<td style=3D"text-align:left;background-color:#E1351A;color:#FFFFFF;pa=
+dding-left:6px; padding-right:4px; white-space:nowrap;"><span class=3D=
+"m" style=3D"font-weight: bold;">=C2=BF</span></td><td style=3D"backgr=
+ound-color:#E1351A;color:#FFFFFF;">7</td><td style=3D"width:80px;backg=
+round-color:#E1351A;color:#FFFFFF;">25.090</td><td style=3D"width:80px=
+;background-color:#E1351A;color:#FFFFFF;">20.813</td><td style=3D"widt=
+h:80px;background-color:#E1351A;color:#FFFFFF;">22.140</td><td style=3D=
+"width:100px;background-color:#E1351A;color:#FFFFFF;font-weight:bold;"=
+>1:08.043</td><td style=3D"width:80px;background-color:#E1351A;color:#=
+FFFFFF;"></td><td style=3D"width:80px;background-color:#E1351A;color:#=
+FFFFFF;">1:09.687</td></tr><tr style=3D"height:2px; background-color:t=
+ransparent;"></tr><tr class=3D"tr" style=3D"height:28px;"><td style=3D=
+"width:32px;background-color:#E1351A;color:#FFFFFF;font-weight:bold;ba=
+ckground-color:#A5ABC1; color:#000; font-weight:bold; font-size:14px; =
+padding-left:6px; padding-right:6px;">2</td><td style=3D"width:42px;ba=
+ckground-color:#DBDBDB;color:#000000;padding-left:6px; padding-right:6=
+px;"><div style=3D"height:20px; line-height:18px; background-color:#00=
+AAAB; color:#FFFFFF;"><p style=3D"font-weight:bold; padding-left:4px; =
+padding-right:4px; margin:0px;">40</p></div></td><td style=3D"text-ali=
+gn:left;background-color:#DBDBDB;color:#000000;padding-left:6px; paddi=
+ng-right:4px; white-space:nowrap;"><span class=3D"m" style=3D"font-wei=
+ght: bold;">%</span></td><td style=3D"background-color:#DBDBDB;color:#=
+000000;">7</td><td style=3D"width:80px;background-color:#DBDBDB;color:=
+#000000;">25.461</td><td style=3D"width:80px;background-color:#DBDBDB;=
+color:#000000;">22.243</td><td style=3D"width:80px;background-color:#D=
+BDBDB;color:#000000;">23.626</td><td style=3D"width:100px;background-c=
+olor:#E1351A;color:#FFFFFF;font-weight:bold;">1:11.330</td><td style=3D=
+"width:80px;background-color:#DBDBDB;color:#000000;">3.287</td><td sty=
+le=3D"width:80px;background-color:#DBDBDB;color:#000000;">1:13.384</td=
+></tr><tr style=3D"height:2px; background-color:transparent;"></tr><tr=
+ class=3D"tr" style=3D"height:28px;"><td style=3D"width:32px;backgroun=
+d-color:#E1351A;color:#FFFFFF;font-weight:bold;background-color:#E9A35=
+B; color:#000; font-weight:bold; font-size:14px; padding-left:6px; pad=
+ding-right:6px;">3</td><td style=3D"width:42px;background-color:#DBDBD=
+B;color:#000000;padding-left:6px; padding-right:6px;"><div style=3D"he=
+ight:20px; line-height:18px; background-color:#00AAAB; color:#FFFFFF;"=
+><p style=3D"font-weight:bold; padding-left:4px; padding-right:4px; ma=
+rgin:0px;">26</p></div></td><td style=3D"text-align:left;background-co=
+lor:#DBDBDB;color:#000000;padding-left:6px; padding-right:4px; white-s=
+pace:nowrap;"><span class=3D"w" style=3D"font-weight: bold;">=C2=A8</s=
+pan></td><td style=3D"background-color:#DBDBDB;color:#000000;">6</td><=
+td style=3D"width:80px;background-color:#DBDBDB;color:#000000;">29.524=
+</td><td style=3D"width:80px;background-color:#DBDBDB;color:#000000;">=
+24.358</td><td style=3D"width:80px;background-color:#DBDBDB;color:#000=
+000;">25.536</td><td style=3D"width:100px;background-color:#E1351A;col=
+or:#FFFFFF;font-weight:bold;">1:19.418</td><td style=3D"width:80px;bac=
+kground-color:#DBDBDB;color:#000000;">11.375</td><td style=3D"width:80=
+px;background-color:#DBDBDB;color:#000000;">1:23.875</td></tr></tbody>=
+</table></div></td></tr></tbody></table></td></tr></tbody></table><tab=
+le width=3D"100%" style=3D"width:100%;background-color:rgb(255, 255, 2=
+55);color:rgb(85, 87, 93);border-collapse:collapse; border-spacing:0;"=
+><tbody><tr><td style=3D"vertical-align:top;padding:0px;width:898px;ma=
+x-width:898px;" width=3D"898" ></td></tr></tbody></table><table width=3D=
+"100%" style=3D"width:100%;background-color:rgb(255, 255, 255);color:r=
+gb(85, 87, 93);border-collapse:collapse; border-spacing:0;"><tbody><tr=
+><td style=3D"vertical-align:top;padding:0px;width:449px;max-width:449=
+px;" width=3D"449" ><table width=3D"100%" style=3D"width:100%;"><tbody=
+><tr><td><div style=3D"margin:12px; margin-left:14px; margin-right:14p=
+x;"><table style=3D"width: 100%; border-collapse: collapse; font-weigh=
+t: bold; background-color: #E1351A; color: #FFFFFF; height: 26px;"><tr=
+><td style=3D"padding: 6px; text-align: center; height: inherit;">Your=
+ lap times <span style=3D"padding-left: 6px; padding-right: 6px; font-=
+size: 12px; font-weight: bold; background-color: #00AAAB; color: #FFFF=
+FF;">RK</span></td></tr></table><table style=3D"width:100%;border-coll=
+apse:collapse;line-height:18px;color:inherit;text-align:center;cursor:=
+default;"><thead style=3D"font-size:12px;"><tr style=3D"height:24px; f=
+ont-weight:bold;"><th style=3D"background-color:#524F4F; color:#FFFFFF=
+;width:38px;padding-left:4px; padding-right:4px;">Lap</th><th style=3D=
+"background-color:#524F4F; color:#FFFFFF;width:70px;padding-left:4px; =
+padding-right:4px;">S1</th><th style=3D"background-color:#524F4F; colo=
+r:#FFFFFF;width:70px;padding-left:4px; padding-right:4px;">S2</th><th =
+style=3D"background-color:#524F4F; color:#FFFFFF;width:70px;padding-le=
+ft:4px; padding-right:4px;">S3</th><th style=3D"background-color:#524F=
+4F; color:#FFFFFF;padding-left:4px; padding-right:4px;"></th><th style=
+=3D"background-color:#524F4F; color:#FCFCFC;width:100px;padding-left:4=
+px; padding-right:4px;">Time</th></tr></thead><tbody style=3D"font-siz=
+e:12px;"><tr style=3D"height:2px; background-color:transparent;"></tr>=
+<tr class=3D"tr" style=3D"height:28px;"><td style=3D"width:38px;backgr=
+ound-color:#DBDBDB;color:#000000;">1</td><td style=3D"width:70px;backg=
+round-color:#DBDBDB;color:#000000;">31.998</td><td style=3D"width:70px=
+;background-color:#DBDBDB;color:#000000;">22.379</td><td style=3D"widt=
+h:70px;background-color:#DBDBDB;color:#000000;">22.836</td><td style=3D=
+"background-color:#DBDBDB;color:#000000;"></td><td style=3D"width:100p=
+x;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:17.213</=
+td></tr><tr style=3D"height:2px; background-color:transparent;"></tr><=
+tr class=3D"tr" style=3D"height:28px;"><td style=3D"width:38px;backgro=
+und-color:#DBDBDB;color:#000000;">2</td><td style=3D"width:70px;backgr=
+ound-color:#DBDBDB;color:#000000;">24.747</td><td style=3D"width:70px;=
+background-color:#DBDBDB;color:#000000;">21.076</td><td style=3D"width=
+:70px;background-color:#DBDBDB;color:#000000;">22.595</td><td style=3D=
+"background-color:#DBDBDB;color:#000000;"></td><td style=3D"width:100p=
+x;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:08.418</=
+td></tr><tr style=3D"height:2px; background-color:transparent;"></tr><=
+tr class=3D"tr" style=3D"height:28px;"><td style=3D"width:38px;backgro=
+und-color:#E1351A;color:#FFFFFF;">3</td><td style=3D"width:70px;backgr=
+ound-color:#E1351A;color:#FFFFFF;">25.090</td><td style=3D"width:70px;=
+background-color:#E1351A;color:#FFFFFF;">20.813</td><td style=3D"width=
+:70px;background-color:#E1351A;color:#FFFFFF;">22.140</td><td style=3D=
+"background-color:#E1351A;color:#FFFFFF;"></td><td style=3D"width:100p=
+x;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:08.043</=
+td></tr><tr style=3D"height:2px; background-color:transparent;"></tr><=
+tr class=3D"tr" style=3D"height:28px;"><td style=3D"width:38px;backgro=
+und-color:#DBDBDB;color:#000000;">4</td><td style=3D"width:70px;backgr=
+ound-color:#DBDBDB;color:#000000;">25.111</td><td style=3D"width:70px;=
+background-color:#DBDBDB;color:#000000;">20.877</td><td style=3D"width=
+:70px;background-color:#DBDBDB;color:#000000;">23.019</td><td style=3D=
+"background-color:#DBDBDB;color:#000000;"></td><td style=3D"width:100p=
+x;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:09.007</=
+td></tr><tr style=3D"height:2px; background-color:transparent;"></tr><=
+tr class=3D"tr" style=3D"height:28px;"><td style=3D"width:38px;backgro=
+und-color:#DBDBDB;color:#000000;">5</td><td style=3D"width:70px;backgr=
+ound-color:#DBDBDB;color:#000000;">25.128</td><td style=3D"width:70px;=
+background-color:#DBDBDB;color:#000000;">20.888</td><td style=3D"width=
+:70px;background-color:#DBDBDB;color:#000000;">22.551</td><td style=3D=
+"background-color:#DBDBDB;color:#000000;"></td><td style=3D"width:100p=
+x;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:08.567</=
+td></tr><tr style=3D"height:2px; background-color:transparent;"></tr><=
+tr class=3D"tr" style=3D"height:28px;"><td style=3D"width:38px;backgro=
+und-color:#DBDBDB;color:#000000;">6</td><td style=3D"width:70px;backgr=
+ound-color:#DBDBDB;color:#000000;">24.989</td><td style=3D"width:70px;=
+background-color:#DBDBDB;color:#000000;">21.176</td><td style=3D"width=
+:70px;background-color:#DBDBDB;color:#000000;">22.250</td><td style=3D=
+"background-color:#DBDBDB;color:#000000;"></td><td style=3D"width:100p=
+x;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:08.415</=
+td></tr><tr style=3D"height:2px; background-color:transparent;"></tr><=
+tr class=3D"tr" style=3D"height:28px;"><td style=3D"width:38px;backgro=
+und-color:#DBDBDB;color:#000000;">7</td><td style=3D"width:70px;backgr=
+ound-color:#DBDBDB;color:#000000;">25.030</td><td style=3D"width:70px;=
+background-color:#DBDBDB;color:#000000;">20.910</td><td style=3D"width=
+:70px;background-color:#DBDBDB;color:#000000;">22.210</td><td style=3D=
+"background-color:#DBDBDB;color:#000000;"></td><td style=3D"width:100p=
+x;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:08.150</=
+td></tr></tbody></table></div></td></tr></tbody></table></td><td style=
+=3D"vertical-align:top;padding:0px;width:449px;max-width:449px;" width=
+=3D"449" ><table width=3D"100%" style=3D"width:100%;"><tbody><tr><td><=
+div style=3D"margin:12px; margin-left:14px; margin-right:14px;"><table=
+ style=3D"width: 100%; border-collapse: collapse; font-weight: bold; b=
+ackground-color: #E1351A; color: #FFFFFF; height: 26px;"><tr><td style=
+=3D"padding: 6px; text-align: center; height: inherit;">Your last sess=
+ions <span style=3D"padding-left: 6px; padding-right: 6px; font-size: =
+12px; font-weight: bold; background-color: #00AAAB; color: #FFFFFF;">R=
+K</span></td></tr></table><table style=3D"width:100%;border-collapse:c=
+ollapse;line-height:18px;color:inherit;text-align:center;cursor:defaul=
+t;"><thead style=3D"font-size:12px;"><tr style=3D"height:24px; font-we=
+ight:bold;"><th style=3D"background-color:#524F4F; color:#FCFCFC;width=
+:32px;padding-left:4px; padding-right:4px;">Rnk</th><th style=3D"backg=
+round-color:#524F4F; color:#FFFFFF;padding-left:4px; padding-right:4px=
+;">Date</th><th style=3D"background-color:#524F4F; color:#FCFCFC;width=
+:100px;padding-left:4px; padding-right:4px;">Best lap</th><th style=3D=
+"background-color:#524F4F; color:#FFFFFF;padding-left:4px; padding-rig=
+ht:4px;">Laps</th></tr></thead><tbody style=3D"font-size:12px;"><tr st=
+yle=3D"height:2px; background-color:transparent;"></tr><tr class=3D"tr=
+" style=3D"height:28px;"><td style=3D"width:32px;background-color:#E13=
+51A;color:#FFFFFF;font-weight:bold;background-color:#FED413; color:#00=
+0; font-weight:bold; font-size:14px; padding-left:6px; padding-right:6=
+px;">1</td><td style=3D"background-color:#DBDBDB;color:#000000;">2025-=
+11-22</td><td style=3D"width:100px;background-color:#E1351A;color:#FFF=
+FFF;font-weight:bold;">1:08.043</td><td style=3D"background-color:#DBD=
+BDB;color:#000000;">7</td></tr><tr style=3D"height:2px; background-col=
+or:transparent;"></tr><tr class=3D"tr" style=3D"height:28px;"><td styl=
+e=3D"width:32px;background-color:#E1351A;color:#FFFFFF;font-weight:bol=
+d;background-color:#FED413; color:#000; font-weight:bold; font-size:14=
+px; padding-left:6px; padding-right:6px;">1</td><td style=3D"backgroun=
+d-color:#DBDBDB;color:#000000;">2025-11-22</td><td style=3D"width:100p=
+x;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:07.987</=
+td><td style=3D"background-color:#DBDBDB;color:#000000;">11</td></tr><=
+tr style=3D"height:2px; background-color:transparent;"></tr><tr class=3D=
+"tr" style=3D"height:28px;"><td style=3D"width:32px;background-color:#=
+E1351A;color:#FFFFFF;font-weight:bold;background-color:#FFF; color:#00=
+0; font-weight:bold; font-size:14px; padding-left:6px; padding-right:6=
+px;">4</td><td style=3D"background-color:#DBDBDB;color:#000000;">2025-=
+08-26</td><td style=3D"width:100px;background-color:#E1351A;color:#FFF=
+FFF;font-weight:bold;">1:09.301</td><td style=3D"background-color:#DBD=
+BDB;color:#000000;">11</td></tr><tr style=3D"height:2px; background-co=
+lor:transparent;"></tr><tr class=3D"tr" style=3D"height:28px;"><td sty=
+le=3D"width:32px;background-color:#E1351A;color:#FFFFFF;font-weight:bo=
+ld;background-color:#FFF; color:#000; font-weight:bold; font-size:14px=
+; padding-left:6px; padding-right:6px;">4</td><td style=3D"background-=
+color:#DBDBDB;color:#000000;">2025-08-26</td><td style=3D"width:100px;=
+background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:09.021</td=
+><td style=3D"background-color:#DBDBDB;color:#000000;">11</td></tr><tr=
+ style=3D"height:2px; background-color:transparent;"></tr><tr class=3D=
+"tr" style=3D"height:28px;"><td style=3D"width:32px;background-color:#=
+E1351A;color:#FFFFFF;font-weight:bold;background-color:#FFF; color:#00=
+0; font-weight:bold; font-size:14px; padding-left:6px; padding-right:6=
+px;">5</td><td style=3D"background-color:#DBDBDB;color:#000000;">2025-=
+08-26</td><td style=3D"width:100px;background-color:#E1351A;color:#FFF=
+FFF;font-weight:bold;">1:09.146</td><td style=3D"background-color:#DBD=
+BDB;color:#000000;">11</td></tr><tr style=3D"height:2px; background-co=
+lor:transparent;"></tr><tr style=3D"height:28px; background-color:tran=
+sparent;"><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>=
+</tr><tr style=3D"height:2px; background-color:transparent;"></tr><tr =
+style=3D"height:28px; background-color:transparent;"><td>&nbsp;</td><t=
+d>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr></tbody></table></div>=
+</td></tr></tbody></table></td></tr></tbody></table><table width=3D"10=
+0%" style=3D"width:100%;background-color:rgb(251, 251, 251);color:rgb(=
+85, 87, 93);border-collapse:collapse; border-spacing:0;"><tbody><tr><t=
+d style=3D"vertical-align:top;padding:0px;width:449px;max-width:449px;=
+" width=3D"449" ><table width=3D"100%" style=3D"width:100%;"><tbody><t=
+r><td><div style=3D"margin:12px; margin-left:14px; margin-right:14px;"=
+><table style=3D"width: 100%; border-collapse: collapse; font-weight: =
+bold; background-color: #E1351A; color: #FFFFFF; height: 26px;"><tr><t=
+d style=3D"padding: 6px; text-align: center; height: inherit;">Best ti=
+mes of the week <span style=3D"padding-left: 6px; padding-right: 6px; =
+font-size: 12px; font-weight: bold; background-color: #00AAAB; color: =
+#FFFFFF;">RK</span></td></tr></table><table style=3D"width:100%;border=
+-collapse:collapse;line-height:18px;color:inherit;text-align:center;cu=
+rsor:default;"><thead style=3D"font-size:12px;"><tr style=3D"height:24=
+px; font-weight:bold;"><th style=3D"background-color:#524F4F; color:#F=
+CFCFC;width:32px;padding-left:4px; padding-right:4px;">#</th><th style=
+=3D"background-color:#524F4F; color:#FFFFFF;padding-left:4px; padding-=
+right:4px;text-align:left">Driver</th><th style=3D"background-color:#5=
+24F4F; color:#FCFCFC;width:100px;padding-left:4px; padding-right:4px;"=
+>Best lap</th></tr></thead><tbody style=3D"font-size:12px;"><tr style=3D=
+"height:2px; background-color:transparent;"></tr><tr class=3D"tr" styl=
+e=3D"height:28px;"><td style=3D"width:32px;background-color:#E1351A;co=
+lor:#FFFFFF;font-weight:bold;background-color:#FED413; color:#000; fon=
+t-weight:bold; font-size:14px; padding-left:6px; padding-right:6px;">1=
+</td><td style=3D"text-align:left;background-color:#DBDBDB;color:#0000=
+00;padding-left:6px; padding-right:4px; white-space:nowrap;"><span cla=
+ss=3D"m" style=3D"font-weight: bold;">JOTTA</span></td><td style=3D"wi=
+dth:100px;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:=
+06.736</td></tr><tr style=3D"height:2px; background-color:transparent;=
+"></tr><tr class=3D"tr" style=3D"height:28px;"><td style=3D"width:32px=
+;background-color:#E1351A;color:#FFFFFF;font-weight:bold;background-co=
+lor:#FFF; color:#000; font-weight:bold; font-size:14px; padding-left:6=
+px; padding-right:6px;">11</td><td style=3D"text-align:left;background=
+-color:#DBDBDB;color:#000000;padding-left:6px; padding-right:4px; whit=
+e-space:nowrap;"><span class=3D"m" style=3D"font-weight: bold;">ELIS7<=
+/span></td><td style=3D"width:100px;background-color:#E1351A;color:#FF=
+FFFF;font-weight:bold;">1:07.934</td></tr><tr style=3D"height:2px; bac=
+kground-color:transparent;"></tr><tr class=3D"tr" style=3D"height:28px=
+;"><td style=3D"width:32px;background-color:#E1351A;color:#FFFFFF;font=
+-weight:bold;background-color:#FFF; color:#000; font-weight:bold; font=
+-size:14px; padding-left:6px; padding-right:6px;">12</td><td style=3D"=
+text-align:left;background-color:#DBDBDB;color:#000000;padding-left:6p=
+x; padding-right:4px; white-space:nowrap;"><span class=3D"m" style=3D"=
+font-weight: bold;">HESHO</span></td><td style=3D"width:100px;backgrou=
+nd-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:07.960</td></tr><t=
+r style=3D"height:2px; background-color:transparent;"></tr><tr class=3D=
+"tr" style=3D"height:28px;"><td style=3D"width:32px;background-color:#=
+E1351A;color:#FFFFFF;font-weight:bold;background-color:#FFF; color:#00=
+0; font-weight:bold; font-size:14px; padding-left:6px; padding-right:6=
+px;">13</td><td style=3D"text-align:left;background-color:#E1351A;colo=
+r:#FFFFFF;padding-left:6px; padding-right:4px; white-space:nowrap;"><s=
+pan class=3D"m" style=3D"font-weight: bold;">=C2=BF</span></td><td sty=
+le=3D"width:100px;background-color:#E1351A;color:#FFFFFF;font-weight:b=
+old;">1:07.987</td></tr><tr style=3D"height:2px; background-color:tran=
+sparent;"></tr><tr class=3D"tr" style=3D"height:28px;"><td style=3D"wi=
+dth:32px;background-color:#E1351A;color:#FFFFFF;font-weight:bold;backg=
+round-color:#FFF; color:#000; font-weight:bold; font-size:14px; paddin=
+g-left:6px; padding-right:6px;">14</td><td style=3D"text-align:left;ba=
+ckground-color:#DBDBDB;color:#000000;padding-left:6px; padding-right:4=
+px; white-space:nowrap;"><span class=3D"m" style=3D"font-weight: bold;=
+">NV1880</span></td><td style=3D"width:100px;background-color:#E1351A;=
+color:#FFFFFF;font-weight:bold;">1:07.998</td></tr><tr style=3D"height=
+:2px; background-color:transparent;"></tr><tr class=3D"tr" style=3D"he=
+ight:28px;"><td style=3D"width:32px;background-color:#E1351A;color:#FF=
+FFFF;font-weight:bold;background-color:#FFF; color:#000; font-weight:b=
+old; font-size:14px; padding-left:6px; padding-right:6px;">15</td><td =
+style=3D"text-align:left;background-color:#DBDBDB;color:#000000;paddin=
+g-left:6px; padding-right:4px; white-space:nowrap;"><span class=3D"m" =
+style=3D"font-weight: bold;">PIRAAT_STIG</span></td><td style=3D"width=
+:100px;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:08.=
+189</td></tr></tbody></table></div></td></tr></tbody></table></td><td =
+style=3D"vertical-align:top;padding:0px;width:449px;max-width:449px;" =
+width=3D"449" ><table width=3D"100%" style=3D"width:100%;"><tbody><tr>=
+<td><div style=3D"margin:12px; margin-left:14px; margin-right:14px;"><=
+table style=3D"width: 100%; border-collapse: collapse; font-weight: bo=
+ld; background-color: #E1351A; color: #FFFFFF; height: 26px;"><tr><td =
+style=3D"padding: 6px; text-align: center; height: inherit;">Track rec=
+ords <span style=3D"padding-left: 6px; padding-right: 6px; font-size: =
+12px; font-weight: bold; background-color: #00AAAB; color: #FFFFFF;">R=
+K</span></td></tr></table><table style=3D"width:100%;border-collapse:c=
+ollapse;line-height:18px;color:inherit;text-align:center;cursor:defaul=
+t;"><thead style=3D"font-size:12px;"><tr style=3D"height:24px; font-we=
+ight:bold;"><th style=3D"background-color:#524F4F; color:#FCFCFC;width=
+:32px;padding-left:4px; padding-right:4px;">#</th><th style=3D"backgro=
+und-color:#524F4F; color:#FFFFFF;padding-left:4px; padding-right:4px;t=
+ext-align:left">Driver</th><th style=3D"background-color:#524F4F; colo=
+r:#FCFCFC;width:100px;padding-left:4px; padding-right:4px;">Best lap</=
+th></tr></thead><tbody style=3D"font-size:12px;"><tr style=3D"height:2=
+px; background-color:transparent;"></tr><tr class=3D"tr" style=3D"heig=
+ht:28px;"><td style=3D"width:32px;background-color:#E1351A;color:#FFFF=
+FF;font-weight:bold;background-color:#FED413; color:#000; font-weight:=
+bold; font-size:14px; padding-left:6px; padding-right:6px;">1</td><td =
+style=3D"text-align:left;background-color:#DBDBDB;color:#000000;paddin=
+g-left:6px; padding-right:4px; white-space:nowrap;"><span class=3D"w" =
+style=3D"font-weight: bold;">BENTHE</span></td><td style=3D"width:100p=
+x;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">56.929</td=
+></tr><tr style=3D"height:2px; background-color:transparent;"></tr><tr=
+ class=3D"tr" style=3D"height:28px;"><td style=3D"width:32px;backgroun=
+d-color:#E1351A;color:#FFFFFF;font-weight:bold;background-color:#FFF; =
+color:#000; font-weight:bold; font-size:14px; padding-left:6px; paddin=
+g-right:6px;">724</td><td style=3D"text-align:left;background-color:#D=
+BDBDB;color:#000000;padding-left:6px; padding-right:4px; white-space:n=
+owrap;"><span class=3D"m" style=3D"font-weight: bold;">MAJO_77</span><=
+/td><td style=3D"width:100px;background-color:#E1351A;color:#FFFFFF;fo=
+nt-weight:bold;">1:07.987</td></tr><tr style=3D"height:2px; background=
+-color:transparent;"></tr><tr class=3D"tr" style=3D"height:28px;"><td =
+style=3D"width:32px;background-color:#E1351A;color:#FFFFFF;font-weight=
+:bold;background-color:#FFF; color:#000; font-weight:bold; font-size:1=
+4px; padding-left:6px; padding-right:6px;">725</td><td style=3D"text-a=
+lign:left;background-color:#DBDBDB;color:#000000;padding-left:6px; pad=
+ding-right:4px; white-space:nowrap;"><span class=3D"m" style=3D"font-w=
+eight: bold;">DWERGJEEE</span></td><td style=3D"width:100px;background=
+-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:07.987</td></tr><tr =
+style=3D"height:2px; background-color:transparent;"></tr><tr class=3D"=
+tr" style=3D"height:28px;"><td style=3D"width:32px;background-color:#E=
+1351A;color:#FFFFFF;font-weight:bold;background-color:#FFF; color:#000=
+; font-weight:bold; font-size:14px; padding-left:6px; padding-right:6p=
+x;">726</td><td style=3D"text-align:left;background-color:#E1351A;colo=
+r:#FFFFFF;padding-left:6px; padding-right:4px; white-space:nowrap;"><s=
+pan class=3D"m" style=3D"font-weight: bold;">=C2=BF</span></td><td sty=
+le=3D"width:100px;background-color:#E1351A;color:#FFFFFF;font-weight:b=
+old;">1:07.987</td></tr><tr style=3D"height:2px; background-color:tran=
+sparent;"></tr><tr class=3D"tr" style=3D"height:28px;"><td style=3D"wi=
+dth:32px;background-color:#E1351A;color:#FFFFFF;font-weight:bold;backg=
+round-color:#FFF; color:#000; font-weight:bold; font-size:14px; paddin=
+g-left:6px; padding-right:6px;">727</td><td style=3D"text-align:left;b=
+ackground-color:#DBDBDB;color:#000000;padding-left:6px; padding-right:=
+4px; white-space:nowrap;"><span class=3D"m" style=3D"font-weight: bold=
+;">DEN BERE</span></td><td style=3D"width:100px;background-color:#E135=
+1A;color:#FFFFFF;font-weight:bold;">1:07.988</td></tr><tr style=3D"hei=
+ght:2px; background-color:transparent;"></tr><tr class=3D"tr" style=3D=
+"height:28px;"><td style=3D"width:32px;background-color:#E1351A;color:=
+#FFFFFF;font-weight:bold;background-color:#FFF; color:#000; font-weigh=
+t:bold; font-size:14px; padding-left:6px; padding-right:6px;">728</td>=
+<td style=3D"text-align:left;background-color:#DBDBDB;color:#000000;pa=
+dding-left:6px; padding-right:4px; white-space:nowrap;"><span class=3D=
+"m" style=3D"font-weight: bold;">FLASHTOWN</span></td><td style=3D"wid=
+th:100px;background-color:#E1351A;color:#FFFFFF;font-weight:bold;">1:0=
+7.989</td></tr></tbody></table></div></td></tr></tbody></table></td></=
+tr></tbody></table><table width=3D"100%" style=3D"width:100%;backgroun=
+d-color:rgb(0, 0, 0);color:rgb(255, 255, 255);border-collapse:collapse=
+; border-spacing:0;"><tbody><tr><td style=3D"vertical-align:top;paddin=
+g:0px;width:898px;max-width:898px;" width=3D"898" ><table width=3D"100=
+%" style=3D"color:rgb(255, 255, 255);width:100%; min-height:20px; heig=
+ht:20px;"><tbody><tr><td><div style=3D"word-wrap:break-word; margin:10=
+px; margin-left:12px; margin-right:12px; overflow:hidden; min-height:0=
+=2E1px" ><p style=3D"text-align: center;"><span style=3D"font-size:13p=
+x;"><span style=3D"font-family:verdana,geneva,sans-serif;">EXPERIENCE =
+FACTORY ANTWERP &gt;&gt;&gt; HOME OF LENGENDARY FUN</span></span></p>
+</div></td></tr></tbody></table></td></tr></tbody></table><table width=
+=3D"100%" style=3D"width:100%;background-color:rgb(255, 255, 255);colo=
+r:rgb(85, 87, 93);border-collapse:collapse; border-spacing:0;"><tbody>=
+<tr><td style=3D"vertical-align:top;padding:0px;width:898px;max-width:=
+898px;" width=3D"898" ><table width=3D"100%" style=3D"color:rgb(85, 87=
+, 93);width:100%; min-height:20px; height:20px;"><tbody><tr><td><div s=
+tyle=3D"word-wrap:break-word; margin:10px; margin-left:12px; margin-ri=
+ght:12px; overflow:hidden; min-height:0.1px" ><p style=3D"text-align: =
+center;"><span style=3D"font-size:11px;">This email has been sent to <=
+a href=3D"mailto: maxvanlierop05@gmail.com">maxvanlierop05@gmail.com</=
+a>, <a href=3D"https://www.apex-timing.com/gokarts/mail_unsubscribe.ph=
+p?center=3D795&unsubscribe&client=3D900125245&id=3D31633&key=3DIR1E8M8=
+52WB">Click here to unsubscribe</a>.</span></p>
+</div></td></tr></tbody></table></td></tr></tbody></table></div></td><=
+/tr></tbody></table></td></tr></table>
+<img width=3D"2" height=3D"1" src=3D"https://www.apex-timing.com/gokar=
+ts/functions/mail_read.php?center=3D795&id=3D31633" alt=3D"">
+<style type=3D"text/css">.m, .w{-webkit-transition: color 0.3s; -moz-t=
+ransition: color 0.3s;}.tr:hover .m{color: #0084DA;} .tr:hover .w{colo=
+r: #F300FF;}</style>
+</body>
+</html>
+

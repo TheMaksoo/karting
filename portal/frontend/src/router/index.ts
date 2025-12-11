@@ -121,13 +121,12 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Check if user is authenticated
+  // Only fetch user if we have a token but no user data
   if (!authStore.user && apiService.isAuthenticated()) {
-    await authStore.fetchCurrentUser()
-    
-    // If fetch failed and token was cleared, redirect to login
-    if (!authStore.user && to.meta.requiresAuth) {
-      return next({ name: 'login' })
+    try {
+      await authStore.fetchCurrentUser()
+    } catch (error) {
+      console.error('Failed to fetch user in router guard:', error)
     }
   }
 

@@ -133,6 +133,4 @@ Thumbs.db
 # Project specific
 secrets.json
 !secrets.example.json
-*.eml
-Karten.csv
 Karten.xlsx

@@ -181,10 +181,13 @@ class ApiService {
         if (error.response?.status === 401) {
           const url = error.config?.url || ''
           // Never clear auth on /auth/me or /auth/login requests
-          // These are used to check current status and shouldn't log user out
           if (!url.includes('/auth/me') && !url.includes('/auth/login')) {
-            console.log('401 on non-auth endpoint, clearing session:', url)
+            console.log('401 unauthorized on:', url)
             this.clearAuth()
+            // Only redirect if we're not already on login page
+            if (!window.location.pathname.includes('/login')) {
+              window.location.href = '/karting/login'
+            }
           }
         }
         return Promise.reject(error)

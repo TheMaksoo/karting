@@ -33,9 +33,10 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       console.error('Logout error:', err)
     } finally {
+      apiService.clearAuth()
       user.value = null
       loading.value = false
-      window.location.href = 'https://solyx.gg/karting'
+      window.location.href = 'https://solyx.gg/karting/login'
     }
   }
 
