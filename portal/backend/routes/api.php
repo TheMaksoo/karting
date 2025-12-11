@@ -11,6 +11,9 @@ use App\Http\Controllers\API\UploadController;
 use App\Http\Controllers\API\SessionAnalyticsController;
 use App\Http\Controllers\API\StyleVariableController;
 use App\Http\Controllers\API\EmlUploadController;
+use App\Http\Controllers\API\FriendController;
+use App\Http\Controllers\API\UserSettingsController;
+use App\Http\Controllers\API\ActivityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +37,18 @@ Route::middleware('auth:sanctum')->group(function () {
     // Tracks
     Route::apiResource('tracks', TrackController::class);
     
+    // Friends
+    Route::get('/friends', [FriendController::class, 'index']);
+    Route::post('/friends', [FriendController::class, 'store']);
+    Route::delete('/friends/{id}', [FriendController::class, 'destroy']);
+    Route::get('/friends/driver-ids', [FriendController::class, 'getFriendDriverIds']);
+    
+    // User Settings
+    Route::get('/user/settings', [UserSettingsController::class, 'index']);
+    Route::put('/user/display-name', [UserSettingsController::class, 'updateDisplayName']);
+    Route::post('/user/track-nickname', [UserSettingsController::class, 'setTrackNickname']);
+    Route::delete('/user/track-nickname/{id}', [UserSettingsController::class, 'deleteTrackNickname']);
+    
     // Sessions
     Route::apiResource('sessions', KartingSessionController::class);
     Route::get('/sessions/{session}/laps', [KartingSessionController::class, 'laps']);
@@ -54,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/stats/driver-track-heatmap', [SessionAnalyticsController::class, 'driverTrackHeatmap']);
     Route::get('/stats/trophy-case', [SessionAnalyticsController::class, 'trophyCase']);
     Route::get('/stats/trophy-details', [SessionAnalyticsController::class, 'trophyDetails']);
+    Route::get('/activity/latest', [ActivityController::class, 'latestActivity']);
     
     // Style Variables (Read: all authenticated, Write: admin only)
     Route::get('/style-variables', [StyleVariableController::class, 'index']);

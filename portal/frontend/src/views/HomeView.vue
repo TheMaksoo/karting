@@ -26,6 +26,28 @@
 
       <!-- Dashboard Content (Only shown when data loaded) -->
       <div v-else>
+        <!-- Friends and Activity Sections -->
+        <div class="home-sections-grid">
+          <FriendsSection 
+            :friends="friends"
+            :loading="friendsLoading"
+            @add-friend="handleAddFriend"
+            @remove-friend="removeFriend"
+          />
+          
+          <LatestActivity 
+            :activities="activities"
+            :loading="activityLoading"
+            :user-driver-id="loggedInDriverId"
+          />
+        </div>
+
+        <!-- Quick Stats from Grouped Stats -->
+        <QuickStats 
+          v-if="statCategories.length > 0"
+          :stats="statCategories.flatMap(c => c.stats)"
+        />
+
         <!-- Grouped Stats -->
         <div v-for="category in statCategories" :key="category.title" class="stat-category">
           <h2 class="category-title">{{ category.title }}</h2>
@@ -429,15 +451,46 @@
           </div>
         </div>
       </div>
+
+      <!-- Add Friend Modal -->
+      <Teleport to="body">
+        <div v-if="showAddFriendModal" class="modal-overlay" @click="showAddFriendModal = false">
+          <div class="modal-content" @click.stop>
+            <div class="modal-header">
+              <h3>Add Friend</h3>
+              <button @click="showAddFriendModal = false" class="close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+              <p class="modal-hint">Select a driver to add to your friends list:</p>
+              <div v-if="driversLoading" class="loading-state">Loading drivers...</div>
+              <div v-else class="drivers-grid">
+                <button 
+                  v-for="driver in allDrivers.filter(d => d.id !== loggedInDriverId && !friends.some(f => f.driver_id === d.id))" 
+                  :key="driver.id"
+                  @click="addFriend(driver.id)"
+                  class="driver-option"
+                >
+                  <div class="driver-avatar">{{ driver.name.charAt(0) }}</div>
+                  <div class="driver-name">{{ driver.name }}</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Teleport>
     </div>
 </template>
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import TrackMap from '@/components/TrackMap.vue'
+import FriendsSection from '@/components/home/FriendsSection.vue'
+import LatestActivity from '@/components/home/LatestActivity.vue'
+import QuickStats from '@/components/home/QuickStats.vue'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 import { useKartingAPI, type OverviewStats, type DriverStat, type TrackStat } from '@/composables/useKartingAPI'
 import { useAuthStore } from '@/stores/auth'
+import apiService from '@/services/api'
 
 Chart.register(...registerables)
 
@@ -449,6 +502,15 @@ const { getOverviewStats, getDriverStats, getTrackStats, getAllLaps, getDriverAc
 
 const dataLoading = ref(true)
 const dataError = ref<string | null>(null)
+
+// Friends and Activity Data
+const friends = ref<any[]>([])
+const activities = ref<any[]>([])
+const allDrivers = ref<any[]>([])
+const friendsLoading = ref(false)
+const activityLoading = ref(false)
+const driversLoading = ref(false)
+const showAddFriendModal = ref(false)
 
 // Grouped stats with tooltips
 interface StatCard {
@@ -1361,6 +1423,71 @@ const handleLogout = async () => {
   window.location.href = '/login'
 }
 
+// Friends and Activity Methods
+const loadFriends = async () => {
+  friendsLoading.value = true
+  try {
+    friends.value = await apiService.friends.getAll()
+  } catch (error) {
+    console.error('Failed to load friends:', error)
+  } finally {
+    friendsLoading.value = false
+  }
+}
+
+const loadActivity = async () => {
+  activityLoading.value = true
+  try {
+    activities.value = await apiService.activity.latest(true, 10)
+  } catch (error) {
+    console.error('Failed to load activity:', error)
+  } finally {
+    activityLoading.value = false
+  }
+}
+
+const loadAllDrivers = async () => {
+  driversLoading.value = true
+  try {
+    const response = await apiService.drivers.getAll()
+    allDrivers.value = response
+  } catch (error) {
+    console.error('Failed to load drivers:', error)
+  } finally {
+    driversLoading.value = false
+  }
+}
+
+const handleAddFriend = () => {
+  showAddFriendModal.value = true
+  if (allDrivers.value.length === 0) {
+    loadAllDrivers()
+  }
+}
+
+const addFriend = async (driverId: number) => {
+  try {
+    await apiService.friends.add(driverId)
+    await loadFriends()
+    await loadActivity()
+    showAddFriendModal.value = false
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Failed to add friend')
+  }
+}
+
+const removeFriend = async (friendId: number) => {
+  if (!confirm('Remove this friend from your list?')) return
+  
+  try {
+    await apiService.friends.remove(friendId)
+    await loadFriends()
+    await loadActivity()
+  } catch (error) {
+    alert('Failed to remove friend')
+  }
+}
+
 onMounted(async () => {
   // Ensure auth store has loaded the user
   console.log('🎯 Component mounted, auth store user:', authStore.user)
@@ -1371,6 +1498,12 @@ onMounted(async () => {
     await authStore.fetchCurrentUser()
     console.log('✅ User fetched:', authStore.user)
   }
+  
+  // Load friends and activity
+  await Promise.all([
+    loadFriends(),
+    loadActivity(),
+  ])
   
   // Load real data from database
   await loadRealData()

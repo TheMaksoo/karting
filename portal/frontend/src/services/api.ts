@@ -255,8 +255,10 @@ class ApiService {
     await this.api.delete(`/drivers/${id}`)
   }
 
-  async getDriverStats(): Promise<DriverStats[]> {
-    const response = await this.api.get<DriverStats[]>('/stats/drivers')
+  async getDriverStats(friendsOnly = false): Promise<DriverStats[]> {
+    const response = await this.api.get<DriverStats[]>('/stats/drivers', {
+      params: { friends_only: friendsOnly },
+    })
     return response.data
   }
 
@@ -411,7 +413,7 @@ class ApiService {
 
   stats = {
     overview: () => this.getOverviewStats(),
-    drivers: () => this.getDriverStats(),
+    drivers: (friendsOnly = false) => this.getDriverStats(friendsOnly),
     tracks: () => this.getTrackStats(),
   }
 
@@ -420,6 +422,53 @@ class ApiService {
     logout: () => this.logout(),
     getCurrentUser: () => this.getCurrentUser(),
     changePassword: (currentPassword: string, newPassword: string) => this.changePassword(currentPassword, newPassword),
+  }
+
+  friends = {
+    getAll: async () => {
+      const response = await this.api.get('/friends')
+      return response.data
+    },
+    add: async (driverId: number) => {
+      const response = await this.api.post('/friends', { driver_id: driverId })
+      return response.data
+    },
+    remove: async (friendId: number) => {
+      const response = await this.api.delete(`/friends/${friendId}`)
+      return response.data
+    },
+    getDriverIds: async () => {
+      const response = await this.api.get('/friends/driver-ids')
+      return response.data.driver_ids
+    },
+  }
+
+  userSettings = {
+    get: async () => {
+      const response = await this.api.get('/user/settings')
+      return response.data
+    },
+    updateDisplayName: async (displayName: string) => {
+      const response = await this.api.put('/user/display-name', { display_name: displayName })
+      return response.data
+    },
+    setTrackNickname: async (trackId: number, nickname: string) => {
+      const response = await this.api.post('/user/track-nickname', { track_id: trackId, nickname })
+      return response.data
+    },
+    deleteTrackNickname: async (id: number) => {
+      const response = await this.api.delete(`/user/track-nickname/${id}`)
+      return response.data
+    },
+  }
+
+  activity = {
+    latest: async (friendsOnly = false, limit = 10) => {
+      const response = await this.api.get('/activity/latest', {
+        params: { friends_only: friendsOnly, limit },
+      })
+      return response.data
+    },
   }
 
   // Upload endpoints (admin only)

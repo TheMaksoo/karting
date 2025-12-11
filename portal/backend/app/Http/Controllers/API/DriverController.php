@@ -66,7 +66,30 @@ class DriverController extends Controller
     public function stats(Request $request)
     {
         $driverId = $request->query('driver_id');
-        $drivers = $driverId ? Driver::where('id', $driverId)->get() : Driver::all();
+        $friendsOnly = $request->query('friends_only', false);
+        
+        // Build base query
+        $query = Driver::query();
+        
+        if ($driverId) {
+            $query->where('id', $driverId);
+        } elseif ($friendsOnly) {
+            // Get authenticated user's friends + their own driver
+            $user = $request->user();
+            $friendIds = \App\Models\Friend::where('user_id', $user->id)
+                ->where('friendship_status', 'active')
+                ->pluck('friend_driver_id')
+                ->toArray();
+            
+            // Include user's own driver ID
+            if ($user->driver_id) {
+                $friendIds[] = $user->driver_id;
+            }
+            
+            $query->whereIn('id', $friendIds);
+        }
+        
+        $drivers = $query->get();
 
         $stats = $drivers->map(function ($driver) {
             $laps = Lap::where('driver_id', $driver->id)->with('kartingSession.track')->get();

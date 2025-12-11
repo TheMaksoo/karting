@@ -12,6 +12,7 @@ const { applyStyles } = useStyleVariables()
 
 <style lang="scss">
 @import '@/styles/variables.scss';
+@import '@/styles/home-sections.scss';
 
 /* Global full-screen dark mode styling */
 * {

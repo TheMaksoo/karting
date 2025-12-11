@@ -64,6 +64,11 @@ const router = createRouter({
           component: () => import('../views/PredictiveView.vue'),
         },
         {
+          path: 'settings',
+          name: 'user-settings',
+          component: () => import('../views/UserSettingsView.vue'),
+        },
+        {
           path: 'admin',
           name: 'admin',
           redirect: { name: 'track-management' },

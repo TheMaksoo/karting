@@ -36,11 +36,11 @@ export const useDriverStore = defineStore('driver', () => {
     }
   }
 
-  async function fetchDriverStats() {
+  async function fetchDriverStats(friendsOnly = false) {
     loading.value = true
     error.value = null
     try {
-      driverStats.value = await apiService.getDriverStats()
+      driverStats.value = await apiService.getDriverStats(friendsOnly)
       return driverStats.value
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch driver stats'

@@ -1,8 +1,16 @@
 <template>
   <div class="driver-stats">
     <header class="page-header">
-      <h1>📊 Driver Statistics</h1>
-      <p>Your complete performance analysis</p>
+      <div>
+        <h1>📊 Driver Statistics</h1>
+        <p>Your complete performance analysis</p>
+      </div>
+      <div class="filter-controls">
+        <label class="filter-toggle">
+          <input type="checkbox" v-model="friendsOnly" @change="refreshStats" />
+          <span>Friends Only</span>
+        </label>
+      </div>
     </header>
 
     <div v-if="driverStore.loading" class="loading">
@@ -69,13 +77,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useDriverStore } from '@/stores/driver'
 
 const driverStore = useDriverStore()
+const friendsOnly = ref(false)
+
+const refreshStats = async () => {
+  await driverStore.fetchDriverStats(friendsOnly.value)
+}
 
 onMounted(async () => {
-  await driverStore.fetchDriverStats()
+  await refreshStats()
 })
 
 function formatTime(seconds: number | null): string {
