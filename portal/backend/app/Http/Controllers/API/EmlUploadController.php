@@ -7,6 +7,7 @@ use App\Models\KartingSession;
 use App\Models\Lap;
 use App\Models\Driver;
 use App\Models\Track;
+use App\Models\Upload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -20,34 +21,130 @@ class EmlUploadController extends Controller
         ]);
 
         $file = $request->file('file');
+        $fileName = $file->getClientOriginalName();
         
         // Read EML file
         $content = file_get_contents($file->getRealPath());
+        $fileHash = md5($content);
         
-        // Parse email
-        $emailData = $this->parseEmailContent($content);
+        // Check if this exact file was already uploaded
+        $existingUpload = Upload::where('file_hash', $fileHash)->first();
         
-        // Auto-detect track from email
-        $track = $this->detectTrack($emailData);
-        
-        if (!$track) {
+        if ($existingUpload) {
             return response()->json([
                 'success' => false,
-                'message' => 'Could not detect track from email. Please add track manually.',
-                'available_tracks' => Track::select('id', 'name', 'city')->get()
-            ], 400);
+                'duplicate_file' => true,
+                'file_name' => $fileName,
+                'existing_upload' => [
+                    'id' => $existingUpload->id,
+                    'file_name' => $existingUpload->file_name,
+                    'upload_date' => $existingUpload->upload_date,
+                    'session_date' => $existingUpload->session_date,
+                    'laps_count' => $existingUpload->laps_count,
+                    'drivers_count' => $existingUpload->drivers_count,
+                    'status' => $existingUpload->status,
+                ],
+                'message' => "This exact file '{$existingUpload->file_name}' was already uploaded on {$existingUpload->upload_date->format('Y-m-d H:i:s')}",
+            ], 409);
         }
         
-        // Extract session data based on track
-        $sessionData = $this->extractSessionData($emailData, $track);
+        $warnings = [];
+        $errors = [];
         
-        // Check for duplicates
-        $duplicate = $this->checkDuplicate($sessionData, $track->id);
-        
-        return response()->json([
-            'success' => true,
-            'data' => $sessionData,
-            'duplicate' => $duplicate,
+        try {
+            // Parse email
+            $emailData = $this->parseEmailContent($content);
+            
+            if (empty($emailData['body'])) {
+                $errors[] = 'Could not extract email body from file';
+            }
+            
+            // Auto-detect track from email
+            $track = $this->detectTrack($emailData);
+            
+            if (!$track) {
+                $errors[] = 'Could not auto-detect track. Please select manually.';
+                return response()->json([
+                    'success' => false,
+                    'file_name' => $fileName,
+                    'errors' => $errors,
+                    'available_tracks' => Track::select('id', 'name', 'city')->get(),
+                    'require_manual_input' => true,
+                ], 400);
+            }
+            
+            // Extract session data based on track
+            $sessionData = $this->extractSessionData($emailData, $track);
+            
+            // Validate extracted data
+            if (empty($sessionData['laps'])) {
+                $errors[] = 'No lap data found in file. Check if format is supported.';
+            }
+            
+            if ($sessionData['laps_count'] === 0) {
+                $errors[] = 'No valid lap times could be extracted';
+            }
+            
+            if ($sessionData['drivers_detected'] === 0) {
+                $errors[] = 'No drivers detected in lap data';
+            }
+            
+            if (!empty($sessionData['session_date'])) {
+                // Validate session date
+                try {
+                    new \DateTime($sessionData['session_date']);
+                } catch (\Exception $e) {
+                    $warnings[] = 'Invalid session date format, using current date';
+                    $sessionData['session_date'] = now()->toDateTimeString();
+                }
+            } else {
+                $warnings[] = 'Session date not found in email, using current date';
+                $sessionData['session_date'] = now()->toDateTimeString();
+            }
+            
+            // Check for similar sessions (by date and track)
+            $duplicate = $this->checkDuplicateSession($sessionData, $track->id, $fileHash);
+            
+            // Add metadata
+            $sessionData['file_name'] = $fileName;
+            $sessionData['file_hash'] = $fileHash;
+            $sessionData['warnings'] = $warnings;
+            
+            if (!empty($errors)) {
+                return response()->json([
+                    'success' => false,
+                    'file_name' => $fileName,
+                    'errors' => $errors,
+                    'warnings' => $warnings,
+                    'partial_data' => $sessionData,
+                    'track' => $track,
+                    'require_manual_input' => true,
+                ], 422);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'file_name' => $fileName,
+                'data' => $sessionData,
+                'duplicate' => $duplicate,
+                'track' => $track,
+                'warnings' => $warnings,
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'file_name' => $fileName,
+                'errors' => ['Parsing failed: ' . $e->getMessage()],
+                'error_details' => [
+                    'message' => $e->getMessage(),
+                    'file' => basename($e->getFile()),
+                    'line' => $e->getLine(),
+                ],
+                'require_manual_input' => true,
+            ], 500);
+        }
+    }
             'track' => $track
         ]);
     }
@@ -64,11 +161,26 @@ class EmlUploadController extends Controller
             'laps.*.lap_time' => 'required|numeric',
             'laps.*.position' => 'nullable|integer',
             'laps.*.kart_number' => 'nullable|string',
+            'file_name' => 'nullable|string',
+            'file_hash' => 'nullable|string',
+            'replace_duplicate' => 'nullable|boolean',
         ]);
 
         DB::beginTransaction();
         
         try {
+            // If replacing duplicate, delete old session
+            if ($request->replace_duplicate && $request->file_hash) {
+                $oldUpload = Upload::where('file_hash', $request->file_hash)->first();
+                if ($oldUpload && $oldUpload->karting_session_id) {
+                    $oldSession = KartingSession::find($oldUpload->karting_session_id);
+                    if ($oldSession) {
+                        $oldSession->delete(); // Cascade deletes laps
+                    }
+                    $oldUpload->delete();
+                }
+            }
+            
             // Create session
             $session = KartingSession::create([
                 'track_id' => $request->track_id,
@@ -81,6 +193,68 @@ class EmlUploadController extends Controller
             // Process laps grouped by driver
             $driverLaps = collect($request->laps)->groupBy('driver_name');
             
+            $driversProcessed = [];
+            foreach ($driverLaps as $driverName => $laps) {
+                // Find or create driver
+                $driver = Driver::firstOrCreate(
+                    ['name' => $driverName],
+                    ['email' => null]
+                );
+                
+                $driversProcessed[] = $driverName;
+
+                foreach ($laps as $lapData) {
+                    Lap::create([
+                        'karting_session_id' => $session->id,
+                        'driver_id' => $driver->id,
+                        'lap_number' => $lapData['lap_number'],
+                        'lap_time' => $lapData['lap_time'],
+                        'position' => $lapData['position'] ?? null,
+                        'kart_number' => $lapData['kart_number'] ?? null,
+                        'sector1' => $lapData['sector1'] ?? null,
+                        'sector2' => $lapData['sector2'] ?? null,
+                        'sector3' => $lapData['sector3'] ?? null,
+                        'is_best_lap' => false,
+                        'gap_to_best_lap' => $lapData['gap_to_best_lap'] ?? null,
+                        'interval' => $lapData['interval'] ?? null,
+                        'gap_to_previous' => $lapData['gap_to_previous'] ?? null,
+                        'avg_speed' => $lapData['avg_speed'] ?? null,
+                    ]);
+                }
+            }
+
+            // Mark best laps and calculate gaps for each driver
+            $this->markBestLapsAndCalculateGaps($session->id);
+            
+            // Record upload
+            if ($request->file_name && $request->file_hash) {
+                Upload::create([
+                    'file_name' => $request->file_name,
+                    'file_hash' => $request->file_hash,
+                    'upload_date' => now(),
+                    'session_date' => $session->session_date,
+                    'session_time' => $request->session_time,
+                    'karting_session_id' => $session->id,
+                    'track_id' => $session->track_id,
+                    'status' => 'success',
+                    'warnings' => $request->warnings ?? null,
+                    'laps_count' => count($request->laps),
+                    'drivers_count' => count($driversProcessed),
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'session' => $session->load(['track', 'laps.driver']),
+                'laps_imported' => count($request->laps),
+                'drivers_processed' => $driversProcessed,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
             foreach ($driverLaps as $driverName => $laps) {
                 // Find or create driver
                 $driver = Driver::firstOrCreate(
@@ -648,7 +822,7 @@ class EmlUploadController extends Controller
         }
     }
 
-    private function checkDuplicate($sessionData, $trackId)
+    private function checkDuplicateSession($sessionData, $trackId, $fileHash)
     {
         if (!isset($sessionData['session_date'])) {
             return null;
@@ -656,22 +830,26 @@ class EmlUploadController extends Controller
         
         // Check if a session exists with same track and date (within 1 hour)
         $sessionDate = new \DateTime($sessionData['session_date']);
+        $dateFrom = (clone $sessionDate)->modify('-1 hour')->format('Y-m-d H:i:s');
+        $dateTo = (clone $sessionDate)->modify('+2 hours')->format('Y-m-d H:i:s');
         
         $existing = KartingSession::where('track_id', $trackId)
-            ->whereBetween('session_date', [
-                $sessionDate->modify('-1 hour')->format('Y-m-d H:i:s'),
-                $sessionDate->modify('+2 hours')->format('Y-m-d H:i:s')
-            ])
+            ->whereBetween('session_date', [$dateFrom, $dateTo])
             ->with(['laps.driver'])
             ->first();
         
         if ($existing) {
+            $upload = Upload::where('karting_session_id', $existing->id)->first();
+            
             return [
                 'exists' => true,
                 'session_id' => $existing->id,
                 'session_date' => $existing->session_date,
                 'laps_count' => $existing->laps->count(),
-                'drivers' => $existing->laps->pluck('driver.name')->unique()->values()
+                'drivers' => $existing->laps->pluck('driver.name')->unique()->values(),
+                'original_file' => $upload ? $upload->file_name : null,
+                'upload_date' => $upload ? $upload->upload_date : null,
+                'can_replace' => true,
             ];
         }
         

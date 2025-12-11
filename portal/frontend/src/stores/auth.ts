@@ -35,6 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       user.value = null
       loading.value = false
+      window.location.href = 'https://solyx.gg/karting'
     }
   }
 

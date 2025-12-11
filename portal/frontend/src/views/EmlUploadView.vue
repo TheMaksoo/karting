@@ -90,19 +90,25 @@
       </div>
 
       <!-- Duplicate Warning -->
-      <div v-if="duplicate" class="duplicate-warning">
-        <h3>⚠️ Duplicate Session Detected</h3>
-        <p>A similar session already exists:</p>
+      <div v-if="duplicate?.exists" class="duplicate-warning">
+        <h3>⚠️ Duplicate Lap Times Detected</h3>
+        <p>A session with similar lap times already exists:</p>
         <ul>
-          <li>Session ID: {{ duplicate.session_id }}</li>
-          <li>Date: {{ new Date(duplicate.session_date).toLocaleString() }}</li>
-          <li>Laps: {{ duplicate.laps_count }}</li>
-          <li>Drivers: {{ duplicate.drivers.join(', ') }}</li>
+          <li><strong>Original File:</strong> {{ duplicate.original_file || 'Unknown' }}</li>
+          <li><strong>Uploaded:</strong> {{ duplicate.upload_date ? new Date(duplicate.upload_date).toLocaleString() : 'Earlier' }}</li>
+          <li><strong>Session Date:</strong> {{ new Date(duplicate.session_date).toLocaleString() }}</li>
+          <li><strong>Laps:</strong> {{ duplicate.laps_count }}</li>
+          <li><strong>Drivers:</strong> {{ duplicate.drivers?.join(', ') }}</li>
         </ul>
         <div class="duplicate-actions">
-          <button @click="proceedAnyway = true" class="btn-warning">Import Anyway</button>
-          <button @click="cancelUpload" class="btn-secondary">Cancel</button>
+          <button @click="replaceSession = true; saveSession()" class="btn-danger">
+            <span class="icon">🔄</span> Replace Existing Session
+          </button>
+          <button @click="cancelUpload" class="btn-secondary">
+            <span class="icon">✖</span> Cancel Upload
+          </button>
         </div>
+        <p class="duplicate-note">⚠️ Replacing will permanently delete the old session and all its lap data.</p>
       </div>
 
       <!-- Session Metadata -->
@@ -233,6 +239,7 @@ const loadingMessage = ref('')
 const saving = ref(false)
 const duplicate = ref<any>(null)
 const proceedAnyway = ref(false)
+const replaceSession = ref(false)
 const parsedData = ref<any>(null)
 const editingIndex = ref<number | null>(null)
 const editBackup = ref<any>(null)
@@ -243,6 +250,8 @@ const sessionData = reactive({
   session_date: '',
   session_type: 'race',
   heat_price: 0,
+  file_name: '',
+  file_hash: '',
 })
 
 const lapsData = ref<any[]>([])
@@ -298,8 +307,6 @@ const uploadBatch = async (files: File[]) => {
   batchFiles.value = files
   batchProgress.value = { current: 0, total: files.length, currentFile: '' }
   batchResults.value = { success: 0, failed: 0, errors: [] }
-  loading.value = true
-  loadingMessage.value = `Processing ${files.length} files...`
   
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
@@ -307,36 +314,72 @@ const uploadBatch = async (files: File[]) => {
     
     batchProgress.value.current = i + 1
     batchProgress.value.currentFile = file.name
-    loadingMessage.value = `Processing ${i + 1}/${files.length}: ${file.name}`
     
     try {
       const response = await apiService.upload.parseEml(file)
       
-      if (response.success && !response.duplicate) {
-        // Auto-import without preview for batch uploads
-        await apiService.upload.saveParsedSession({
-          track_id: response.track.id,
-          session_date: response.data.session_date || new Date().toISOString(),
-          session_type: 'race',
-          heat_price: 0,
-          session_number: response.data.session_number || '',
-          laps: response.data.laps || []
-        })
-        batchResults.value.success++
-      } else if (response.duplicate) {
-        batchResults.value.errors.push(`${file.name}: Duplicate session`)
-        batchResults.value.failed++
-      } else {
+      // Handle duplicate file (already uploaded before)
+      if (response.duplicate_file) {
         batchResults.value.errors.push(`${file.name}: ${response.message}`)
         batchResults.value.failed++
+        continue
       }
+      
+      // Handle parsing errors or missing data
+      if (!response.success) {
+        if (response.require_manual_input) {
+          // TODO: Add to manual input queue
+          batchResults.value.errors.push(`${file.name}: Requires manual input - ${response.errors?.join(', ')}`)
+          batchResults.value.failed++
+        } else {
+          batchResults.value.errors.push(`${file.name}: ${response.errors?.join(', ') || 'Parse failed'}`)
+          batchResults.value.failed++
+        }
+        continue
+      }
+      
+      // Handle duplicate session (show modal for single file, skip for batch)
+      if (response.duplicate?.exists) {
+        batchResults.value.errors.push(
+          `${file.name}: Duplicate - Session already exists from '${response.duplicate.original_file || 'unknown file'}' uploaded ${response.duplicate.upload_date || 'earlier'}`
+        )
+        batchResults.value.failed++
+        continue
+      }
+      
+      // Auto-import successful parse
+      const saveResponse = await apiService.upload.saveParsedSession({
+        track_id: response.track.id,
+        session_date: response.data.session_date || new Date().toISOString(),
+        session_type: 'race',
+        heat_price: 0,
+        session_number: response.data.session_number || '',
+        file_name: response.file_name,
+        file_hash: response.data.file_hash,
+        laps: response.data.laps || []
+      })
+      
+      if (saveResponse.success) {
+        batchResults.value.success++
+      } else {
+        batchResults.value.errors.push(`${file.name}: Save failed - ${saveResponse.message || 'Unknown error'}`)
+        batchResults.value.failed++
+      }
+      
+      // Show warnings if any
+      if (response.warnings && response.warnings.length > 0) {
+        batchResults.value.errors.push(`${file.name}: ⚠️ ${response.warnings.join(', ')}`)
+      }
+      
     } catch (error: any) {
-      batchResults.value.errors.push(`${file.name}: ${error.response?.data?.message || 'Upload failed'}`)
+      const errorMsg = error.response?.data?.errors?.join(', ') || 
+                      error.response?.data?.message || 
+                      'Upload failed'
+      batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
       batchResults.value.failed++
     }
   }
   
-  loading.value = false
   step.value = 'batch-complete'
 }
 
@@ -347,38 +390,80 @@ const uploadFile = async (file: File) => {
   }
 
   uploadError.value = ''
-  loading.value = true
-  loadingMessage.value = 'Auto-detecting track and parsing EML file...'
 
   try {
     const response = await apiService.upload.parseEml(file)
     
-    if (response.success) {
-      parsedData.value = response.data
-      duplicate.value = response.duplicate
-      
-      // Populate session data with auto-detected track
-      sessionData.track_name = response.track.name
-      selectedTrackId.value = response.track.id
-      sessionData.session_number = response.data.session_number || ''
-      sessionData.session_date = response.data.session_date ? 
-        new Date(response.data.session_date).toISOString().slice(0, 16) : 
-        new Date().toISOString().slice(0, 16)
-      sessionData.session_type = 'race'
-      sessionData.heat_price = 0
-      
-      // Populate laps data
-      lapsData.value = response.data.laps || []
-      
-      step.value = 'preview'
-    } else {
-      uploadError.value = response.message || 'Failed to parse EML file'
+    // Handle duplicate file
+    if (response.duplicate_file) {
+      uploadError.value = response.message
+      duplicate.value = response.existing_upload
+      return
     }
+    
+    // Handle parsing errors
+    if (!response.success) {
+      if (response.require_manual_input) {
+        // Show partial data and allow manual editing
+        uploadError.value = `⚠️ Warnings: ${response.errors?.join(', ')}`
+        if (response.partial_data) {
+          parsedData.value = response.partial_data
+          sessionData.track_name = response.track?.name || ''
+          selectedTrackId.value = response.track?.id || ''
+          sessionData.session_number = response.partial_data.session_number || ''
+          sessionData.session_date = response.partial_data.session_date ? 
+            new Date(response.partial_data.session_date).toISOString().slice(0, 16) : 
+            new Date().toISOString().slice(0, 16)
+          sessionData.session_type = 'race'
+          sessionData.heat_price = 0
+          lapsData.value = response.partial_data.laps || []
+          step.value = 'preview'
+        }
+      } else {
+        uploadError.value = response.errors?.join(', ') || 'Parse failed'
+      }
+      return
+    }
+    
+    // Show warnings if any
+    if (response.warnings && response.warnings.length > 0) {
+      uploadError.value = `⚠️ ${response.warnings.join(', ')}`
+    }
+    
+    parsedData.value = response.data
+    duplicate.value = response.duplicate
+    
+    // Populate session data with auto-detected track
+    sessionData.track_name = response.track.name
+    selectedTrackId.value = response.track.id
+    sessionData.session_number = response.data.session_number || ''
+    sessionData.session_date = response.data.session_date ? 
+      new Date(response.data.session_date).toISOString().slice(0, 16) : 
+      new Date().toISOString().slice(0, 16)
+    sessionData.session_type = 'race'
+    sessionData.heat_price = 0
+    
+    // Store file metadata for upload tracking
+    sessionData.file_name = response.file_name
+    sessionData.file_hash = response.data.file_hash
+    
+    // Populate laps data
+    lapsData.value = response.data.laps || []
+    
+    step.value = 'preview'
   } catch (error: any) {
-    uploadError.value = error.response?.data?.message || 'Failed to upload file'
-    console.error('Upload error:', error)
-  } finally {
-    loading.value = false
+    const errors = error.response?.data?.errors
+    const errorDetails = error.response?.data?.error_details
+    
+    if (errors) {
+      uploadError.value = errors.join(', ')
+    } else {
+      uploadError.value = error.response?.data?.message || 'Failed to upload file'
+    }
+    
+    if (errorDetails) {
+      console.error('Upload error details:', errorDetails)
+    }
   }
 }
 
@@ -432,8 +517,6 @@ const saveSession = async () => {
   }
 
   saving.value = true
-  loading.value = true
-  loadingMessage.value = 'Saving session...'
 
   try {
     const payload = {
@@ -442,13 +525,17 @@ const saveSession = async () => {
       heat_price: sessionData.heat_price,
       session_type: sessionData.session_type,
       session_number: sessionData.session_number,
+      file_name: sessionData.file_name,
+      file_hash: sessionData.file_hash,
+      replace_duplicate: replaceSession.value,
       laps: lapsData.value,
     }
 
     const response = await apiService.upload.saveParsedSession(payload)
 
     if (response.success) {
-      alert(`Session saved successfully! ${lapsData.value.length} laps imported.`)
+      const action = replaceSession.value ? 'replaced' : 'saved'
+      alert(`Session ${action} successfully! ${response.laps_imported} laps imported, ${response.drivers_processed.length} drivers processed.`)
       router.push('/admin/data')
     } else {
       alert('Failed to save session: ' + (response.message || 'Unknown error'))
@@ -458,7 +545,6 @@ const saveSession = async () => {
     console.error('Save error:', error)
   } finally {
     saving.value = false
-    loading.value = false
   }
 }
 

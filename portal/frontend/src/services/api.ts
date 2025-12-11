@@ -475,6 +475,9 @@ class ApiService {
       heat_price?: number
       session_type?: string
       session_number?: string
+      file_name?: string
+      file_hash?: string
+      replace_duplicate?: boolean
       laps: Array<{
         driver_name: string
         lap_number: number
