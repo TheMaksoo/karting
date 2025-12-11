@@ -49,14 +49,9 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = await apiService.getCurrentUser()
     } catch (err: any) {
       console.error('Failed to fetch user:', err)
-      // If 401, the token is invalid - clear everything
-      if (err.response?.status === 401) {
-        console.log('Token expired or invalid, clearing session')
-        apiService.clearAuth()
-        user.value = null
-      } else {
-        user.value = null
-      }
+      // Don't clear auth here - the interceptor already handles it
+      // Just set user to null to show logged out state
+      user.value = null
     } finally {
       loading.value = false
     }

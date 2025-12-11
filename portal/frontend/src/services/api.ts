@@ -179,10 +179,11 @@ class ApiService {
       },
       (error: AxiosError) => {
         if (error.response?.status === 401) {
-          // Only clear auth if it's not the initial auth check
-          // This prevents clearing auth on page refresh
           const url = error.config?.url || ''
+          // Never clear auth on /auth/me or /auth/login requests
+          // These are used to check current status and shouldn't log user out
           if (!url.includes('/auth/me') && !url.includes('/auth/login')) {
+            console.log('401 on non-auth endpoint, clearing session:', url)
             this.clearAuth()
           }
         }

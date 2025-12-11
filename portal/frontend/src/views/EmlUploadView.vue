@@ -230,8 +230,8 @@
       </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div v-if="loading" class="loading-overlay">
+    <!-- Loading Overlay (only show when not in batch progress) -->
+    <div v-if="loading && step !== 'batch-progress'" class="loading-overlay">
       <div class="spinner"></div>
       <p>{{ loadingMessage }}</p>
     </div>
@@ -360,15 +360,13 @@ const uploadBatch = async (files: File[]) => {
       // Handle parsing errors or missing data
       if (!response.success) {
         let errorMsg = 'Parse failed'
-        if (response.require_manual_input) {
-          errorMsg = `Requires manual input - ${response.errors?.join(', ')}`
-          batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
-          batchResults.value.failed++
-        } else {
-          errorMsg = response.errors?.join(', ') || 'Parse failed'
-          batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
-          batchResults.value.failed++
+        if (response.errors && response.errors.length > 0) {
+          errorMsg = response.errors.join(', ')
+        } else if (response.require_manual_input) {
+          errorMsg = 'Requires manual input - incomplete data'
         }
+        batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
+        batchResults.value.failed++
         batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
         continue
       }
@@ -414,9 +412,21 @@ const uploadBatch = async (files: File[]) => {
       }
       
     } catch (error: any) {
-      const errorMsg = error.response?.data?.errors?.join(', ') || 
-                      error.response?.data?.message || 
-                      'Upload failed'
+      console.error('Upload error for', file.name, error)
+      let errorMsg = 'Upload failed'
+      
+      if (error.response?.data) {
+        if (error.response.data.errors) {
+          errorMsg = Array.isArray(error.response.data.errors) 
+            ? error.response.data.errors.join(', ')
+            : JSON.stringify(error.response.data.errors)
+        } else if (error.response.data.message) {
+          errorMsg = error.response.data.message
+        }
+      } else if (error.message) {
+        errorMsg = error.message
+      }
+      
       batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
       batchResults.value.failed++
       batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
