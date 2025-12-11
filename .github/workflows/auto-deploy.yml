@@ -159,6 +159,7 @@ jobs:
           $PHP_BIN artisan db:show || echo "⚠️  Database connection failed - check credentials"
           
           $PHP_BIN artisan migrate --force || echo "⚠️  Migration failed"
+          $PHP_BIN artisan db:seed --force || echo "⚠️  Seeding failed"
           $PHP_BIN artisan config:cache
           $PHP_BIN artisan route:cache
           
