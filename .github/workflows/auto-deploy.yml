@@ -21,7 +21,8 @@ jobs:
     - name: 🔨 Build Frontend
       run: |
         cd portal/frontend
-        npm install --legacy-peer-deps
+        rm -f package-lock.json
+        npm install --force
         npm run build
     
     - name: 🐘 Setup PHP
