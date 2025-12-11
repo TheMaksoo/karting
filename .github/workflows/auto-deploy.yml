@@ -148,6 +148,12 @@ jobs:
           chmod 644 .env
           chmod -R 755 storage bootstrap/cache 2>/dev/null || true
           
+          # Debug: Show credentials (password redacted)
+          echo "=== Database Configuration ==="
+          grep "^DB_" .env | grep -v "DB_PASSWORD"
+          echo "DB_PASSWORD: [REDACTED - Length: $(grep '^DB_PASSWORD=' .env | cut -d'=' -f2 | wc -c) chars]"
+          echo "=============================="
+          
           # Test database connection first
           echo "Testing database connection..."
           $PHP_BIN artisan db:show || echo "⚠️  Database connection failed - check credentials"
