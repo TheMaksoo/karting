@@ -39,11 +39,25 @@
       <div class="progress-bar">
         <div class="progress-fill" :style="{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }"></div>
       </div>
-      <p>{{ batchProgress.current }} of {{ batchProgress.total }} files processed</p>
-      <p class="current-file">{{ batchProgress.currentFile }}</p>
+      <p class="progress-text">{{ batchProgress.current }} of {{ batchProgress.total }} files processed</p>
+      <p class="current-file">📄 {{ batchProgress.currentFile }}</p>
       <div class="batch-stats">
         <span class="success">✅ {{ batchResults.success }} successful</span>
         <span class="failed">❌ {{ batchResults.failed }} failed</span>
+      </div>
+      
+      <!-- Per-file progress log -->
+      <div v-if="batchProgress.fileLog.length > 0" class="file-progress-log">
+        <h3>Processing Log:</h3>
+        <div class="log-container">
+          <div v-for="(log, idx) in batchProgress.fileLog" :key="idx" 
+               class="log-entry" 
+               :class="{ success: log.status === 'success', failed: log.status === 'failed', processing: log.status === 'processing' }">
+            <span class="log-icon">{{ log.status === 'success' ? '✅' : log.status === 'failed' ? '❌' : '⏳' }}</span>
+            <span class="log-filename">{{ log.filename }}</span>
+            <span class="log-message">{{ log.message }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -167,26 +181,31 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(lap, index) in lapsData" :key="index" :class="{ editing: editingIndex === index }">
+              <tr v-for="(lap, index) in lapsData" :key="index" 
+                  :class="{ 
+                    editing: editingIndex === index,
+                    'missing-data': hasMissingData(lap),
+                    'warning-row': lap.warning
+                  }">
                 <td>{{ index + 1 }}</td>
-                <td>
-                  <input v-if="editingIndex === index" v-model="lap.driver_name" type="text" />
-                  <span v-else>{{ lap.driver_name }}</span>
+                <td :class="{ 'missing-field': !lap.driver_name }">
+                  <input v-if="editingIndex === index" v-model="lap.driver_name" type="text" placeholder="Driver name required" />
+                  <span v-else>{{ lap.driver_name || '⚠️ Missing' }}</span>
+                </td>
+                <td :class="{ 'missing-field': !lap.lap_number }">
+                  <input v-if="editingIndex === index" v-model.number="lap.lap_number" type="number" min="1" placeholder="Lap #" />
+                  <span v-else>{{ lap.lap_number || '⚠️ Missing' }}</span>
+                </td>
+                <td :class="{ 'missing-field': !lap.lap_time || lap.lap_time === 0 }">
+                  <input v-if="editingIndex === index" v-model.number="lap.lap_time" type="number" step="0.001" placeholder="Time in seconds" />
+                  <span v-else>{{ lap.lap_time ? lap.lap_time.toFixed(3) + 's' : '⚠️ Missing' }}</span>
                 </td>
                 <td>
-                  <input v-if="editingIndex === index" v-model.number="lap.lap_number" type="number" min="1" />
-                  <span v-else>{{ lap.lap_number }}</span>
-                </td>
-                <td>
-                  <input v-if="editingIndex === index" v-model.number="lap.lap_time" type="number" step="0.001" />
-                  <span v-else>{{ lap.lap_time.toFixed(3) }}s</span>
-                </td>
-                <td>
-                  <input v-if="editingIndex === index" v-model.number="lap.position" type="number" min="1" />
+                  <input v-if="editingIndex === index" v-model.number="lap.position" type="number" min="1" placeholder="Position" />
                   <span v-else>{{ lap.position || '-' }}</span>
                 </td>
                 <td>
-                  <input v-if="editingIndex === index" v-model="lap.kart_number" type="text" />
+                  <input v-if="editingIndex === index" v-model="lap.kart_number" type="text" placeholder="Kart #" />
                   <span v-else>{{ lap.kart_number || '-' }}</span>
                 </td>
                 <td class="actions">
@@ -256,7 +275,12 @@ const sessionData = reactive({
 
 const lapsData = ref<any[]>([])
 const batchFiles = ref<File[]>([])
-const batchProgress = ref({ current: 0, total: 0, currentFile: '' })
+const batchProgress = ref({ 
+  current: 0, 
+  total: 0, 
+  currentFile: '',
+  fileLog: [] as Array<{ filename: string, status: 'processing' | 'success' | 'failed', message: string }>
+})
 const batchResults = ref<{ success: number, failed: number, errors: string[] }>({ success: 0, failed: 0, errors: [] })
 
 // Methods
@@ -307,7 +331,7 @@ const uploadBatch = async (files: File[]) => {
   step.value = 'batch-progress'
   loading.value = true
   batchFiles.value = files
-  batchProgress.value = { current: 0, total: files.length, currentFile: '' }
+  batchProgress.value = { current: 0, total: files.length, currentFile: '', fileLog: [] }
   batchResults.value = { success: 0, failed: 0, errors: [] }
   
   for (let i = 0; i < files.length; i++) {
@@ -317,35 +341,44 @@ const uploadBatch = async (files: File[]) => {
     batchProgress.value.current = i + 1
     batchProgress.value.currentFile = file.name
     
+    // Add processing log entry
+    batchProgress.value.fileLog.push({ filename: file.name, status: 'processing', message: 'Processing...' })
+    const logIndex = batchProgress.value.fileLog.length - 1
+    
     try {
       const response = await apiService.upload.parseEml(file)
       
       // Handle duplicate file (already uploaded before)
       if (response.duplicate_file) {
-        batchResults.value.errors.push(`${file.name}: ${response.message}`)
+        const errorMsg = response.message || 'Duplicate file'
+        batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
         batchResults.value.failed++
+        batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
         continue
       }
       
       // Handle parsing errors or missing data
       if (!response.success) {
+        let errorMsg = 'Parse failed'
         if (response.require_manual_input) {
-          // TODO: Add to manual input queue
-          batchResults.value.errors.push(`${file.name}: Requires manual input - ${response.errors?.join(', ')}`)
+          errorMsg = `Requires manual input - ${response.errors?.join(', ')}`
+          batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
           batchResults.value.failed++
         } else {
-          batchResults.value.errors.push(`${file.name}: ${response.errors?.join(', ') || 'Parse failed'}`)
+          errorMsg = response.errors?.join(', ') || 'Parse failed'
+          batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
           batchResults.value.failed++
         }
+        batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
         continue
       }
       
       // Handle duplicate session (show modal for single file, skip for batch)
       if (response.duplicate?.exists) {
-        batchResults.value.errors.push(
-          `${file.name}: Duplicate - Session already exists from '${response.duplicate.original_file || 'unknown file'}' uploaded ${response.duplicate.upload_date || 'earlier'}`
-        )
+        const errorMsg = `Duplicate - Session already exists from '${response.duplicate.original_file || 'unknown file'}' uploaded ${response.duplicate.upload_date || 'earlier'}`
+        batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
         batchResults.value.failed++
+        batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
         continue
       }
       
@@ -363,12 +396,19 @@ const uploadBatch = async (files: File[]) => {
       
       if (saveResponse.success) {
         batchResults.value.success++
+        batchProgress.value.fileLog[logIndex] = { 
+          filename: file.name, 
+          status: 'success', 
+          message: `Imported ${response.data.laps?.length || 0} laps`
+        }
       } else {
-        batchResults.value.errors.push(`${file.name}: Save failed - ${saveResponse.message || 'Unknown error'}`)
+        const errorMsg = `Save failed - ${saveResponse.message || 'Unknown error'}`
+        batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
         batchResults.value.failed++
+        batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
       }
       
-      // Show warnings if any
+      // Show warnings if any (but keep status as success)
       if (response.warnings && response.warnings.length > 0) {
         batchResults.value.errors.push(`${file.name}: ⚠️ ${response.warnings.join(', ')}`)
       }
@@ -379,6 +419,7 @@ const uploadBatch = async (files: File[]) => {
                       'Upload failed'
       batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
       batchResults.value.failed++
+      batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
     }
   }
   
@@ -570,9 +611,15 @@ const resetForm = () => {
   lapsData.value = []
   uploadError.value = ''
   batchFiles.value = []
-  batchProgress.value = { current: 0, total: 0, currentFile: '' }
+  batchProgress.value = { current: 0, total: 0, currentFile: '', fileLog: [] }
   batchResults.value = { success: 0, failed: 0, errors: [] }
 }
+
+// Helper to check if a lap has missing critical data
+const hasMissingData = (lap: any): boolean => {
+  return !lap.driver_name || !lap.lap_time || lap.lap_time === 0
+}
+
 </script>
 
 <style scoped lang="scss">
@@ -847,12 +894,33 @@ const resetForm = () => {
             background: rgba(var(--primary-color-rgb), 0.05);
           }
 
+          &.missing-data {
+            background: rgba(255, 193, 7, 0.08);
+            border-left: 3px solid #ffc107;
+          }
+
+          &.warning-row {
+            background: rgba(255, 152, 0, 0.05);
+          }
+
           &:hover {
             background: var(--bg-secondary);
           }
 
           td {
             padding: 0.75rem;
+
+            &.missing-field {
+              background: rgba(239, 68, 68, 0.1);
+              color: #ef4444;
+              font-weight: 600;
+              position: relative;
+
+              &::before {
+                content: '⚠️';
+                margin-right: 0.25rem;
+              }
+            }
 
             input {
               width: 100%;
@@ -1021,6 +1089,12 @@ const resetForm = () => {
     }
   }
 
+  .progress-text {
+    font-size: 1rem;
+    color: var(--text-color);
+    margin: 0.5rem 0;
+  }
+
   .current-file {
     font-size: 0.9rem;
     color: var(--text-secondary);
@@ -1045,6 +1119,80 @@ const resetForm = () => {
         color: #ef4444;
       }
     }
+  }
+
+  .file-progress-log {
+    margin-top: 2rem;
+    text-align: left;
+
+    h3 {
+      color: var(--text-color);
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    .log-container {
+      max-height: 400px;
+      overflow-y: auto;
+      background: var(--bg-secondary);
+      border-radius: var(--border-radius);
+      padding: 1rem;
+    }
+
+    .log-entry {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      background: var(--card-bg);
+      border-radius: 6px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s ease;
+
+      &.processing {
+        border-left-color: #3b82f6;
+        
+        .log-icon {
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+      }
+
+      &.success {
+        border-left-color: #22c55e;
+      }
+
+      &.failed {
+        border-left-color: #ef4444;
+      }
+
+      .log-icon {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+
+      .log-filename {
+        font-weight: 600;
+        color: var(--text-color);
+        flex-shrink: 0;
+        min-width: 200px;
+      }
+
+      .log-message {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        flex-grow: 1;
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }
 

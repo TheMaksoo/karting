@@ -179,10 +179,12 @@ class ApiService {
       },
       (error: AxiosError) => {
         if (error.response?.status === 401) {
-          // Unauthorized - clear token
-          this.clearAuth()
-          // Don't redirect here - let the router guard handle it
-          // This prevents infinite redirect loops
+          // Only clear auth if it's not the initial auth check
+          // This prevents clearing auth on page refresh
+          const url = error.config?.url || ''
+          if (!url.includes('/auth/me') && !url.includes('/auth/login')) {
+            this.clearAuth()
+          }
         }
         return Promise.reject(error)
       }
