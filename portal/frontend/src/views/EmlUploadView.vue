@@ -314,10 +314,12 @@ const uploadBatch = async (files: File[]) => {
       
       if (response.success && !response.duplicate) {
         // Auto-import without preview for batch uploads
-        await apiService.upload.import({
-          track_id: response.track.id.toString(),
+        await apiService.upload.saveParsedSession({
+          track_id: response.track.id,
           session_date: response.data.session_date || new Date().toISOString(),
           session_type: 'race',
+          heat_price: 0,
+          session_number: response.data.session_number || '',
           laps: response.data.laps || []
         })
         batchResults.value.success++

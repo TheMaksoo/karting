@@ -108,6 +108,9 @@ class EmlUploadController extends Controller
                 }
             }
 
+            // Mark best laps and calculate gaps for each driver
+            $this->markBestLapsAndCalculateGaps($session->id);
+
             DB::commit();
 
             return response()->json([
@@ -280,6 +283,132 @@ class EmlUploadController extends Controller
         // Remove HTML tags to get clean text
         $text = strip_tags($body);
         
+        // Detect format based on track or content patterns
+        $trackName = strtolower($track->name);
+        
+        // Lot66 format: Single driver, lap-by-lap with sector times
+        if (stripos($trackName, 'lot66') !== false || stripos($text, 'Lap 1') !== false && stripos($text, 'S1') !== false) {
+            return $this->extractLot66LapsData($text);
+        }
+        
+        // Elche / Gilesias format: Spanish single driver
+        if (stripos($trackName, 'elche') !== false || stripos($trackName, 'gilesias') !== false || 
+            stripos($text, 'RESUMEN DE TU CARRERA') !== false || stripos($text, 'Mejor V.') !== false) {
+            return $this->extractElcheLapsData($text);
+        }
+        
+        // De Voltage / Goodwill / Circuit Park Berghem: Multi-driver with detailed lap table
+        return $this->extractDeVoltageStyleLapsData($text);
+    }
+
+    private function extractLot66LapsData($text)
+    {
+        $laps = [];
+        $lines = explode("\n", $text);
+        $driverName = null;
+        
+        // Extract driver name from first line or "max van lierop" pattern
+        foreach ($lines as $line) {
+            if (preg_match('/^([A-Za-z\s]+)$/i', trim($line)) && strlen(trim($line)) > 3 && strlen(trim($line)) < 40) {
+                $driverName = trim($line);
+                break;
+            }
+        }
+        
+        if (!$driverName) {
+            $driverName = 'Unknown Driver';
+        }
+        
+        // Parse lap table (format: Lap\nS1\nS2\nS3\nTime\n1\nLap 1\n-\n-\n-\n00:35.560)
+        foreach ($lines as $idx => $line) {
+            $line = trim($line);
+            
+            // Look for lap number followed by time
+            if (preg_match('/^Lap\s+(\d+)$/i', $line, $lapMatch)) {
+                $lapNumber = (int)$lapMatch[1];
+                
+                // Look ahead for time (format: 00:35.560 or 35.560)
+                for ($i = $idx + 1; $i < min($idx + 10, count($lines)); $i++) {
+                    $timeLine = trim($lines[$i]);
+                    if (preg_match('/^(\d{1,2}:)?\d{2}\.\d{3}$/', $timeLine)) {
+                        $lapTime = $this->convertTimeToSeconds($timeLine);
+                        if ($lapTime > 0 && $lapTime < 300) {
+                            $laps[] = [
+                                'driver_name' => $driverName,
+                                'lap_number' => $lapNumber,
+                                'lap_time' => $lapTime,
+                                'position' => null,
+                                'kart_number' => null,
+                            ];
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return $laps;
+    }
+
+    private function extractElcheLapsData($text)
+    {
+        $laps = [];
+        $lines = explode("\n", $text);
+        $driverName = null;
+        $kartNumber = null;
+        
+        // Extract pilot name and kart number from header
+        foreach ($lines as $line) {
+            if (preg_match('/Pilotos.*?([A-Za-z0-9_]+)/i', $line, $match)) {
+                $driverName = trim($match[1]);
+            }
+            if (preg_match('/TB\s+(\d+)/i', $line, $match)) {
+                $kartNumber = $match[1];
+            }
+        }
+        
+        if (!$driverName) {
+            $driverName = 'Unknown Driver';
+        }
+        
+        // Parse detailed results section
+        $inDetailedSection = false;
+        foreach ($lines as $line) {
+            $line = trim($line);
+            
+            if (stripos($line, 'RESULTADOS DETALLADOS') !== false) {
+                $inDetailedSection = true;
+                continue;
+            }
+            
+            if ($inDetailedSection && preg_match('/^(\d+)\s+(\d{2}:\d{2}\.\d{3})$/', $line, $matches)) {
+                $lapNumber = (int)$matches[1];
+                $lapTime = $this->convertTimeToSeconds($matches[2]);
+                
+                if ($lapTime > 0 && $lapTime < 300) {
+                    $laps[] = [
+                        'driver_name' => $driverName,
+                        'lap_number' => $lapNumber,
+                        'lap_time' => $lapTime,
+                        'position' => null,
+                        'kart_number' => $kartNumber,
+                    ];
+                }
+            }
+            
+            // Stop at average or end
+            if (preg_match('/^Avg\./i', $line)) {
+                break;
+            }
+        }
+        
+        return $laps;
+    }
+
+    private function extractDeVoltageStyleLapsData($text)
+    {
+        $laps = [];
+        
         // Pattern for De Voltage format - looks for lap time tables
         // The format is: driver names in header row, then lap numbers and times in subsequent rows
         
@@ -449,4 +578,59 @@ class EmlUploadController extends Controller
         
         return null;
     }
+
+    /**
+     * Mark best laps and calculate gaps for a session
+     */
+    private function markBestLapsAndCalculateGaps($sessionId)
+    {
+        // Get all laps for this session grouped by driver
+        $drivers = Lap::where('karting_session_id', $sessionId)
+            ->select('driver_id')
+            ->distinct()
+            ->pluck('driver_id');
+
+        foreach ($drivers as $driverId) {
+            $driverLaps = Lap::where('karting_session_id', $sessionId)
+                ->where('driver_id', $driverId)
+                ->orderBy('lap_time', 'asc')
+                ->get();
+
+            if ($driverLaps->isEmpty()) {
+                continue;
+            }
+
+            // Find the best lap (lowest time)
+            $bestLap = $driverLaps->first();
+            $bestLapTime = $bestLap->lap_time;
+
+            // Mark best lap and calculate gaps
+            foreach ($driverLaps as $lap) {
+                $gap = $lap->lap_time - $bestLapTime;
+                
+                $lap->update([
+                    'is_best_lap' => $lap->id === $bestLap->id,
+                    'gap_to_best_lap' => $gap > 0 ? $gap : null,
+                ]);
+            }
+        }
+
+        // Calculate interval/gap to previous position (if positions are available)
+        $lapsWithPositions = Lap::where('karting_session_id', $sessionId)
+            ->whereNotNull('position')
+            ->orderBy('position', 'asc')
+            ->get();
+
+        $previousLap = null;
+        foreach ($lapsWithPositions as $lap) {
+            if ($previousLap) {
+                $interval = $lap->lap_time - $previousLap->lap_time;
+                $lap->update([
+                    'gap_to_previous' => $interval,
+                ]);
+            }
+            $previousLap = $lap;
+        }
+    }
 }
+
