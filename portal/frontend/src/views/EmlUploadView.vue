@@ -6,7 +6,7 @@
     <div v-if="step === 'upload'" class="upload-section">
       <div class="dropzone" @drop.prevent="handleDrop" @dragover.prevent @dragenter="isDragging = true"
         @dragleave="isDragging = false" :class="{ dragging: isDragging }">
-        <input ref="fileInput" type="file" accept=".eml,.txt" @change="handleFileSelect" hidden />
+        <input ref="fileInput" type="file" accept=".eml,.txt" @change="handleFileSelect" multiple hidden />
         <div class="dropzone-content">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2">
@@ -14,14 +14,67 @@
             <polyline points="17 8 12 3 7 8" />
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
-          <p>Drag & drop EML file here or <button @click="$refs.fileInput.click()" type="button">Browse</button></p>
-          <small>Track and driver will be auto-detected from the email</small>
-          <small>Supported formats: .eml, .txt</small>
+          <p>Drag & drop EML files or folders here</p>
+          <div class="upload-buttons">
+            <button @click="() => { if (fileInput) fileInput.click() }" type="button" class="btn-secondary">
+              <span class="icon">📄</span> Upload File
+            </button>
+            <button @click="selectFolder" type="button" class="btn-primary">
+              <span class="icon">📁</span> Upload Folder
+            </button>
+          </div>
+          <small>Single file or batch folder upload supported</small>
+          <small>Track and drivers auto-detected from each email</small>
         </div>
       </div>
 
       <div v-if="uploadError" class="error-message">
         {{ uploadError }}
+      </div>
+    </div>
+
+    <!-- Batch Upload Progress -->
+    <div v-if="step === 'batch-progress' || (loading && batchProgress.total > 0)" class="batch-progress-section">
+      <h2>Processing Files</h2>
+      <div class="progress-bar">
+        <div class="progress-fill" :style="{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }"></div>
+      </div>
+      <p>{{ batchProgress.current }} of {{ batchProgress.total }} files processed</p>
+      <p class="current-file">{{ batchProgress.currentFile }}</p>
+      <div class="batch-stats">
+        <span class="success">✅ {{ batchResults.success }} successful</span>
+        <span class="failed">❌ {{ batchResults.failed }} failed</span>
+      </div>
+    </div>
+
+    <!-- Batch Complete Summary -->
+    <div v-if="step === 'batch-complete'" class="batch-complete-section">
+      <h2>Batch Upload Complete</h2>
+      <div class="summary-stats">
+        <div class="stat-card success">
+          <div class="stat-number">{{ batchResults.success }}</div>
+          <div class="stat-label">Sessions Imported</div>
+        </div>
+        <div class="stat-card failed">
+          <div class="stat-number">{{ batchResults.failed }}</div>
+          <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat-card total">
+          <div class="stat-number">{{ batchResults.success + batchResults.failed }}</div>
+          <div class="stat-label">Total Files</div>
+        </div>
+      </div>
+
+      <div v-if="batchResults.errors.length > 0" class="error-list">
+        <h3>Errors:</h3>
+        <ul>
+          <li v-for="(error, idx) in batchResults.errors" :key="idx">{{ error }}</li>
+        </ul>
+      </div>
+
+      <div class="button-group">
+        <button @click="resetForm" class="btn-secondary">Upload More</button>
+        <button @click="$router.push('/sessions')" class="btn-primary">View Sessions</button>
       </div>
     </div>
 
@@ -167,8 +220,11 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+// Refs
+const fileInput = ref<HTMLInputElement | null>(null)
+
 // State
-const step = ref<'upload' | 'preview'>('upload')
+const step = ref<'upload' | 'preview' | 'batch-progress' | 'batch-complete'>('upload')
 const selectedTrackId = ref<number | ''>('')
 const isDragging = ref(false)
 const uploadError = ref('')
@@ -190,20 +246,96 @@ const sessionData = reactive({
 })
 
 const lapsData = ref<any[]>([])
+const batchFiles = ref<File[]>([])
+const batchProgress = ref({ current: 0, total: 0, currentFile: '' })
+const batchResults = ref<{ success: number, failed: number, errors: string[] }>({ success: 0, failed: 0, errors: [] })
 
-// Methods - No need to load tracks anymore, auto-detected
-const handleFileSelect = (event: Event) => {
+// Methods
+const selectFolder = () => {
+  const input = fileInput.value as HTMLInputElement
+  input.webkitdirectory = true
+  input.click()
+}
+
+const handleFileSelect = async (event: Event) => {
   const target = event.target as HTMLInputElement
-  if (target.files && target.files[0]) {
-    uploadFile(target.files[0])
+  if (target.files && target.files.length > 0) {
+    const files = Array.from(target.files).filter(f => f.name.endsWith('.eml') || f.name.endsWith('.txt'))
+    
+    if (files.length === 0) {
+      uploadError.value = 'No EML files found in the selected folder'
+      return
+    }
+    
+    if (files.length === 1 && files[0]) {
+      uploadFile(files[0])
+    } else {
+      // Batch upload multiple files
+      await uploadBatch(files)
+    }
   }
 }
 
-const handleDrop = (event: DragEvent) => {
+const handleDrop = async (event: DragEvent) => {
   isDragging.value = false
-  if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
-    uploadFile(event.dataTransfer.files[0])
+  if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+    const files = Array.from(event.dataTransfer.files).filter(f => f.name.endsWith('.eml') || f.name.endsWith('.txt'))
+    
+    if (files.length === 0) {
+      uploadError.value = 'No EML files found'
+      return
+    }
+    
+    if (files.length === 1 && files[0]) {
+      uploadFile(files[0])
+    } else {
+      await uploadBatch(files)
+    }
   }
+}
+
+const uploadBatch = async (files: File[]) => {
+  batchFiles.value = files
+  batchProgress.value = { current: 0, total: files.length, currentFile: '' }
+  batchResults.value = { success: 0, failed: 0, errors: [] }
+  loading.value = true
+  loadingMessage.value = `Processing ${files.length} files...`
+  
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
+    if (!file) continue
+    
+    batchProgress.value.current = i + 1
+    batchProgress.value.currentFile = file.name
+    loadingMessage.value = `Processing ${i + 1}/${files.length}: ${file.name}`
+    
+    try {
+      const response = await apiService.upload.parseEml(file)
+      
+      if (response.success && !response.duplicate) {
+        // Auto-import without preview for batch uploads
+        await apiService.upload.import({
+          track_id: response.track.id.toString(),
+          session_date: response.data.session_date || new Date().toISOString(),
+          session_type: 'race',
+          laps: response.data.laps || []
+        })
+        batchResults.value.success++
+      } else if (response.duplicate) {
+        batchResults.value.errors.push(`${file.name}: Duplicate session`)
+        batchResults.value.failed++
+      } else {
+        batchResults.value.errors.push(`${file.name}: ${response.message}`)
+        batchResults.value.failed++
+      }
+    } catch (error: any) {
+      batchResults.value.errors.push(`${file.name}: ${error.response?.data?.message || 'Upload failed'}`)
+      batchResults.value.failed++
+    }
+  }
+  
+  loading.value = false
+  step.value = 'batch-complete'
 }
 
 const uploadFile = async (file: File) => {
@@ -338,6 +470,18 @@ const cancelUpload = () => {
     uploadError.value = ''
   }
 }
+
+const resetForm = () => {
+  step.value = 'upload'
+  parsedData.value = null
+  duplicate.value = null
+  proceedAnyway.value = false
+  lapsData.value = []
+  uploadError.value = ''
+  batchFiles.value = []
+  batchProgress.value = { current: 0, total: 0, currentFile: '' }
+  batchResults.value = { success: 0, failed: 0, errors: [] }
+}
 </script>
 
 <style scoped lang="scss">
@@ -398,6 +542,47 @@ const cancelUpload = () => {
 
       small {
         color: var(--text-secondary);
+        display: block;
+        margin-top: 0.5rem;
+      }
+
+      .upload-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin: 1.5rem 0 1rem 0;
+
+        button {
+          padding: 0.75rem 1.5rem;
+          border-radius: var(--border-radius);
+          border: 2px solid var(--border-color);
+          background: var(--card-bg);
+          cursor: pointer;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+
+          &.btn-primary {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+
+            &:hover {
+              background: var(--primary-hover);
+              border-color: var(--primary-hover);
+            }
+          }
+
+          &.btn-secondary {
+            &:hover {
+              border-color: var(--primary-color);
+              color: var(--primary-color);
+            }
+          }
+
+          .icon {
+            margin-right: 0.5rem;
+          }
+        }
       }
     }
   }
@@ -717,4 +902,184 @@ const cancelUpload = () => {
     transform: rotate(360deg);
   }
 }
+
+// Batch upload sections
+.batch-progress-section {
+  padding: 2rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  text-align: center;
+
+  h2 {
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 30px;
+    background: var(--border-color);
+    border-radius: 15px;
+    overflow: hidden;
+    margin: 1rem 0;
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      transition: width 0.3s ease;
+    }
+  }
+
+  .current-file {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+  }
+
+  .batch-stats {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+
+    span {
+      font-size: 1.1rem;
+      font-weight: 600;
+
+      &.success {
+        color: #22c55e;
+      }
+
+      &.failed {
+        color: #ef4444;
+      }
+    }
+  }
+}
+
+.batch-complete-section {
+  padding: 2rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+
+  h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+  }
+
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    .stat-card {
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      text-align: center;
+      background: var(--bg-secondary);
+
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      &.success {
+        border-left: 4px solid #22c55e;
+
+        .stat-number {
+          color: #22c55e;
+        }
+      }
+
+      &.failed {
+        border-left: 4px solid #ef4444;
+
+        .stat-number {
+          color: #ef4444;
+        }
+      }
+
+      &.total {
+        border-left: 4px solid var(--primary-color);
+
+        .stat-number {
+          color: var(--primary-color);
+        }
+      }
+    }
+  }
+
+  .error-list {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid #ef4444;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+
+    h3 {
+      color: #ef4444;
+      margin-bottom: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+        color: var(--text-secondary);
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+    }
+  }
+
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+
+    button {
+      padding: 0.75rem 2rem;
+      border-radius: var(--border-radius);
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+
+      &.btn-primary {
+        background: var(--primary-color);
+        color: white;
+
+        &:hover {
+          background: var(--primary-hover);
+        }
+      }
+
+      &.btn-secondary {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 2px solid var(--border-color);
+
+        &:hover {
+          border-color: var(--primary-color);
+        }
+      }
+    }
+  }
+}
 </style>
+
