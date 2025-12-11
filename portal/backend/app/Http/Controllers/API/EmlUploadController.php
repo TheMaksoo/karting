@@ -153,6 +153,9 @@ class EmlUploadController extends Controller
         // If multipart, extract the text/plain part
         if ($boundary) {
             $parts = explode('--' . $boundary, $bodyText);
+            $plainTextBody = '';
+            $htmlBody = '';
+            
             foreach ($parts as $part) {
                 // Look for text/plain part
                 if (stripos($part, 'Content-Type: text/plain') !== false) {
@@ -161,17 +164,41 @@ class EmlUploadController extends Controller
                         // Extract base64 content (everything after the headers)
                         if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
                             $base64Content = preg_replace('/\s+/', '', $contentMatch[1]);
-                            $body = base64_decode($base64Content);
+                            $plainTextBody = base64_decode($base64Content);
+                        }
+                    } else if (preg_match('/Content-Transfer-Encoding:\s*quoted-printable/i', $part)) {
+                        if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
+                            $plainTextBody = quoted_printable_decode($contentMatch[1]);
                         }
                     } else {
                         // Plain text content
                         if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
-                            $body = $contentMatch[1];
+                            $plainTextBody = $contentMatch[1];
                         }
                     }
-                    break;
+                }
+                
+                // Also extract HTML part as fallback
+                if (stripos($part, 'Content-Type: text/html') !== false) {
+                    if (preg_match('/Content-Transfer-Encoding:\s*base64/i', $part)) {
+                        if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
+                            $base64Content = preg_replace('/\s+/', '', $contentMatch[1]);
+                            $htmlBody = base64_decode($base64Content);
+                        }
+                    } else if (preg_match('/Content-Transfer-Encoding:\s*quoted-printable/i', $part)) {
+                        if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
+                            $htmlBody = quoted_printable_decode($contentMatch[1]);
+                        }
+                    } else {
+                        if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
+                            $htmlBody = $contentMatch[1];
+                        }
+                    }
                 }
             }
+            
+            // Prefer plain text, but use HTML if plain is empty
+            $body = !empty($plainTextBody) ? $plainTextBody : $htmlBody;
         } else {
             // Single part message
             if (preg_match('/Content-Transfer-Encoding:\s*base64/i', $content)) {
@@ -307,10 +334,18 @@ class EmlUploadController extends Controller
         $lines = explode("\n", $text);
         $driverName = null;
         
-        // Extract driver name from first line or "max van lierop" pattern
-        foreach ($lines as $line) {
-            if (preg_match('/^([A-Za-z\s]+)$/i', trim($line)) && strlen(trim($line)) > 3 && strlen(trim($line)) < 40) {
-                $driverName = trim($line);
+        // Extract driver name - it's typically on the second line after "Lot66"
+        for ($i = 0; $i < min(5, count($lines)); $i++) {
+            $line = trim($lines[$i]);
+            // Skip "Lot66", dates, and header rows
+            if (empty($line) || stripos($line, 'lot66') !== false || 
+                preg_match('/\d{2}\.\d{2}\.\d{4}/', $line) || 
+                preg_match('/^(Lap|S1|S2|S3|Time)$/i', $line)) {
+                continue;
+            }
+            // This should be the driver name
+            if (strlen($line) > 2 && strlen($line) < 50 && !is_numeric($line)) {
+                $driverName = $line;
                 break;
             }
         }
@@ -319,29 +354,35 @@ class EmlUploadController extends Controller
             $driverName = 'Unknown Driver';
         }
         
-        // Parse lap table (format: Lap\nS1\nS2\nS3\nTime\n1\nLap 1\n-\n-\n-\n00:35.560)
-        foreach ($lines as $idx => $line) {
-            $line = trim($line);
+        // Parse lap data - much simpler approach
+        $currentLapNumber = null;
+        for ($i = 0; $i < count($lines); $i++) {
+            $line = trim($lines[$i]);
             
-            // Look for lap number followed by time
-            if (preg_match('/^Lap\s+(\d+)$/i', $line, $lapMatch)) {
-                $lapNumber = (int)$lapMatch[1];
+            // Check if this is a lap number line (just a number)
+            if (is_numeric($line) && (int)$line > 0 && (int)$line < 100) {
+                $currentLapNumber = (int)$line;
                 
-                // Look ahead for time (format: 00:35.560 or 35.560)
-                for ($i = $idx + 1; $i < min($idx + 10, count($lines)); $i++) {
-                    $timeLine = trim($lines[$i]);
-                    if (preg_match('/^(\d{1,2}:)?\d{2}\.\d{3}$/', $timeLine)) {
-                        $lapTime = $this->convertTimeToSeconds($timeLine);
-                        if ($lapTime > 0 && $lapTime < 300) {
-                            $laps[] = [
-                                'driver_name' => $driverName,
-                                'lap_number' => $lapNumber,
-                                'lap_time' => $lapTime,
-                                'position' => null,
-                                'kart_number' => null,
-                            ];
+                // Look for "Lap X" on next line
+                if ($i + 1 < count($lines) && preg_match('/^Lap\s+\d+$/i', trim($lines[$i + 1]))) {
+                    // Skip the sector time lines (-, -, -)
+                    // Time should be 5 lines after the lap number (after Lap X, S1, S2, S3, Time)
+                    for ($j = $i + 1; $j < min($i + 7, count($lines)); $j++) {
+                        $timeLine = trim($lines[$j]);
+                        // Match time format: 00:35.560 or 35.560
+                        if (preg_match('/^(\d{1,2}:)?\d{2}\.\d{3}$/', $timeLine)) {
+                            $lapTime = $this->convertTimeToSeconds($timeLine);
+                            if ($lapTime > 0 && $lapTime < 300) {
+                                $laps[] = [
+                                    'driver_name' => $driverName,
+                                    'lap_number' => $currentLapNumber,
+                                    'lap_time' => $lapTime,
+                                    'position' => null,
+                                    'kart_number' => null,
+                                ];
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
             }
@@ -416,33 +457,57 @@ class EmlUploadController extends Controller
         $lines = explode("\n", $text);
         $bestScoresSection = false;
         $driverPositions = [];
+        $driverKarts = [];
         
         foreach ($lines as $line) {
             $line = trim($line);
             
-            // Find the "Heat overview" section
-            if (stripos($line, 'Heat overview') !== false || stripos($line, 'Best score') !== false) {
+            // Find the "Heat overview" or "Sessie overzicht" section
+            if (stripos($line, 'Heat overview') !== false || 
+                stripos($line, 'Best score') !== false ||
+                stripos($line, 'Sessie overzicht') !== false ||
+                stripos($line, 'Pos.') !== false && stripos($line, 'Kart') !== false) {
                 $bestScoresSection = true;
                 continue;
             }
             
             // Stop at "Thank you" or other end markers
-            if (stripos($line, 'Thank you') !== false || stripos($line, 'Detailed results') !== false) {
+            if (stripos($line, 'Thank you') !== false || 
+                stripos($line, 'Detailed results') !== false ||
+                stripos($line, 'Rondetijden per piloot') !== false) {
                 $bestScoresSection = false;
                 continue;
             }
             
-            // Parse position lines (format: "1.      Driver Name      39.761")
-            if ($bestScoresSection && preg_match('/^(\d+)\.\s+(.+?)\s+([\d:.]+)$/', $line, $matches)) {
-                $position = (int)$matches[1];
-                $driverName = trim($matches[2]);
-                $bestTime = $this->convertTimeToSeconds($matches[3]);
-                
-                if ($bestTime > 0 && !empty($driverName)) {
-                    $driverPositions[$driverName] = [
-                        'position' => $position,
-                        'best_time' => $bestTime
-                    ];
+            // Parse position lines (format: "1.      Driver Name      39.761" or "1  10  JORDI 91  18  34.828  35.606")
+            if ($bestScoresSection) {
+                // De Voltage format: "1.      Driver Name      39.761"
+                if (preg_match('/^(\d+)\.\s+(.+?)\s+([\d:.]+)$/', $line, $matches)) {
+                    $position = (int)$matches[1];
+                    $driverName = trim($matches[2]);
+                    $bestTime = $this->convertTimeToSeconds($matches[3]);
+                    
+                    if ($bestTime > 0 && !empty($driverName)) {
+                        $driverPositions[$driverName] = [
+                            'position' => $position,
+                            'best_time' => $bestTime
+                        ];
+                    }
+                }
+                // Goodwill format: "1  10  JORDI 91  18  34.828  35.606"
+                else if (preg_match('/^(\d+)\s+(\d+)\s+(.+?)\s+(\d+)\s+([\d:.]+)\s/', $line, $matches)) {
+                    $position = (int)$matches[1];
+                    $kartNum = $matches[2];
+                    $driverName = trim($matches[3]);
+                    $bestTime = $this->convertTimeToSeconds($matches[5]);
+                    
+                    if ($bestTime > 0 && !empty($driverName)) {
+                        $driverPositions[$driverName] = [
+                            'position' => $position,
+                            'best_time' => $bestTime
+                        ];
+                        $driverKarts[$driverName] = $kartNum;
+                    }
                 }
             }
         }
@@ -453,26 +518,60 @@ class EmlUploadController extends Controller
         $driverNames = [];
         $lapNumber = 0;
         
-        foreach ($lines as $line) {
+        foreach ($lines as $idx => $line) {
             $line = trim($line);
             
-            if (stripos($line, 'Detailed results') !== false) {
+            if (stripos($line, 'Detailed results') !== false || 
+                stripos($line, 'Rondetijden per piloot') !== false) {
                 $detailedSection = true;
                 continue;
             }
             
             if ($detailedSection) {
-                // First line after "Detailed results" contains driver names
-                if (empty($driverNames) && strlen($line) > 50) {
+                // Look for driver name headers (line with "Kart    Piloot  1  2  3..." or just driver names)
+                if (empty($driverNames) && (stripos($line, 'Piloot') !== false || strlen($line) > 50)) {
+                    // For Goodwill format, skip the "Kart Piloot 1 2 3..." header
+                    if (stripos($line, 'Kart') !== false && stripos($line, 'Piloot') !== false) {
+                        continue;
+                    }
+                    
                     // Split by multiple spaces to get driver names
                     $driverNames = array_filter(preg_split('/\s{2,}/', $line), function($name) {
-                        return strlen(trim($name)) > 2 && !is_numeric(trim($name));
+                        $name = trim($name);
+                        return strlen($name) > 2 && !is_numeric($name) && !preg_match('/^\d+$/', $name);
                     });
                     $driverNames = array_values(array_map('trim', $driverNames));
                     continue;
                 }
                 
-                // Parse lap data rows (format: "1       48.762  48.646  48.383  ...")
+                // For Goodwill format: "10  JORDI 91  36.318  37.711  35.814..."
+                if (preg_match('/^(\d+)\s+(.+?)\s+([\d:.]+(?:\s+[\d:.]+)+)$/', $line, $matches)) {
+                    $kartNum = $matches[1];
+                    $driverName = trim($matches[2]);
+                    $timesStr = trim($matches[3]);
+                    $times = preg_split('/\s+/', $timesStr);
+                    
+                    foreach ($times as $lapIdx => $time) {
+                        if (!empty($time)) {
+                            $lapTime = $this->convertTimeToSeconds($time);
+                            if ($lapTime > 0 && $lapTime < 300) {
+                                $position = isset($driverPositions[$driverName]) ? 
+                                    $driverPositions[$driverName]['position'] : null;
+                                
+                                $laps[] = [
+                                    'driver_name' => $driverName,
+                                    'lap_number' => $lapIdx + 1,
+                                    'lap_time' => $lapTime,
+                                    'position' => $position,
+                                    'kart_number' => $kartNum,
+                                ];
+                            }
+                        }
+                    }
+                    continue;
+                }
+                
+                // De Voltage format: "1       48.762  48.646  48.383  ..."
                 if (!empty($driverNames) && preg_match('/^(\d+)\s+(.+)$/', $line, $matches)) {
                     $lapNum = (int)$matches[1];
                     $times = preg_split('/\s+/', trim($matches[2]));
@@ -490,15 +589,15 @@ class EmlUploadController extends Controller
                                     'lap_number' => $lapNum,
                                     'lap_time' => $lapTime,
                                     'position' => $position,
-                                    'kart_number' => null,
+                                    'kart_number' => $driverKarts[$driverName] ?? null,
                                 ];
                             }
                         }
                     }
                 }
                 
-                // Stop at summary rows (Avg., Hist., etc.)
-                if (preg_match('/^(Avg\.|Hist\.|Best scores)/i', $line)) {
+                // Stop at summary rows (Avg., Hist., Overzicht, etc.)
+                if (preg_match('/^(Avg\.|Hist\.|Best scores|Overzicht|Je laatste)/i', $line)) {
                     break;
                 }
             }
@@ -512,7 +611,7 @@ class EmlUploadController extends Controller
                     'lap_number' => 1,
                     'lap_time' => $data['best_time'],
                     'position' => $data['position'],
-                    'kart_number' => null,
+                    'kart_number' => $driverKarts[$driverName] ?? null,
                 ];
             }
         }
