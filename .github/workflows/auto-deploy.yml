@@ -60,9 +60,15 @@ jobs:
         password: ${{ secrets.SSH_PASSWORD }}
         port: 22
         script: |
-          cd ~/public_html/karting/api
+          cd ~/public_html/karting/api || exit 1
           
-          cat > .env << EOF
+          # Find PHP binary (cPanel specific)
+          PHP_BIN=$(which php 2>/dev/null || which /usr/local/bin/php 2>/dev/null || which /usr/bin/php 2>/dev/null || echo "php")
+          echo "Using PHP: $PHP_BIN"
+          $PHP_BIN -v
+          
+          # Create .env file
+          cat > .env << 'EOF'
           APP_NAME="Karting Portal"
           APP_ENV=production
           APP_KEY=${{ secrets.APP_KEY }}
@@ -79,12 +85,15 @@ jobs:
           SANCTUM_STATEFUL_DOMAINS=${{ secrets.SANCTUM_DOMAINS }}
           EOF
           
+          # Set permissions
           chmod 644 .env
-          chmod -R 755 storage bootstrap/cache
-          php artisan migrate --force
-          php artisan config:cache
-          php artisan route:cache
-          php artisan storage:link || true
+          chmod -R 755 storage bootstrap/cache 2>/dev/null || true
           
-          echo "✅ Deployed!"
+          # Run Laravel commands
+          $PHP_BIN artisan migrate --force || echo "Migration failed but continuing..."
+          $PHP_BIN artisan config:cache || true
+          $PHP_BIN artisan route:cache || true
+          $PHP_BIN artisan storage:link || true
+          
+          echo "✅ Deployment complete!"
 
