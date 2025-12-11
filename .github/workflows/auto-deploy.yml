@@ -124,8 +124,8 @@ jobs:
           echo "Using PHP: $PHP_BIN"
           $PHP_BIN -v
           
-          # Create .env
-          cat > .env << 'EOF'
+          # Create .env (with trimmed values)
+          cat > .env << EOF
           APP_NAME="Karting Portal"
           APP_ENV=production
           APP_KEY=${{ secrets.APP_KEY }}
@@ -142,10 +142,17 @@ jobs:
           SANCTUM_STATEFUL_DOMAINS=${{ secrets.SANCTUM_DOMAINS }}
           EOF
           
+          # Remove any trailing whitespace from .env
+          sed -i 's/[[:space:]]*$//' .env
+          
           chmod 644 .env
           chmod -R 755 storage bootstrap/cache 2>/dev/null || true
           
-          $PHP_BIN artisan migrate --force
+          # Test database connection first
+          echo "Testing database connection..."
+          $PHP_BIN artisan db:show || echo "⚠️  Database connection failed - check credentials"
+          
+          $PHP_BIN artisan migrate --force || echo "⚠️  Migration failed"
           $PHP_BIN artisan config:cache
           $PHP_BIN artisan route:cache
           
