@@ -110,9 +110,19 @@ jobs:
         script: |
           cd ~/public_html/karting/api || exit 1
           
-          # Find PHP
-          PHP_BIN=$(which php82 2>/dev/null || which php 2>/dev/null || echo "php")
+          # Find PHP 8.2+ (Namecheap specific paths)
+          if [ -f /opt/cpanel/ea-php82/root/usr/bin/php ]; then
+            PHP_BIN=/opt/cpanel/ea-php82/root/usr/bin/php
+          elif [ -f /usr/local/bin/ea-php82 ]; then
+            PHP_BIN=/usr/local/bin/ea-php82
+          elif command -v php82 &> /dev/null; then
+            PHP_BIN=php82
+          else
+            PHP_BIN=php
+          fi
+          
           echo "Using PHP: $PHP_BIN"
+          $PHP_BIN -v
           
           # Create .env
           cat > .env << 'EOF'
