@@ -23,6 +23,60 @@ class UploadController extends Controller
     }
 
     /**
+     * Batch upload multiple files
+     */
+    public function batchUpload(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'files' => 'required|array',
+            'files.*' => 'file|mimes:eml,txt,pdf,csv|max:10240',
+            'track_id' => 'required|exists:tracks,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $results = [];
+        $totalLaps = 0;
+        $totalDrivers = [];
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($request->file('files') as $file) {
+                $result = $this->processFile($file, $request->track_id);
+                $results[] = $result;
+                $totalLaps += $result['laps_imported'];
+                $totalDrivers = array_merge($totalDrivers, $result['drivers']);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully imported {$totalLaps} laps from " . count($request->file('files')) . " files",
+                'data' => [
+                    'total_laps' => $totalLaps,
+                    'total_drivers' => count(array_unique($totalDrivers)),
+                    'files_processed' => count($results),
+                    'results' => $results,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Batch upload failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Preview data from uploaded file without importing
      * 
      * @param Request $request
@@ -31,7 +85,7 @@ class UploadController extends Controller
     public function preview(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'file' => 'required|file|mimes:eml,txt,csv|max:10240', // 10MB max
+            'file' => 'required|file|mimes:eml,txt,pdf,csv|max:10240', // 10MB max
             'track_id' => 'required|exists:tracks,id',
         ]);
 
@@ -301,6 +355,76 @@ class UploadController extends Controller
             'email' => null, // Will be updated later
             'role' => 'driver',
         ]);
+    }
+
+    /**
+     * Process a single file and return import data
+     */
+    private function processFile($file, $trackId)
+    {
+        $path = $file->store('temp-uploads');
+        $fullPath = Storage::path($path);
+        $extension = $file->getClientOriginalExtension();
+
+        try {
+            // Parse file
+            if ($extension === 'eml') {
+                $parsed = $this->emlParser->parse($fullPath, $trackId);
+            } elseif ($extension === 'pdf') {
+                $parsed = $this->emlParser->parsePdfFile($fullPath, $trackId);
+            } else {
+                $parsed = $this->emlParser->parseTextFile($fullPath, $trackId);
+            }
+
+            // Create session
+            $session = KartingSession::create([
+                'track_id' => $trackId,
+                'session_date' => $parsed['session_info']['date'] ?? now()->format('Y-m-d'),
+                'session_type' => $parsed['session_info']['type'] ?? 'practice',
+                'session_time' => $parsed['session_info']['time'] ?? now()->format('H:i:s'),
+                'weather_condition' => $this->guessWeatherCondition(
+                    Track::find($trackId)->indoor
+                ),
+                'notes' => 'Imported from ' . $file->getClientOriginalName(),
+            ]);
+
+            // Import ALL laps for ALL drivers
+            $lapsImported = 0;
+            $driversProcessed = [];
+
+            foreach ($parsed['laps'] as $lapData) {
+                $driver = $this->getOrCreateDriver($lapData['driver_name']);
+                $driversProcessed[] = $driver->name;
+
+                Lap::create([
+                    'session_id' => $session->id,
+                    'driver_id' => $driver->id,
+                    'lap_number' => $lapData['lap_number'] ?? null,
+                    'lap_time' => $lapData['best_lap_time'] ?? null,
+                    'sector_1_time' => $lapData['sector_1_time'] ?? null,
+                    'sector_2_time' => $lapData['sector_2_time'] ?? null,
+                    'sector_3_time' => $lapData['sector_3_time'] ?? null,
+                    'kart_number' => $lapData['kart_number'] ?? null,
+                    'position' => $lapData['position'] ?? null,
+                    'is_best_lap' => $lapData['is_best_lap'] ?? false,
+                ]);
+
+                $lapsImported++;
+            }
+
+            Storage::delete($path);
+
+            return [
+                'file_name' => $file->getClientOriginalName(),
+                'laps_imported' => $lapsImported,
+                'drivers' => array_unique($driversProcessed),
+                'session_id' => $session->id,
+            ];
+
+        } catch (\Exception $e) {
+            Storage::delete($path);
+            throw $e;
+        }
     }
 
     /**

@@ -1,0 +1,570 @@
+RowID,Date,Time,SessionType,Heat,Track,TrackID,InOrOutdoor,Weather,Source,Driver,Position,LapNumber,LapTime,Sector1,Sector2,Sector3,BestLap,GapToBestLap,Interval,GapToPrevious,BestOfDay,BestofWeek,BestofMonth,Kart,Tyre,CostPerLap,HeatPrice,SessionDate,Notes
+1,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,1,64.753,,,,N,1.208,,0.002,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 1
+2,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,2,65.133,,,,N,1.588,,0.368,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 2
+3,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,3,63.545,,,,Y,0.0,,0.0,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 3
+4,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,4,64.765,,,,N,1.22,,0.012,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 4
+5,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,5,65.785,,,,N,2.24,,0.652,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 5
+6,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,6,64.727,,,,N,1.182,,0.096,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 6
+7,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,7,64.751,,,,N,1.206,,0.024,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 7
+8,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,8,64.631,,,,N,1.086,,0.531,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 8
+9,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,9,64.1,,,,N,0.555,,0.041,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 9
+10,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,10,64.059,,,,N,0.514,,0.514,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 10
+11,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,1,11,65.848,,,,N,2.303,,0.063,1.0,,,,,0.91,19.95,2025-07-04,Session: 10 - Lap 11
+12,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,1,66.626,,,,N,2.846,,0.237,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 1
+13,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,2,65.417,,,,N,1.637,,0.136,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 2
+14,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,3,66.389,,,,N,2.609,,0.97,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 3
+15,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,4,65.281,,,,N,1.501,,0.421,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 4
+16,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,5,64.1,,,,N,0.32,,0.186,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 5
+17,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,6,65.419,,,,N,1.639,,0.002,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 6
+18,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,7,64.849,,,,N,1.069,,0.749,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 7
+19,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,8,63.78,,,,Y,0.0,,0.0,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 8
+20,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,9,64.86,,,,N,1.08,,0.011,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 9
+21,2025-07-04,11:57,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,2,10,63.914,,,,N,0.134,,0.134,2.0,,,,,1.0,19.95,2025-07-04,Session: 10 - Lap 10
+22,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,1,63.876,,,,N,2.136,,0.485,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 1
+23,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,2,64.438,,,,N,2.698,,0.328,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 2
+24,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,3,61.872,,,,N,0.132,,0.132,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 3
+25,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,4,62.289,,,,N,0.549,,0.105,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 4
+26,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,5,64.11,,,,N,2.37,,0.234,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 5
+27,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,6,62.039,,,,N,0.299,,0.167,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 6
+28,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,7,62.184,,,,N,0.444,,0.1,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 7
+29,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,8,62.084,,,,N,0.344,,0.045,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 8
+30,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,9,61.74,,,,Y,0.0,,0.0,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 9
+31,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,3,10,63.391,,,,N,1.651,,1.102,3.0,,,,,0.66,19.95,2025-07-31,Session: 3 - Lap 10
+32,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,1,69.868,,,,N,7.511,,4.253,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 1
+33,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,2,65.615,,,,N,3.258,,0.279,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 2
+34,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,3,63.96,,,,N,1.603,,0.363,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 3
+35,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,4,78.746,,,,N,16.389,,8.878,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 4
+36,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,5,63.043,,,,N,0.686,,0.117,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 5
+37,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,6,64.781,,,,N,2.424,,0.821,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 6
+38,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,7,62.926,,,,N,0.569,,0.569,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 7
+39,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,8,62.357,,,,Y,0.0,,0.0,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 8
+40,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,9,63.597,,,,N,1.24,,0.554,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 9
+41,2025-07-31,12:28,Practice,1,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,4,10,65.336,,,,N,2.979,,0.555,4.0,,,,,0.69,19.95,2025-07-31,Session: 3 - Lap 10
+42,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,1,1,74.237,,,,N,12.083,,9.927,1.0,,,,,0.66,19.95,2025-07-31,Session: 5 - Lap 1
+43,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,1,2,64.31,,,,N,2.156,,0.882,1.0,,,,,0.66,19.95,2025-07-31,Session: 5 - Lap 2
+44,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,1,3,63.428,,,,N,1.274,,0.965,1.0,,,,,0.66,19.95,2025-07-31,Session: 5 - Lap 3
+45,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,1,4,62.154,,,,Y,0.0,,0.0,1.0,,,,,0.66,19.95,2025-07-31,Session: 5 - Lap 4
+46,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,1,5,62.463,,,,N,0.309,,0.309,1.0,,,,,0.66,19.95,2025-07-31,Session: 5 - Lap 5
+47,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,1,6,84.384,,,,N,22.23,,1.148,1.0,,,,,0.66,19.95,2025-07-31,Session: 5 - Lap 6
+48,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,1,7,84.855,,,,N,22.701,,0.471,1.0,,,,,0.66,19.95,2025-07-31,Session: 5 - Lap 7
+49,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,1,8,83.236,,,,N,21.082,,8.999,1.0,,,,,0.66,19.95,2025-07-31,Session: 5 - Lap 8
+50,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,1,9,93.401,,,,N,31.247,,8.546,1.0,,,,,0.66,19.95,2025-07-31,Session: 5 - Lap 9
+51,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,6,1,86.414,,,,N,21.862,,2.819,6.0,,,,,0.69,19.95,2025-07-31,Session: 5 - Lap 1
+52,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,6,2,70.519,,,,N,5.967,,4.384,6.0,,,,,0.69,19.95,2025-07-31,Session: 5 - Lap 2
+53,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,6,3,64.776,,,,N,0.224,,0.224,6.0,,,,,0.69,19.95,2025-07-31,Session: 5 - Lap 3
+54,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,6,4,66.135,,,,N,1.583,,1.359,6.0,,,,,0.69,19.95,2025-07-31,Session: 5 - Lap 4
+55,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,6,5,64.55199999999999,,,,Y,0.0,,0.0,6.0,,,,,0.69,19.95,2025-07-31,Session: 5 - Lap 5
+56,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,6,6,83.595,,,,N,19.043,,13.076,6.0,,,,,0.69,19.95,2025-07-31,Session: 5 - Lap 6
+57,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,6,7,91.985,,,,N,27.433,,3.638,6.0,,,,,0.69,19.95,2025-07-31,Session: 5 - Lap 7
+58,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,6,8,88.34700000000001,,,,N,23.795,,0.697,6.0,,,,,0.69,19.95,2025-07-31,Session: 5 - Lap 8
+59,2025-07-31,14:14,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,6,9,87.65,,,,N,23.098,,1.236,6.0,,,,,0.69,19.95,2025-07-31,Session: 5 - Lap 9
+60,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,1,66.842,,,,N,3.822,,1.726,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 1
+61,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,2,65.116,,,,N,2.096,,0.978,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 2
+62,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,3,70.288,,,,N,7.268,,3.446,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 3
+63,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,4,64.115,,,,N,1.095,,0.486,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 4
+64,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,5,63.629,,,,N,0.609,,0.041,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 5
+65,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,6,63.068,,,,N,0.048,,0.048,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 6
+66,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,7,63.02,,,,Y,0.0,,0.0,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 7
+67,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,8,63.119,,,,N,0.099,,0.051,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 8
+68,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,9,64.138,,,,N,1.118,,0.023,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 9
+69,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,10,63.538,,,,N,0.518,,0.419,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 10
+70,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,4,11,63.588,,,,N,0.568,,0.05,4.0,,,,,0.66,19.95,2025-07-31,Session: 6 - Lap 11
+71,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,1,75.226,,,,N,11.672,,2.225,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 1
+72,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,2,67.123,,,,N,3.569,,0.471,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 2
+73,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,3,66.652,,,,N,3.098,,0.274,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 3
+74,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,4,66.378,,,,N,2.824,,1.805,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 4
+75,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,5,64.57300000000001,,,,N,1.019,,0.126,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 5
+76,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,6,64.447,,,,N,0.893,,0.576,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 6
+77,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,7,63.871,,,,N,0.317,,0.17,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 7
+78,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,8,63.701,,,,N,0.147,,0.147,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 8
+79,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,9,63.554,,,,Y,0.0,,0.0,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 9
+80,2025-07-31,15:23,Practice,3,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Cas van den wittenboer,7,10,73.001,,,,N,9.447,,5.878,7.0,,,,,0.69,19.95,2025-07-31,Session: 6 - Lap 10
+81,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,1,65.423,,,,N,1.934,,0.481,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 1
+82,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,2,64.227,,,,N,0.738,,0.738,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 2
+83,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,3,71.896,,,,N,8.407,,5.338,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 3
+84,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,4,65.706,,,,N,2.217,,0.283,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 4
+85,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,5,63.489,,,,Y,0.0,,0.0,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 5
+86,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,6,64.379,,,,N,0.89,,0.115,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 6
+87,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,7,64.94200000000001,,,,N,1.453,,0.293,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 7
+88,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,8,64.649,,,,N,1.16,,0.27,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 8
+89,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,9,66.55799999999999,,,,N,3.069,,0.852,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 9
+90,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,10,72.924,,,,N,9.435,,1.028,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 10
+91,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Quinten van Wesel,2,11,64.264,,,,N,0.775,,0.037,2.0,,,,,0.91,19.95,2025-07-04,Session: 9 - Lap 11
+92,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,1,68.316,,,,N,4.117,,0.105,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 1
+93,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,2,67.014,,,,N,2.815,,1.034,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 2
+94,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,3,72.509,,,,N,8.31,,1.173,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 3
+95,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,4,65.279,,,,N,1.08,,1.08,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 4
+96,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,5,71.336,,,,N,7.137,,3.02,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 5
+97,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,6,68.211,,,,N,4.012,,1.197,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 6
+98,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,7,65.516,,,,N,1.317,,0.193,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 7
+99,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,8,65.32300000000001,,,,N,1.124,,0.044,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 8
+100,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,9,65.98,,,,N,1.781,,0.464,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 9
+101,2025-07-04,11:34,Practice,2,Circuit Park Berghem,TRK-004,Outdoor,Rainy,SMS Timing,Max van Lierop,7,10,64.199,,,,Y,0.0,,0.0,7.0,,,,,1.0,19.95,2025-07-04,Session: 9 - Lap 10
+102,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,1,47.901,,,,N,5.86,,0.121,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 1
+103,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,2,42.041,,,,Y,0.0,,0.0,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 2
+104,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,3,42.069,,,,N,0.028,,0.028,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 3
+105,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,4,52.102,,,,N,10.061,,0.262,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 4
+106,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,5,51.84,,,,N,9.799,,0.308,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 5
+107,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,6,51.532,,,,N,9.491,,0.202,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 6
+108,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,7,48.709,,,,N,6.668,,0.808,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 7
+109,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,8,42.249,,,,N,0.208,,0.18,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 8
+110,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,9,49.404,,,,N,7.363,,0.695,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 9
+111,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,10,43.51,,,,N,1.469,,1.261,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 10
+112,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,11,47.78,,,,N,5.739,,4.27,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 11
+113,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,5,12,51.33,,,,N,9.289,,1.926,5.0,,,,,1.65,19.75,2025-07-19,Session: 33 - Lap 12
+114,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,1,49.336,,,,N,6.233,,0.76,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 1
+115,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,2,43.571,,,,N,0.468,,0.468,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 2
+116,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,3,43.103,,,,Y,0.0,,0.0,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 3
+117,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,4,45.587,,,,N,2.484,,0.094,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 4
+118,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,5,45.493,,,,N,2.39,,0.22,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 5
+119,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,6,47.926,,,,N,4.823,,1.311,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 6
+120,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,7,50.496,,,,N,7.393,,0.936,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 7
+121,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,8,45.273,,,,N,2.17,,1.702,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 8
+122,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,9,46.615,,,,N,3.512,,1.028,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 9
+123,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,10,48.576,,,,N,5.473,,0.65,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 10
+124,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,11,49.56,,,,N,6.457,,0.224,9.0,,,,,1.8,19.75,2025-07-19,Session: 33 - Lap 11
+125,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,1,55.309,,,,N,10.953,,0.732,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 1
+126,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,2,45.516,,,,N,1.16,,0.09,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 2
+127,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,3,44.356,,,,Y,0.0,,0.0,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 3
+128,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,4,45.426,,,,N,1.07,,0.077,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 4
+129,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,5,45.349,,,,N,0.993,,0.074,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 5
+130,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,6,54.577,,,,N,10.221,,5.556,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 6
+131,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,7,49.021,,,,N,4.665,,0.539,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 7
+132,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,8,48.482,,,,N,4.126,,2.966,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 8
+133,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,9,57.41,,,,N,13.054,,2.101,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 9
+134,2025-07-19,13:39,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Twan van Teeseling,11,10,45.275,,,,N,0.919,,0.919,11.0,,,,,1.98,19.75,2025-07-19,Session: 33 - Lap 10
+135,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,1,52.68,,,,N,11.118,,5.514,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 1
+136,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,2,45.502,,,,N,3.94,,1.101,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 2
+137,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,3,47.102,,,,N,5.54,,1.6,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 3
+138,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,4,43.768,,,,N,2.206,,0.3,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 4
+139,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,5,42.077,,,,N,0.515,,0.36,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 5
+140,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,6,52.896,,,,N,11.334,,0.216,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 6
+141,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,7,41.562,,,,Y,0.0,,0.0,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 7
+142,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,8,44.401,,,,N,2.839,,0.35,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 8
+143,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,9,44.051,,,,N,2.489,,0.283,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 9
+144,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,10,41.717,,,,N,0.155,,0.155,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 10
+145,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,11,43.468,,,,N,1.906,,1.391,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 11
+146,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,1,12,47.166,,,,N,5.604,,0.064,1.0,,,,,1.56,18.75,2025-07-16,Session: 52 - Lap 12
+147,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,1,43.778,,,,N,2.196,,0.667,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 1
+148,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,2,55.961,,,,N,14.379,,9.563,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 2
+149,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,3,46.398,,,,N,4.816,,0.902,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 3
+150,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,4,45.071,,,,N,3.489,,1.077,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 4
+151,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,5,45.496,,,,N,3.914,,0.425,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 5
+152,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,6,43.032,,,,N,1.45,,0.613,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 6
+153,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,7,41.582,,,,Y,0.0,,0.0,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 7
+154,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,8,43.111,,,,N,1.529,,0.079,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 8
+155,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,9,43.994,,,,N,2.412,,0.216,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 9
+156,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,10,42.419,,,,N,0.837,,0.837,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 10
+157,2025-07-16,17:25,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,11,58.802,,,,N,17.22,,2.841,2.0,,,,,0.82,18.75,2025-07-16,Session: 52 - Lap 11
+158,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,1,49.87,,,,N,7.871,,1.511,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 1
+159,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,2,48.359,,,,N,6.36,,0.614,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 2
+160,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,3,47.745,,,,N,5.746,,0.589,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 3
+161,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,4,56.692,,,,N,14.693,,6.822,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 4
+162,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,5,42.544,,,,N,0.545,,0.235,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 5
+163,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,6,41.999,,,,Y,0.0,,0.0,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 6
+164,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,7,42.631,,,,N,0.632,,0.087,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 7
+165,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,8,42.151,,,,N,0.152,,0.152,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 8
+166,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,9,42.309,,,,N,0.31,,0.158,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 9
+167,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,10,45.191,,,,N,3.192,,2.56,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 10
+168,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,11,47.156,,,,N,5.157,,0.468,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 11
+169,2025-07-16,17:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,12,46.688,,,,N,4.689,,1.497,6.0,,,,,0.82,18.75,2025-07-16,Session: 55 - Lap 12
+170,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,1,44.869,,,,N,4.59,,1.514,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 1
+171,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,2,43.355,,,,N,3.076,,0.114,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 2
+172,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,3,42.162,,,,N,1.883,,0.057,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 3
+173,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,4,41.274,,,,N,0.995,,0.416,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 4
+174,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,5,43.241,,,,N,2.962,,1.079,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 5
+175,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,6,41.865,,,,N,1.586,,0.591,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 6
+176,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,7,42.105,,,,N,1.826,,0.24,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 7
+177,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,8,40.858,,,,N,0.579,,0.006,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 8
+178,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,9,40.816,,,,N,0.537,,0.124,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 9
+179,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,10,40.831,,,,N,0.552,,0.015,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 10
+180,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,11,40.692,,,,N,0.413,,0.413,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 11
+181,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,12,40.279,,,,Y,0.0,,0.0,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 12
+182,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,8,13,40.852,,,,N,0.573,,0.021,8.0,,,,,0.75,18.75,2025-07-20,Session: 56 - Lap 13
+183,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,1,45.662,,,,N,4.877,,1.772,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 1
+184,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,2,43.89,,,,N,3.105,,0.387,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 2
+185,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,3,47.426,,,,N,6.641,,1.764,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 3
+186,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,4,42.398,,,,N,1.613,,0.021,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 4
+187,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,5,43.503,,,,N,2.718,,0.317,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 5
+188,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,6,43.186,,,,N,2.401,,0.788,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 6
+189,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,7,41.7,,,,N,0.915,,0.207,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 7
+190,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,8,40.922,,,,N,0.137,,0.137,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 8
+191,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,9,40.785,,,,Y,0.0,,0.0,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 9
+192,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,10,42.377,,,,N,1.592,,0.677,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 10
+193,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,11,41.379,,,,N,0.594,,0.457,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 11
+194,2025-07-20,18:11,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,12,41.493,,,,N,0.708,,0.114,6.0,,,,,0.78,18.75,2025-07-20,Session: 56 - Lap 12
+195,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,1,44.418,,,,N,3.639,,1.068,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 1
+196,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,2,41.013,,,,N,0.234,,0.004,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 2
+197,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,3,40.779,,,,Y,0.0,,0.0,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 3
+198,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,4,57.714,,,,N,16.935,,5.576,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 4
+199,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,5,40.985,,,,N,0.206,,0.206,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 5
+200,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,6,42.628,,,,N,1.849,,1.019,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 6
+201,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,7,52.138,,,,N,11.359,,6.973,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 7
+202,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,8,41.609,,,,N,0.83,,0.596,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 8
+203,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,9,41.009,,,,N,0.23,,0.024,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 9
+204,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,10,43.271,,,,N,2.492,,0.643,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 10
+205,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,11,45.165,,,,N,4.386,,0.747,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 11
+206,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,12,43.35,,,,N,2.571,,0.079,4.0,,,,,0.75,18.75,2025-07-20,Session: 60 - Lap 12
+207,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,1,45.302,,,,N,3.89,,0.776,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 1
+208,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,2,42.912,,,,N,1.5,,0.23,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 2
+209,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,3,41.565,,,,N,0.153,,0.153,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 3
+210,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,4,42.682,,,,N,1.27,,0.608,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 4
+211,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,5,44.456,,,,N,3.044,,1.299,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 5
+212,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,6,42.074,,,,N,0.662,,0.073,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 6
+213,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,7,46.296,,,,N,4.884,,0.994,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 7
+214,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,8,43.087,,,,N,1.675,,0.175,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 8
+215,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,9,43.157,,,,N,1.745,,0.07,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 9
+216,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,10,42.001,,,,N,0.589,,0.436,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 10
+217,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,11,41.412,,,,Y,0.0,,0.0,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 11
+218,2025-07-20,19:01,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,8,12,44.526,,,,N,3.114,,0.07,8.0,,,,,0.78,18.75,2025-07-20,Session: 60 - Lap 12
+219,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,1,45.108,,,,N,4.18,,2.258,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 1
+220,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,2,42.088,,,,N,1.16,,0.073,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 2
+221,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,3,41.697,,,,N,0.769,,0.499,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 3
+222,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,4,42.85,,,,N,1.922,,0.514,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 4
+223,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,5,47.167,,,,N,6.239,,2.059,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 5
+224,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,6,47.565,,,,N,6.637,,0.398,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 6
+225,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,7,41.198,,,,N,0.27,,0.093,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 7
+226,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,8,42.336,,,,N,1.408,,0.248,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 8
+227,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,9,42.015,,,,N,1.087,,0.108,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 9
+228,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,10,40.928,,,,Y,0.0,,0.0,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 10
+229,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,11,41.907,,,,N,0.979,,0.21,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 11
+230,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,2,12,41.105,,,,N,0.177,,0.177,2.0,,,,,1.56,18.75,2025-09-14,Session: 62 - Lap 12
+231,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,1,45.38,,,,N,4.027,,0.127,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 1
+232,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,2,42.007,,,,N,0.654,,0.103,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 2
+233,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,3,41.575,,,,N,0.222,,0.222,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 3
+234,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,4,44.024,,,,N,2.671,,2.017,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 4
+235,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,5,45.253,,,,N,3.9,,0.383,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 5
+236,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,6,47.508,,,,N,6.155,,2.128,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 6
+237,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,7,41.801,,,,N,0.448,,0.002,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 7
+238,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,8,44.87,,,,N,3.517,,0.846,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 8
+239,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,9,41.799,,,,N,0.446,,0.224,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 9
+240,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,10,41.353,,,,Y,0.0,,0.0,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 10
+241,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,11,41.904,,,,N,0.551,,0.103,6.0,,,,,0.82,18.75,2025-09-14,Session: 62 - Lap 11
+242,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,1,53.92,,,,N,9.81,,5.098,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 1
+243,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,2,47.907,,,,N,3.797,,2.316,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 2
+244,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,3,44.339,,,,N,0.229,,0.222,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 3
+245,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,4,44.709,,,,N,0.599,,0.37,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 4
+246,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,5,45.155,,,,N,1.045,,0.446,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 5
+247,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,6,48.822,,,,N,4.712,,0.915,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 6
+248,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,7,44.11,,,,Y,0.0,,0.0,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 7
+249,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,8,45.591,,,,N,1.481,,0.394,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 8
+250,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,9,45.197,,,,N,1.087,,0.042,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 9
+251,2025-09-14,19:17,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,13,10,44.117,,,,N,0.007,,0.007,13.0,,,,,1.88,18.75,2025-09-14,Session: 62 - Lap 10
+252,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,1,46.932,,,,N,6.443,,0.103,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 1
+253,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,2,41.057,,,,N,0.568,,0.135,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 2
+254,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,3,40.922,,,,N,0.433,,0.415,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 3
+255,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,4,41.66,,,,N,1.171,,0.301,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 4
+256,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,5,40.489,,,,Y,0.0,,0.0,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 5
+257,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,6,46.829,,,,N,6.34,,4.198,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 6
+258,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,7,42.631,,,,N,2.142,,0.781,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 7
+259,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,8,41.85,,,,N,1.361,,0.19,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 8
+260,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,9,40.507,,,,N,0.018,,0.018,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 9
+261,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,10,41.061,,,,N,0.572,,0.004,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 10
+262,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,11,41.359,,,,N,0.87,,0.298,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 11
+263,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,3,12,54.004,,,,N,13.515,,7.072,3.0,,,,,0.78,18.75,2025-09-28,Session: 63 - Lap 12
+264,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,1,51.772,,,,N,10.236,,5.927,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 1
+265,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,2,42.067,,,,N,0.531,,0.286,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 2
+266,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,3,43.323,,,,N,1.787,,1.232,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 3
+267,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,4,41.63,,,,N,0.094,,0.094,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 4
+268,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,5,45.845,,,,N,4.309,,0.039,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 5
+269,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,6,44.914,,,,N,3.378,,1.357,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 6
+270,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,7,43.557,,,,N,2.021,,0.234,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 7
+271,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,8,42.091,,,,N,0.555,,0.024,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 8
+272,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,9,41.536,,,,Y,0.0,,0.0,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 9
+273,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,10,41.781,,,,N,0.245,,0.151,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 10
+274,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,11,45.806,,,,N,4.27,,0.892,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 11
+275,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,12,52.547,,,,N,11.011,,0.775,6.0,,,,,0.82,18.75,2025-09-28,Session: 63 - Lap 12
+276,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,1,49.38,,,,N,4.548,,1.661,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 1
+277,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,2,46.356,,,,N,1.524,,0.749,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 2
+278,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,3,45.283,,,,N,0.451,,0.075,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 3
+279,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,4,45.208,,,,N,0.376,,0.284,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 4
+280,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,5,51.692,,,,N,6.86,,2.312,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 5
+281,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,6,44.903,,,,N,0.071,,0.071,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 6
+282,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,7,45.607,,,,N,0.775,,0.324,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 7
+283,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,8,44.832,,,,Y,0.0,,0.0,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 8
+284,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,9,44.924,,,,N,0.092,,0.021,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 9
+285,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,10,47.719,,,,N,2.887,,1.363,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 10
+286,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,15,11,51.727,,,,N,6.895,,0.035,15.0,,,,,0.94,18.75,2025-09-28,Session: 63 - Lap 11
+287,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,1,51.829,,,,N,4.961,,0.864,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 1
+288,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,2,48.748,,,,N,1.88,,1.276,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 2
+289,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,3,50.965,,,,N,4.097,,0.634,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 3
+290,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,4,46.868,,,,Y,0.0,,0.0,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 4
+291,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,5,55.062,,,,N,8.194,,1.998,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 5
+292,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,6,50.331,,,,N,3.463,,1.583,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 6
+293,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,7,53.064,,,,N,6.196,,0.145,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 7
+294,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,8,52.919,,,,N,6.051,,1.09,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 8
+295,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,9,47.472,,,,N,0.604,,0.604,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 9
+296,2025-09-28,19:27,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,16,10,56.721,,,,N,9.853,,1.659,16.0,,,,,0.89,18.75,2025-09-28,Session: 63 - Lap 10
+297,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,1,41.841,,,,N,0.959,,0.291,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 1
+298,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,2,44.63,,,,N,3.748,,1.159,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 2
+299,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,3,42.02,,,,N,1.138,,0.179,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 3
+300,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,4,43.471,,,,N,2.589,,1.328,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 4
+301,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,5,41.509,,,,N,0.627,,0.338,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 5
+302,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,6,45.874,,,,N,4.992,,1.244,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 6
+303,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,7,41.123,,,,N,0.241,,0.241,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 7
+304,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,8,42.143,,,,N,1.261,,0.123,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 8
+305,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,9,41.171,,,,N,0.289,,0.023,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 9
+306,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,10,41.148,,,,N,0.266,,0.025,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 10
+307,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,11,41.55,,,,N,0.668,,0.041,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 11
+308,2025-09-14,19:39,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,2,12,40.882,,,,Y,0.0,,0.0,2.0,,,,,0.82,18.75,2025-09-14,Session: 64 - Lap 12
+309,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,1,48.186,,,,N,6.947,,4.53,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 1
+310,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,2,42.635,,,,N,1.396,,0.744,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 2
+311,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,3,41.891,,,,N,0.652,,0.104,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 3
+312,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,4,41.572,,,,N,0.333,,0.049,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 4
+313,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,5,43.656,,,,N,2.417,,1.021,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 5
+314,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,6,41.27,,,,N,0.031,,0.031,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 6
+315,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,7,41.523,,,,N,0.284,,0.253,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 7
+316,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,8,41.787,,,,N,0.548,,0.215,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 8
+317,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,9,48.475,,,,N,7.236,,0.289,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 9
+318,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,10,41.239,,,,Y,0.0,,0.0,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 10
+319,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,11,52.265,,,,N,11.026,,3.79,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 11
+320,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Cas van den wittenboer,4,12,55.45,,,,N,14.211,,3.185,4.0,,,,,0.78,18.75,2025-09-28,Session: 65 - Lap 12
+321,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,1,47.107,,,,N,5.833,,1.538,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 1
+322,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,2,42.797,,,,N,1.523,,1.085,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 2
+323,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,3,41.427,,,,N,0.153,,0.015,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 3
+324,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,4,41.578,,,,N,0.304,,0.151,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 4
+325,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,5,41.712,,,,N,0.438,,0.132,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 5
+326,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,6,41.412,,,,N,0.138,,0.138,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 6
+327,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,7,41.274,,,,Y,0.0,,0.0,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 7
+328,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,8,41.58,,,,N,0.306,,0.002,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 8
+329,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,9,43.547,,,,N,2.273,,0.704,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 9
+330,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,10,45.569,,,,N,4.295,,2.022,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 10
+331,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,6,11,42.843,,,,N,1.569,,0.046,6.0,,,,,0.82,18.75,2025-09-28,Session: 65 - Lap 11
+332,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,1,48.485,,,,N,5.138,,0.092,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 1
+333,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,2,45.11,,,,N,1.763,,0.84,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 2
+334,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,3,44.27,,,,N,0.923,,0.105,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 3
+335,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,4,43.787,,,,N,0.44,,0.109,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 4
+336,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,5,43.347,,,,Y,0.0,,0.0,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 5
+337,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,6,43.53,,,,N,0.183,,0.183,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 6
+338,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,7,43.678,,,,N,0.331,,0.148,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 7
+339,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,8,48.393,,,,N,5.046,,3.283,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 8
+340,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,9,49.66,,,,N,6.313,,1.175,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 9
+341,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,10,44.165,,,,N,0.818,,0.378,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 10
+342,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,ling liu,9,11,56.839,,,,N,13.492,,7.179,9.0,,,,,0.89,18.75,2025-09-28,Session: 65 - Lap 11
+343,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,11,1,49.086,,,,N,2.221,,0.56,11.0,,,,,0.94,18.75,2025-09-28,Session: 65 - Lap 1
+344,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,11,2,46.865,,,,Y,0.0,,0.0,11.0,,,,,0.94,18.75,2025-09-28,Session: 65 - Lap 2
+345,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,11,3,48.526,,,,N,1.661,,0.522,11.0,,,,,0.94,18.75,2025-09-28,Session: 65 - Lap 3
+346,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,11,4,47.343,,,,N,0.478,,0.478,11.0,,,,,0.94,18.75,2025-09-28,Session: 65 - Lap 4
+347,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,11,5,47.987,,,,N,1.122,,0.644,11.0,,,,,0.94,18.75,2025-09-28,Session: 65 - Lap 5
+348,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,11,6,48.004,,,,N,1.139,,0.017,11.0,,,,,0.94,18.75,2025-09-28,Session: 65 - Lap 6
+349,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,11,7,52.741,,,,N,5.876,,3.655,11.0,,,,,0.94,18.75,2025-09-28,Session: 65 - Lap 7
+350,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,11,8,53.331,,,,N,6.466,,0.59,11.0,,,,,0.94,18.75,2025-09-28,Session: 65 - Lap 8
+351,2025-09-28,19:54,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Jasmijn Fens,11,9,55.33,,,,N,8.465,,1.999,11.0,,,,,0.94,18.75,2025-09-28,Session: 65 - Lap 9
+352,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,1,40.935,,,,Y,0.0,,0.0,3.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 1
+353,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,2,43.408,,,,N,2.473,,1.692,3.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 2
+354,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,3,44.854,,,,N,3.919,,1.446,3.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 3
+355,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,4,41.716,,,,N,0.781,,0.781,3.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 4
+356,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,5,55.636,,,,N,14.701,,10.782,3.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 5
+357,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,14,1,43.428,,,,N,0.415,,0.415,14.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 1
+358,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,14,2,46.218,,,,N,3.205,,2.79,14.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 2
+359,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,14,3,46.614,,,,N,3.601,,0.396,14.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 3
+360,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,14,4,43.013,,,,Y,0.0,,0.0,14.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 4
+361,2025-10-17,20:12,Practice,1,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,14,5,57.856,,,,N,14.843,,11.242,14.0,,,,,0.54,16.67,2025-10-17,Session: 66 - Lap 5
+362,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,1,47.153,,,,N,6.766,,5.306,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 1
+363,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,2,41.847,,,,N,1.46,,0.015,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 2
+364,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,3,41.832,,,,N,1.445,,0.293,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 3
+365,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,4,41.539,,,,N,1.152,,0.159,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 4
+366,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,5,41.362,,,,N,0.975,,0.034,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 5
+367,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,6,40.899,,,,N,0.512,,0.118,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 6
+368,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,7,40.749,,,,N,0.362,,0.169,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 7
+369,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,8,40.781,,,,N,0.394,,0.032,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 8
+370,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,9,40.58,,,,N,0.193,,0.193,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 9
+371,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,10,41.328,,,,N,0.941,,0.429,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 10
+372,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,11,40.387,,,,Y,0.0,,0.0,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 11
+373,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,12,41.38,,,,N,0.993,,0.018,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 12
+374,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,7,13,51.045,,,,N,10.658,,3.892,7.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 13
+375,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,1,45.027,,,,N,4.093,,1.591,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 1
+376,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,2,42.115,,,,N,1.181,,0.479,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 2
+377,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,3,43.1,,,,N,2.166,,0.985,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 3
+378,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,4,43.436,,,,N,2.502,,0.336,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 4
+379,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,5,41.636,,,,N,0.702,,0.072,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 5
+380,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,6,41.375,,,,N,0.441,,0.093,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 6
+381,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,7,41.564,,,,N,0.63,,0.189,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 7
+382,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,8,41.096,,,,N,0.162,,0.059,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 8
+383,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,9,41.037,,,,N,0.103,,0.103,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 9
+384,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,10,40.934,,,,Y,0.0,,0.0,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 10
+385,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,11,41.214,,,,N,0.28,,0.118,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 11
+386,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,12,41.282,,,,N,0.348,,0.068,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 12
+387,2025-10-17,20:59,Practice,2,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,4,13,49.682,,,,N,8.748,,4.655,4.0,,,,,0.54,16.67,2025-10-17,Session: 70 - Lap 13
+388,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,1,43.374,,,,N,2.992,,1.391,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 1
+389,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,2,41.983,,,,N,1.601,,0.106,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 2
+390,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,3,41.877,,,,N,1.495,,0.063,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 3
+391,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,4,41.256,,,,N,0.874,,0.277,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 4
+392,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,5,41.814,,,,N,1.432,,0.417,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 5
+393,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,6,41.397,,,,N,1.015,,0.141,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 6
+394,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,7,40.627,,,,N,0.245,,0.245,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 7
+395,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,8,40.979,,,,N,0.597,,0.056,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 8
+396,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,9,40.923,,,,N,0.541,,0.068,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 9
+397,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,10,40.855,,,,N,0.473,,0.121,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 10
+398,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,11,40.382,,,,Y,0.0,,0.0,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 11
+399,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,12,40.734,,,,N,0.352,,0.107,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 12
+400,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Quinten van Wesel,8,13,46.659,,,,N,6.277,,3.285,8.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 13
+401,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,1,43.342,,,,N,2.657,,0.709,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 1
+402,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,2,41.626,,,,N,0.941,,0.094,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 2
+403,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,3,41.279,,,,N,0.594,,0.31,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 3
+404,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,4,42.633,,,,N,1.948,,0.602,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 4
+405,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,5,42.031,,,,N,1.346,,0.108,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 5
+406,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,6,40.873,,,,N,0.188,,0.178,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 6
+407,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,7,40.685,,,,Y,0.0,,0.0,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 7
+408,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,8,41.532,,,,N,0.847,,0.253,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 8
+409,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,9,40.944,,,,N,0.259,,0.071,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 9
+410,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,10,41.923,,,,N,1.238,,0.297,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 10
+411,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,11,40.695,,,,N,0.01,,0.01,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 11
+412,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,12,40.969,,,,N,0.284,,0.025,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 12
+413,2025-10-17,21:57,Practice,3,De Voltage,TRK-002,Indoor,Indoor,SMS Timing,Max van Lierop,9,13,46.564,,,,N,5.879,,3.222,9.0,,,,,0.54,16.67,2025-10-17,Session: 75 - Lap 13
+414,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,1,76.056,31.316,21.454,23.286,N,6.755,,0.353,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 1
+415,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,2,71.132,26.338,21.675,23.119,N,1.831,,0.264,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 2
+416,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,3,74.492,25.926,23.679,24.887,N,5.191,,2.051,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 3
+417,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,4,75.094,26.254,22.353,26.487,N,5.793,,0.602,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 4
+418,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,5,72.441,28.012,21.617,22.812,N,3.14,,0.479,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 5
+419,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,6,70.868,25.782,21.482,23.604,N,1.567,,0.276,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 6
+420,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,7,71.962,26.131,21.852,23.979,N,2.661,,0.83,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 7
+421,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,8,80.138,25.663,30.616,23.859,N,10.837,,4.082,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 8
+422,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,9,75.703,30.633,21.791,23.279,N,6.402,,0.609,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 9
+423,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,10,69.301,25.403,21.359,22.539,Y,0.0,,0.0,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 10
+424,2025-08-26,19:00,Practice,1,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Max van Lierop,1,11,70.592,25.95,21.648,22.994,N,1.291,,1.291,,,,,,2.14,23.5,2025-08-26,Session: EFA-49 - Lap 11
+425,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,1,77.457,30.688,22.264,24.505,N,8.224,,6.021,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 1
+426,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,2,82.248,37.223,21.623,23.402,N,13.015,,2.137,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 2
+427,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,3,92.459,25.547,44.079,22.833,N,23.226,,10.211,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 3
+428,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,4,70.61,26.308,21.504,22.798,N,1.377,,0.546,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 4
+429,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,5,71.436,25.345,21.712,24.379,N,2.203,,0.826,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 5
+430,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,6,69.765,25.028,21.255,23.482,N,0.532,,0.532,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 6
+431,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,7,97.796,25.467,47.394,24.935,N,28.563,,5.337,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 7
+432,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,8,80.111,35.735,21.375,23.001,N,10.878,,2.654,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 8
+433,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,9,70.064,25.023,22.111,22.93,N,0.831,,0.299,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 9
+434,2025-08-26,19:00,Practice,2,Experience Factory Antwerp,TRK-003,Indoor,Indoor,SMS Timing,Quinten van Wesel,3,10,69.233,24.973,21.157,23.103,Y,0.0,,0.0,,,,,,2.35,23.5,2025-08-26,Session: EFA-49 - Lap 10
+435,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,1,38.542,,,,N,2.868,,2.868,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 1
+436,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,2,37.536,,,,N,1.862,,1.862,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 2
+437,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,3,37.183,,,,N,1.509,,1.509,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 3
+438,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,4,37.46,,,,N,1.786,,1.786,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 4
+439,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,5,37.088,,,,N,1.414,,1.414,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 5
+440,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,6,37.059,,,,N,1.385,,1.385,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 6
+441,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,7,36.578,,,,N,0.904,,0.904,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 7
+442,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,8,36.947,,,,N,1.273,,1.273,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 8
+443,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,9,36.757,,,,N,1.083,,1.083,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 9
+444,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,10,36.774,,,,N,1.1,,1.1,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 10
+445,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,11,36.372,,,,N,0.698,,0.698,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 11
+446,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,12,36.957,,,,N,1.283,,1.283,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 12
+447,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,13,37.389,,,,N,1.715,,1.715,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 13
+448,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,14,36.301,,,,N,0.627,,0.627,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 14
+449,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,15,35.674,,,,Y,0.0,,0.0,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 15
+450,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,16,36.513,,,,N,0.839,,0.839,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 16
+451,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,17,36.037,,,,N,0.363,,0.363,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 17
+452,2025-10-24,16:00,Practice,1,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Max van Lierop,1,18,36.062,,,,N,0.388,,0.388,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 18
+453,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,1,38.923,,,,N,2.543,,2.543,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 1
+454,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,2,39.987,,,,N,3.607,,3.607,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 2
+455,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,3,37.606,,,,N,1.226,,1.226,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 3
+456,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,4,37.358,,,,N,0.978,,0.978,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 4
+457,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,5,37.397,,,,N,1.017,,1.017,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 5
+458,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,6,36.975,,,,N,0.595,,0.595,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 6
+459,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,7,36.799,,,,N,0.419,,0.419,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 7
+460,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,8,36.598,,,,N,0.218,,0.218,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 8
+461,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,9,37.004,,,,N,0.624,,0.624,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 9
+462,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,10,37.138,,,,N,0.758,,0.758,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 10
+463,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,11,36.958,,,,N,0.578,,0.578,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 11
+464,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,12,38.54,,,,N,2.16,,2.16,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 12
+465,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,13,37.781,,,,N,1.401,,1.401,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 13
+466,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,14,36.63,,,,N,0.25,,0.25,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 14
+467,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,15,36.883,,,,N,0.503,,0.503,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 15
+468,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,16,36.453,,,,N,0.073,,0.073,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 16
+469,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,17,36.671,,,,N,0.291,,0.291,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 17
+470,2025-10-24,16:00,Practice,2,Goodwill Karting,TRK-005,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,18,36.38,,,,Y,0.0,,0.0,1.0,,,,,0.74,13.3,2025-10-24,Session: 7 - Lap 18
+471,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,1,35.56,,,,N,4.643,,2.018,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 1
+472,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,2,33.092,,,,N,2.175,,0.142,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 2
+473,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,3,32.242,,,,N,1.325,,0.151,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 3
+474,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,4,32.091,,,,N,1.174,,0.174,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 4
+475,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,5,33.185,,,,N,2.268,,0.093,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 5
+476,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,6,31.554,,,,N,0.637,,0.552,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 6
+477,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,7,31.917,,,,N,1.0,,0.363,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 7
+478,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,8,30.962,,,,N,0.045,,0.045,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 8
+479,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,9,30.917,,,,Y,0.0,,0.0,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 9
+480,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,10,32.714,,,,N,1.797,,0.2,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 10
+481,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,11,31.002,,,,N,0.085,,0.04,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 11
+482,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,12,54.66,,,,N,23.743,,19.1,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 12
+483,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,13,33.542,,,,N,2.625,,0.357,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 13
+484,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,14,32.514,,,,N,1.597,,0.272,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 14
+485,2022-03-19,17:00,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,15,32.95,,,,N,2.033,,0.236,1.0,,,,,2.0,30.0,2022-03-19,Session: 1 - Lap 15
+486,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,1,30.108,,,,N,3.596,,1.422,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 1
+487,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,2,28.191,,,,N,1.679,,0.283,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 2
+488,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,3,28.265,,,,N,1.753,,0.074,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 3
+489,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,4,27.646,,,,N,1.134,,0.091,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 4
+490,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,5,27.36,,,,N,0.848,,0.017,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 5
+491,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,6,27.343,,,,N,0.831,,0.107,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 6
+492,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,7,27.733,,,,N,1.221,,0.073,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 7
+493,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,8,27.236,,,,N,0.724,,0.05,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 8
+494,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,9,27.908,,,,N,1.396,,0.149,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 9
+495,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,10,27.48,,,,N,0.968,,0.088,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 10
+496,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,11,27.759,,,,N,1.247,,0.026,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 11
+497,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,12,27.555,,,,N,1.043,,0.075,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 12
+498,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,13,28.647,,,,N,2.135,,0.382,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 13
+499,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,14,26.613,,,,N,0.101,,0.101,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 14
+500,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,15,28.686,,,,N,2.174,,0.039,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 15
+501,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,16,27.392,,,,N,0.88,,0.031,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 16
+502,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,17,26.512,,,,Y,0.0,,0.0,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 17
+503,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,18,27.186,,,,N,0.674,,0.136,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 18
+504,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,19,27.05,,,,N,0.538,,0.437,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 19
+505,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,20,27.361,,,,N,0.849,,0.001,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 20
+506,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,21,27.66,,,,N,1.148,,0.014,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 21
+507,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,1,38.549,,,,N,12.648,,10.673,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 1
+508,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,2,27.228,,,,N,1.327,,0.079,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 2
+509,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,3,26.999,,,,N,1.098,,0.063,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 3
+510,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,4,26.812,,,,N,0.911,,0.057,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 4
+511,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,5,27.149,,,,N,1.248,,0.056,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 5
+512,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,6,26.679,,,,N,0.778,,0.052,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 6
+513,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,7,26.627,,,,N,0.726,,0.057,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 7
+514,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,8,27.093,,,,N,1.192,,0.079,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 8
+515,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,9,26.936,,,,N,1.035,,0.124,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 9
+516,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,10,26.421,,,,N,0.52,,0.206,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 10
+517,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,11,26.57,,,,N,0.669,,0.008,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 11
+518,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,12,26.215,,,,N,0.314,,0.134,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 12
+519,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,13,27.307,,,,N,1.406,,0.079,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 13
+520,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,14,25.901,,,,Y,0.0,,0.0,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 14
+521,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,15,26.015,,,,N,0.114,,0.114,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 15
+522,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,16,26.755,,,,N,0.854,,0.021,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 16
+523,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,17,26.081,,,,N,0.18,,0.066,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 17
+524,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,18,26.562,,,,N,0.661,,0.141,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 18
+525,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,19,26.734,,,,N,0.833,,0.055,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 19
+526,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,20,27.876,,,,N,1.975,,0.569,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 20
+527,2024-10-26,17:51,Practice,1,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,21,27.014,,,,N,1.113,,0.015,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 21
+528,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,1,30.886,,,,N,4.928,,1.098,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 1
+529,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,2,27.961,,,,N,2.003,,0.229,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 2
+530,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,3,27.732,,,,N,1.774,,0.047,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 3
+531,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,4,27.55,,,,N,1.592,,0.116,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 4
+532,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,5,27.285,,,,N,1.327,,0.093,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 5
+533,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,6,27.434,,,,N,1.476,,0.149,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 6
+534,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,7,27.685,,,,N,1.727,,0.135,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 7
+535,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,8,29.788,,,,N,3.83,,1.827,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 8
+536,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,9,26.444,,,,N,0.486,,0.128,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 9
+537,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,10,26.854,,,,N,0.896,,0.048,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 10
+538,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,11,26.461,,,,N,0.503,,0.017,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 11
+539,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,12,26.575,,,,N,0.617,,0.059,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 12
+540,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,13,26.806,,,,N,0.848,,0.156,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 13
+541,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,14,26.65,,,,N,0.692,,0.075,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 14
+542,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,15,26.145,,,,N,0.187,,0.187,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 15
+543,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,16,26.516,,,,N,0.558,,0.055,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 16
+544,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,17,27.087,,,,N,1.129,,0.233,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 17
+545,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,18,25.958,,,,Y,0.0,,0.0,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 18
+546,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,19,26.316,,,,N,0.358,,0.033,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 19
+547,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,20,26.283,,,,N,0.325,,0.138,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 20
+548,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Quinten van Wesel,1,21,27.192,,,,N,1.234,,0.105,1.0,,,,,0.71,30.0,2024-10-26,Session: 1 - Lap 21
+549,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,1,30.319,,,,N,4.33,,2.016,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 1
+550,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,2,28.303,,,,N,2.314,,0.366,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 2
+551,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,3,26.993,,,,N,1.004,,0.078,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 3
+552,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,4,27.366,,,,N,1.377,,0.016,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 4
+553,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,5,26.563,,,,N,0.574,,0.005,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 5
+554,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,6,26.878,,,,N,0.889,,0.112,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 6
+555,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,7,26.684,,,,N,0.695,,0.121,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 7
+556,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,8,27.553,,,,N,1.564,,0.187,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 8
+557,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,9,27.125,,,,N,1.136,,0.066,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 9
+558,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,10,26.688,,,,N,0.699,,0.004,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 10
+559,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,11,26.915,,,,N,0.926,,0.027,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 11
+560,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,12,26.558,,,,N,0.569,,0.186,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 12
+561,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,13,26.888,,,,N,0.899,,0.01,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 13
+562,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,14,26.372,,,,N,0.383,,0.383,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 14
+563,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,15,26.727,,,,N,0.738,,0.039,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 15
+564,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,16,27.35,,,,N,1.361,,0.082,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 16
+565,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,17,27.268,,,,N,1.279,,0.143,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 17
+566,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,18,25.989,,,,Y,0.0,,0.0,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 18
+567,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,19,27.937,,,,N,1.948,,0.384,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 19
+568,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,20,27.059,,,,N,1.07,,0.066,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 20
+569,2024-10-26,18:30,Practice,2,Lot66,TRK-006,Indoor,Indoor,SMS Timing,Max van Lierop,1,21,26.766,,,,N,0.777,,0.039,1.0,,,,,0.71,30.0,2024-10-26,Session: 2 - Lap 21

@@ -86,6 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/upload/preview', [UploadController::class, 'preview']);
         Route::post('/upload/import', [UploadController::class, 'import']);
         Route::post('/upload/manual-entry', [UploadController::class, 'manualEntry']);
+        Route::post('/upload/batch', [UploadController::class, 'batchUpload']);
         
         // EML Upload
         Route::post('/sessions/upload-eml', [EmlUploadController::class, 'parseEml']);
