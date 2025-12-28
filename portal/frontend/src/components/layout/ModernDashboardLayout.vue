@@ -51,6 +51,20 @@
           </router-link>
         </div>
 
+        <div class="nav-section">
+          <div class="nav-section-title">👤 USER</div>
+          <router-link 
+            v-for="item in userMenu" 
+            :key="item.path"
+            :to="item.path"
+            class="nav-item"
+            :class="{ 'active': $route.path === item.path }"
+          >
+            <span class="nav-icon">{{ item.icon }}</span>
+            <span class="nav-label">{{ item.label }}</span>
+          </router-link>
+        </div>
+
         <div class="nav-section" v-if="isAdmin">
           <div class="nav-section-title">⚙️ MANAGEMENT</div>
           <router-link 
@@ -75,6 +89,11 @@
       <!-- Version -->
       <div class="version-display">
         {{ currentVersion }}
+      </div>
+      
+      <!-- Data Points Counter -->
+      <div class="data-points-display">
+        {{ dataPointsCount }}
       </div>
     </aside>
 
@@ -102,7 +121,7 @@
             <span class="notification-badge">3</span>
             <i class="fa-solid fa-bell"></i>
           </button>
-          <button class="icon-btn" title="Settings">
+          <button class="icon-btn" title="Settings" @click="navigateToSettings">
             <i class="fa-solid fa-gear"></i>
           </button>
         </div>
@@ -124,15 +143,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import apiService from '@/services/api'
 
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
 const sidebarOpen = ref(false)
+const totalDataPoints = ref(0)
 
 // Generate version timestamp in YYYYMMDDHHMMSS format
 const currentVersion = computed(() => {
@@ -144,6 +165,27 @@ const currentVersion = computed(() => {
   const minutes = String(now.getMinutes()).padStart(2, '0')
   const seconds = String(now.getSeconds()).padStart(2, '0')
   return `${year}${month}${day}${hours}${minutes}${seconds}`
+})
+
+// Format data points count
+const dataPointsCount = computed(() => {
+  const points = totalDataPoints.value
+  if (points >= 1000000) {
+    return `${(points / 1000000).toFixed(2)}M data points`
+  } else if (points >= 1000) {
+    return `${(points / 1000).toFixed(1)}K data points`
+  }
+  return `${points} data points`
+})
+
+// Fetch total database metrics
+onMounted(async () => {
+  try {
+    const response = await apiService.getDatabaseMetrics()
+    totalDataPoints.value = response.total_data_points || 0
+  } catch (error) {
+    console.error('Failed to fetch database metrics:', error)
+  }
 })
 
 const analyticsMenu = [
@@ -158,10 +200,15 @@ const analyticsMenu = [
   { path: '/predictive', label: 'Predictive', icon: '🔮' },
 ]
 
+const userMenu = [
+  { path: '/settings', label: 'Settings', icon: '⚙️' },
+]
+
 const adminMenu = [
   { path: '/admin/data', label: 'Database Overview', icon: '📊' },
   { path: '/admin/tracks', label: 'Track Management', icon: '🏁' },
-  { path: '/admin/driver-management', label: 'Driver Management', icon: '👥' },
+  { path: '/admin/users', label: 'User Management', icon: '👥' },
+  { path: '/admin/driver-management', label: 'Driver Management', icon: '🏎️' },
   { path: '/admin/eml-upload', label: 'EML Upload', icon: '📧' },
   { path: '/admin/styling', label: 'Styling', icon: '🎨' },
   { path: '/admin/settings', label: 'Settings', icon: '⚙️' },
@@ -184,7 +231,7 @@ const userInitials = computed(() => {
 })
 
 const pageTitle = computed(() => {
-  const allItems = [...analyticsMenu, ...adminMenu]
+  const allItems = [...analyticsMenu, ...userMenu, ...adminMenu]
   const item = allItems.find(i => route.path.startsWith(i.path))
   return item?.label || 'Dashboard'
 })
@@ -197,6 +244,7 @@ const pageSubtitle = computed(() => {
     '/session-analysis': 'Session history and lap data',
     '/temporal': 'Time-based trends and patterns',
     '/track-performance': 'Track-specific statistics',
+    '/settings': 'Manage your profile and driver connections',
     '/battles': 'Head-to-head driver comparisons',
     '/financial': 'Cost analysis and spending trends',
     '/predictive': 'Performance predictions and insights',
@@ -213,6 +261,10 @@ const pageSubtitle = computed(() => {
 const handleLogout = async () => {
   await authStore.logout()
   router.push('/login')
+}
+
+const navigateToSettings = () => {
+  router.push({ name: 'user-settings' })
 }
 </script>
 
@@ -509,13 +561,23 @@ const handleLogout = async () => {
 .version-display {
   text-align: center;
   padding: 0.5rem 1rem;
-  margin: 0 1rem 1rem;
+  margin: 0 1rem 0.5rem;
   font-size: 0.7rem;
   color: var(--text-tertiary);
   font-family: 'Courier New', monospace;
   opacity: 0.5;
   border-top: 1px solid var(--border-color);
   padding-top: 0.75rem;
+}
+
+.data-points-display {
+  text-align: center;
+  padding: 0.5rem 1rem;
+  margin: 0 1rem 1rem;
+  font-size: 0.75rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  opacity: 0.7;
 }
 
 /* === MOBILE MENU TOGGLE === */

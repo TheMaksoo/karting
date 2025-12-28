@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Driver extends Model
 {
     protected $fillable = [
+        'track_id',
         'name',
         'email',
         'nickname',
@@ -20,6 +22,11 @@ class Driver extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function track(): BelongsTo
+    {
+        return $this->belongsTo(Track::class);
+    }
 
     public function laps(): HasMany
     {
@@ -41,6 +48,16 @@ class Driver extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get all users associated with this driver (many-to-many)
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'driver_user')
+            ->withPivot('is_primary')
+            ->withTimestamps();
     }
 
     public function getDisplayNameAttribute(): string

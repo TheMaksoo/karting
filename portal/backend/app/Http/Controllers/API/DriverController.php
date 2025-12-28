@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\Lap;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DriverController extends Controller
 {
@@ -68,25 +69,21 @@ class DriverController extends Controller
         $driverId = $request->query('driver_id');
         $friendsOnly = $request->query('friends_only', false);
         
+        // Get allowed driver IDs for the user (user + friends)
+        $user = $request->user();
+        $allowedDriverIds = $this->getAllowedDriverIds($user);
+        
         // Build base query
         $query = Driver::query();
         
         if ($driverId) {
             $query->where('id', $driverId);
         } elseif ($friendsOnly) {
-            // Get authenticated user's friends + their own driver
-            $user = $request->user();
-            $friendIds = \App\Models\Friend::where('user_id', $user->id)
-                ->where('friendship_status', 'active')
-                ->pluck('friend_driver_id')
-                ->toArray();
-            
-            // Include user's own driver ID
-            if ($user->driver_id) {
-                $friendIds[] = $user->driver_id;
-            }
-            
-            $query->whereIn('id', $friendIds);
+            // Keep backward compatibility with friends_only parameter
+            $query->whereIn('id', $allowedDriverIds);
+        } else {
+            // By default, filter to user + friends only
+            $query->whereIn('id', $allowedDriverIds);
         }
         
         $drivers = $query->get();
@@ -120,5 +117,33 @@ class DriverController extends Controller
         });
 
         return response()->json($stats);
+    }
+
+    /**
+     * Get allowed driver IDs for the authenticated user (user's own drivers + friends)
+     */
+    private function getAllowedDriverIds($user)
+    {
+        $driverIds = [];
+        
+        // Add user's own driver_id if exists (legacy single driver)
+        if ($user->driver_id) {
+            $driverIds[] = $user->driver_id;
+        }
+        
+        // Add all drivers connected to user (many-to-many)
+        $connectedDriverIds = DB::table('driver_user')
+            ->where('user_id', $user->id)
+            ->pluck('driver_id')
+            ->toArray();
+        $driverIds = array_merge($driverIds, $connectedDriverIds);
+        
+        // Add friend driver IDs
+        $friendIds = DB::table('friends')
+            ->where('user_id', $user->id)
+            ->pluck('friend_driver_id')
+            ->toArray();
+        
+        return array_unique(array_merge($driverIds, $friendIds));
     }
 }

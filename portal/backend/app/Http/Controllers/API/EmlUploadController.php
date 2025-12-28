@@ -8,6 +8,7 @@ use App\Models\Lap;
 use App\Models\Driver;
 use App\Models\Track;
 use App\Models\Upload;
+use App\Services\EmlParser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -17,13 +18,13 @@ class EmlUploadController extends Controller
     public function parseEml(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:eml,txt|max:10240',
+            'file' => 'required|file|max:10240',
         ]);
 
         $file = $request->file('file');
         $fileName = $file->getClientOriginalName();
         
-        // Read EML file
+        // Read file content
         $content = file_get_contents($file->getRealPath());
         $fileHash = md5($content);
         
@@ -52,98 +53,202 @@ class EmlUploadController extends Controller
         $errors = [];
         
         try {
-            // Parse email
-            $emailData = $this->parseEmailContent($content);
-            
-            if (empty($emailData['body'])) {
-                $errors[] = 'Could not extract email body from file';
+            // Save temporary file
+            $tempPath = storage_path('app/temp/' . $fileName);
+            if (!is_dir(dirname($tempPath))) {
+                mkdir(dirname($tempPath), 0777, true);
             }
+            file_put_contents($tempPath, $content);
             
-            // Auto-detect track from email
-            $track = $this->detectTrack($emailData);
+            // Auto-detect track from filename or content
+            $track = $this->detectTrackFromFile($fileName, $content);
             
             if (!$track) {
+                // Save a small debug snapshot for failed detections to help investigate batch issues
+                try {
+                    $emailData = $this->parseEmailContent($content);
+                    $snippet = substr($emailData['subject'] ?? '', 0, 200) . "\n" . substr($emailData['from'] ?? '', 0, 200) . "\n\n" . substr($emailData['body'] ?? '', 0, 2000);
+                } catch (\Exception $e) {
+                    $snippet = substr($content, 0, 2000);
+                }
+
+                $debugPath = storage_path('app/temp/failed-detection-' . time() . '-' . md5($fileName) . '.txt');
+                @mkdir(dirname($debugPath), 0777, true);
+                @file_put_contents($debugPath, "filename: {$fileName}\n\nsnippet:\n{$snippet}");
+
                 $errors[] = 'Could not auto-detect track. Please select manually.';
+                @unlink($tempPath);
                 return response()->json([
                     'success' => false,
                     'file_name' => $fileName,
                     'errors' => $errors,
                     'available_tracks' => Track::select('id', 'name', 'city')->get(),
                     'require_manual_input' => true,
+                    'debug_file' => $debugPath,
                 ], 400);
             }
             
-            // Extract session data based on track
-            $sessionData = $this->extractSessionData($emailData, $track);
+            // Use EmlParser service to parse the file
+            $parser = new EmlParser();
+            $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            
+            try {
+                $parsedData = match($extension) {
+                    'eml' => $parser->parse($tempPath, $track->id),
+                    'txt' => $parser->parseTextFile($tempPath, $track->id),
+                    'pdf' => $parser->parsePdfFile($tempPath, $track->id),
+                    '' => $parser->parseTextFile($tempPath, $track->id), // Extensionless files
+                    default => throw new \Exception("Unsupported file type: $extension")
+                };
+            } catch (\Exception $e) {
+                @unlink($tempPath);
+                $errors[] = $e->getMessage();
+                return response()->json([
+                    'success' => false,
+                    'file_name' => $fileName,
+                    'errors' => $errors,
+                ], 400);
+            }
+            
+            @unlink($tempPath);
             
             // Validate extracted data
-            if (empty($sessionData['laps'])) {
+            if (empty($parsedData['laps'])) {
                 $errors[] = 'No lap data found in file. Check if format is supported.';
             }
             
-            if ($sessionData['laps_count'] === 0) {
+            if (count($parsedData['laps']) === 0) {
                 $errors[] = 'No valid lap times could be extracted';
             }
             
-            if ($sessionData['drivers_detected'] === 0) {
+            $driversDetected = count(array_unique(array_column($parsedData['laps'], 'driver_name')));
+            if ($driversDetected === 0) {
                 $errors[] = 'No drivers detected in lap data';
             }
-            
-            if (!empty($sessionData['session_date'])) {
-                // Validate session date
-                try {
-                    new \DateTime($sessionData['session_date']);
-                } catch (\Exception $e) {
-                    $warnings[] = 'Invalid session date format, using current date';
-                    $sessionData['session_date'] = now()->toDateTimeString();
-                }
-            } else {
-                $warnings[] = 'Session date not found in email, using current date';
-                $sessionData['session_date'] = now()->toDateTimeString();
-            }
-            
-            // Check for similar sessions (by date and track)
-            $duplicate = $this->checkDuplicateSession($sessionData, $track->id, $fileHash);
-            
-            // Add metadata
-            $sessionData['file_name'] = $fileName;
-            $sessionData['file_hash'] = $fileHash;
-            $sessionData['warnings'] = $warnings;
             
             if (!empty($errors)) {
                 return response()->json([
                     'success' => false,
                     'file_name' => $fileName,
                     'errors' => $errors,
-                    'warnings' => $warnings,
-                    'partial_data' => $sessionData,
-                    'track' => $track,
-                    'require_manual_input' => true,
-                ], 422);
+                ], 400);
             }
             
+            // Extract session date
+            $sessionDate = $parsedData['session_info']['date'] ?? now()->format('Y-m-d');
+            
+            // Format response with parsed data (wrap in 'data' for frontend compatibility)
             return response()->json([
                 'success' => true,
                 'file_name' => $fileName,
-                'data' => $sessionData,
-                'duplicate' => $duplicate,
+                'file_hash' => $fileHash,
                 'track' => $track,
                 'warnings' => $warnings,
+                'data' => [
+                    'session_date' => $sessionDate,
+                    'session_time' => $parsedData['session_info']['time'] ?? null,
+                    'session_number' => $parsedData['session_info']['session_number'] ?? null,
+                    'laps_count' => count($parsedData['laps']),
+                    'drivers_detected' => $driversDetected,
+                    'drivers' => array_values(array_unique(array_column($parsedData['laps'], 'driver_name'))),
+                    'laps' => $parsedData['laps'],
+                    'file_hash' => $fileHash,
+                ],
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
+                'message' => 'Failed to parse file: ' . $e->getMessage(),
                 'file_name' => $fileName,
-                'errors' => ['Parsing failed: ' . $e->getMessage()],
-                'error_details' => [
-                    'message' => $e->getMessage(),
-                    'file' => basename($e->getFile()),
-                    'line' => $e->getLine(),
-                ],
-                'require_manual_input' => true,
+                'errors' => [$e->getMessage()],
             ], 500);
         }
+    }
+
+    private function detectTrackFromFile($fileName, $content)
+    {
+        // Search a larger slice of the raw content (some EMLs embed useful text later)
+        $searchText = strtolower($fileName . ' ' . substr($content, 0, 20000));
+
+        // Track detection patterns (simple filename/content heuristics)
+        $trackPatterns = [
+            2 => ['devoltage', 'de voltage', 'karten sessie'], // De Voltage
+            3 => ['experience factory', 'experiencefactory', 'antwerp'], // Experience Factory
+            5 => ['goodwill', 'goodwillkarting'], // Goodwill Karting
+            4 => ['berghem', 'circuit park', 'circuitpark', 'circuitpark berghem', 'circuit park berghem'], // Circuit Park Berghem
+            1 => ['fastkart', 'elche', 'resumen de tu carrera'], // Fastkart Elche
+            6 => ['lot66', 'lot 66'], // Lot66
+            7 => ['gilesias', 'racing center'], // Racing Center Gilesias
+        ];
+
+        foreach ($trackPatterns as $trackId => $patterns) {
+            foreach ($patterns as $pattern) {
+                if (stripos($searchText, $pattern) !== false) {
+                    // Try to return real Track model if DB is available; otherwise return a lightweight object
+                    try {
+                        $t = Track::find($trackId);
+                        if ($t) return $t;
+                    } catch (\Throwable $e) {
+                        // Return fallback object when DB is not reachable in this environment
+                        $obj = new \stdClass();
+                        $obj->id = $trackId;
+                        $nameMap = [
+                            1 => 'Fastkart Elche',
+                            2 => 'De Voltage',
+                            3 => 'Experience Factory',
+                            4 => 'Circuit Park Berghem',
+                            5 => 'Goodwill Karting',
+                            6 => 'Lot66',
+                            7 => 'Racing Center Gilesias',
+                        ];
+                        $obj->name = $nameMap[$trackId] ?? 'Unknown Track';
+                        $obj->city = $this->getTrackCity($obj->name);
+                        $obj->country = 'Netherlands';
+                        return $obj;
+                    }
+                }
+            }
+        }
+
+        // If simple heuristics failed, try parsing the EML to get decoded headers/body
+        try {
+            $emailData = $this->parseEmailContent($content);
+
+            // Extra explicit checks for Circuit Park Berghem markers
+            $bodyLower = strtolower($emailData['body'] ?? '');
+            $subjectLower = strtolower($emailData['subject'] ?? '');
+            $fromLower = strtolower($emailData['from'] ?? '');
+
+            $additionalBerghemMarkers = ['smstiming', 'circuitparkberghem', 'circuitpark berghem', 'race overzicht', 'jouw rondetijden'];
+            foreach ($additionalBerghemMarkers as $marker) {
+                if (stripos($bodyLower, $marker) !== false || stripos($subjectLower, $marker) !== false || stripos($fromLower, $marker) !== false) {
+                    // Prefer finding existing track by name; fallback to creating a basic Track record if DB available
+                    try {
+                        $t = Track::whereRaw('LOWER(name) LIKE ?', ['%circuit park berghem%'])->first();
+                        if ($t) return $t;
+                        return Track::create([
+                            'track_id' => 'TRK-' . strtoupper(substr(md5('Circuit Park Berghem'), 0, 6)),
+                            'name' => 'Circuit Park Berghem',
+                            'city' => 'Berghem',
+                            'country' => 'Netherlands',
+                        ]);
+                    } catch (\Throwable $e) {
+                        // If DB not available in this environment, fall back to detectTrack() below
+                        break;
+                    }
+                }
+            }
+
+            $detected = $this->detectTrack($emailData);
+            if ($detected) {
+                return $detected;
+            }
+        } catch (\Throwable $e) {
+            // Fall through to null if parsing fails
+        }
+
+        return null;
     }
 
     public function saveSession(Request $request)
@@ -191,12 +296,21 @@ class EmlUploadController extends Controller
             $driverLaps = collect($request->laps)->groupBy('driver_name');
             
             $driversProcessed = [];
+            $newDriversCreated = [];
             foreach ($driverLaps as $driverName => $laps) {
-                // Find or create driver
+                // Find or create driver (unique per track)
                 $driver = Driver::firstOrCreate(
-                    ['name' => $driverName],
+                    ['name' => $driverName, 'track_id' => $session->track_id],
                     ['email' => null]
                 );
+                
+                // Track if this is a new driver
+                if ($driver->wasRecentlyCreated) {
+                    $newDriversCreated[] = [
+                        'id' => $driver->id,
+                        'name' => $driver->name,
+                    ];
+                }
                 
                 $driversProcessed[] = $driverName;
 
@@ -211,17 +325,12 @@ class EmlUploadController extends Controller
                         'sector1' => $lapData['sector1'] ?? null,
                         'sector2' => $lapData['sector2'] ?? null,
                         'sector3' => $lapData['sector3'] ?? null,
-                        'is_best_lap' => false,
-                        'gap_to_best_lap' => $lapData['gap_to_best_lap'] ?? null,
-                        'interval' => $lapData['interval'] ?? null,
-                        'gap_to_previous' => $lapData['gap_to_previous'] ?? null,
-                        'avg_speed' => $lapData['avg_speed'] ?? null,
                     ]);
                 }
             }
 
-            // Mark best laps and calculate gaps for each driver
-            $this->markBestLapsAndCalculateGaps($session->id);
+            // Calculate all derived fields (best lap, gaps, speed, cost, etc.)
+            $this->calculateSessionFields($session->id);
             
             // Record upload
             if ($request->file_name && $request->file_hash) {
@@ -247,9 +356,10 @@ class EmlUploadController extends Controller
                 'session' => $session->load(['track', 'laps.driver']),
                 'laps_imported' => count($request->laps),
                 'drivers_processed' => $driversProcessed,
+                'new_drivers_created' => $newDriversCreated, // Return new drivers for potential connection
             ]);
 
-        } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
                 'success' => false,
@@ -824,55 +934,83 @@ class EmlUploadController extends Controller
     /**
      * Mark best laps and calculate gaps for a session
      */
-    private function markBestLapsAndCalculateGaps($sessionId)
+    private function calculateSessionFields(int $sessionId): void
     {
-        // Get all laps for this session grouped by driver
-        $drivers = Lap::where('karting_session_id', $sessionId)
-            ->select('driver_id')
-            ->distinct()
-            ->pluck('driver_id');
-
-        foreach ($drivers as $driverId) {
-            $driverLaps = Lap::where('karting_session_id', $sessionId)
-                ->where('driver_id', $driverId)
-                ->orderBy('lap_time', 'asc')
-                ->get();
-
-            if ($driverLaps->isEmpty()) {
-                continue;
-            }
-
-            // Find the best lap (lowest time)
-            $bestLap = $driverLaps->first();
+        $session = KartingSession::with(['laps' => function($query) {
+            $query->orderBy('driver_id')->orderBy('lap_number');
+        }, 'laps.driver', 'track'])->find($sessionId);
+        
+        if (!$session) return;
+        
+        // Group laps by driver
+        $lapsByDriver = $session->laps->groupBy('driver_id');
+        
+        foreach ($lapsByDriver as $driverId => $driverLaps) {
+            // Find best lap for this driver
+            $bestLap = $driverLaps->sortBy('lap_time')->first();
             $bestLapTime = $bestLap->lap_time;
-
-            // Mark best lap and calculate gaps
-            foreach ($driverLaps as $lap) {
-                $gap = $lap->lap_time - $bestLapTime;
+            
+            $previousLapTime = null;
+            
+            foreach ($driverLaps->sortBy('lap_number') as $index => $lap) {
+                $updates = [];
                 
-                $lap->update([
-                    'is_best_lap' => $lap->id === $bestLap->id,
-                    'gap_to_best_lap' => $gap > 0 ? $gap : null,
-                ]);
+                // Mark best lap
+                $updates['is_best_lap'] = ($lap->lap_time == $bestLapTime);
+                
+                // Calculate gap to best lap
+                $updates['gap_to_best_lap'] = round($lap->lap_time - $bestLapTime, 3);
+                
+                // Calculate interval (time difference from previous lap by THIS driver)
+                if ($previousLapTime !== null) {
+                    $updates['interval'] = round($lap->lap_time - $previousLapTime, 3);
+                }
+                $previousLapTime = $lap->lap_time;
+                
+                // Calculate average speed if track distance is known
+                if ($session->track && $session->track->distance) {
+                    // Speed = distance / time = (distance_meters / lap_time) * 3.6 for km/h
+                    $updates['avg_speed'] = round(($session->track->distance / $lap->lap_time) * 3.6, 2);
+                }
+                
+                // Calculate cost per lap if track pricing is known
+                if ($session->track && isset($session->track->pricing['costPerLap'])) {
+                    $updates['cost_per_lap'] = $session->track->pricing['costPerLap'];
+                }
+                
+                // Update lap
+                $lap->update($updates);
             }
         }
-
-        // Calculate interval/gap to previous position (if positions are available)
-        $lapsWithPositions = Lap::where('karting_session_id', $sessionId)
-            ->whereNotNull('position')
-            ->orderBy('position', 'asc')
-            ->get();
-
-        $previousLap = null;
-        foreach ($lapsWithPositions as $lap) {
-            if ($previousLap) {
-                $interval = $lap->lap_time - $previousLap->lap_time;
-                $lap->update([
-                    'gap_to_previous' => $interval,
-                ]);
+        
+        // Calculate gap_to_previous (gap to driver in position ahead) for each lap number
+        // Group all session laps by lap_number, not the already-grouped driver laps
+        $allLaps = $session->laps;
+        foreach ($allLaps->groupBy('lap_number') as $lapNumber => $lapsAtSameNumber) {
+            $sortedLaps = $lapsAtSameNumber->sortBy('lap_time');
+            
+            $previousLapTime = null;
+            foreach ($sortedLaps as $lap) {
+                if ($previousLapTime !== null) {
+                    $lap->update([
+                        'gap_to_previous' => round($lap->lap_time - $previousLapTime, 3)
+                    ]);
+                }
+                $previousLapTime = $lap->lap_time;
             }
-            $previousLap = $lap;
+        }
+        
+        // Calculate overall session positions based on best lap times
+        $allBestLaps = $session->laps()
+            ->where('is_best_lap', true)
+            ->orderBy('lap_time')
+            ->get();
+        
+        foreach ($allBestLaps as $index => $bestLap) {
+            // Update position for ALL laps of this driver in this session
+            Lap::where('karting_session_id', $sessionId)
+                ->where('driver_id', $bestLap->driver_id)
+                ->update(['position' => $index + 1]);
         }
     }
 }
-

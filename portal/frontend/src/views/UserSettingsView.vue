@@ -2,10 +2,90 @@
   <div class="user-settings-view">
     <div class="settings-header">
       <h1>⚙️ User Settings</h1>
-      <p class="subtitle">Manage your display name and track-specific nicknames</p>
+      <p class="subtitle">Manage your account settings and preferences</p>
     </div>
 
     <div class="settings-content">
+      <!-- Profile Information Section -->
+      <div class="settings-section">
+        <div class="section-header">
+          <h2>Profile Information</h2>
+        </div>
+        
+        <div class="profile-grid">
+          <div class="profile-item">
+            <label>Name</label>
+            <div class="profile-value">{{ authStore.user?.name }}</div>
+          </div>
+          
+          <div class="profile-item">
+            <label>Email</label>
+            <div class="profile-value">{{ authStore.user?.email }}</div>
+          </div>
+          
+          <div class="profile-item">
+            <label>Role</label>
+            <div class="profile-value">
+              <span class="role-badge" :class="authStore.user?.role">
+                {{ authStore.user?.role }}
+              </span>
+            </div>
+          </div>
+          
+          <div v-if="myDrivers.length > 0" class="profile-item full-width">
+            <label>Connected Drivers ({{ myDrivers.length }})</label>
+            <div class="connected-drivers-list">
+              <div v-for="driver in myDrivers" :key="driver.id" class="driver-badge">
+                <div class="driver-color-dot" :style="{ backgroundColor: driver.color || '#666' }"></div>
+                <span>{{ driver.name }}</span>
+                <span v-if="driver.nickname" class="nickname">({{ driver.nickname }})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password Section -->
+      <div class="settings-section">
+        <div class="section-header">
+          <h2>Change Password</h2>
+        </div>
+        <div class="form-group">
+          <label>Current Password</label>
+          <input 
+            v-model="passwordForm.currentPassword"
+            type="password"
+            placeholder="Enter current password"
+            class="form-input"
+          />
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <input 
+            v-model="passwordForm.newPassword"
+            type="password"
+            placeholder="Enter new password"
+            class="form-input"
+          />
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input 
+            v-model="passwordForm.confirmPassword"
+            type="password"
+            placeholder="Confirm new password"
+            class="form-input"
+          />
+        </div>
+        <button 
+          @click="changePassword" 
+          :disabled="saving"
+          class="btn-primary"
+        >
+          {{ saving ? 'Changing...' : 'Change Password' }}
+        </button>
+      </div>
+
       <!-- Display Name Section -->
       <div class="settings-section">
         <div class="section-header">
@@ -80,6 +160,8 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import apiService from '@/services/api'
+import type { Driver } from '@/services/api'
+import '@/styles/UserSettingsView.scss'
 
 const authStore = useAuthStore()
 
@@ -87,9 +169,20 @@ const authStore = useAuthStore()
 const displayName = ref('')
 const tracks = ref<any[]>([])
 const trackNicknames = ref<Record<number, string>>({})
-const existingNicknames = ref<Record<number, number>>({}) // track_id -> nickname_id mapping
+const existingNicknames = ref<Record<number, string>>({}) // track_id -> nickname_id mapping
 const loading = ref(false)
 const saving = ref(false)
+
+// Driver management state
+const loadingDrivers = ref(false)
+const myDrivers = ref<Driver[]>([])
+
+// Password change state
+const passwordForm = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
 
 // Methods
 const loadSettings = async () => {
@@ -112,7 +205,26 @@ const loadSettings = async () => {
 
 const loadTracks = async () => {
   try {
-    tracks.value = await apiService.tracks.getAll()
+    const allTracks = await apiService.tracks.getAll()
+    
+    // Only show tracks where user has connected drivers with sessions
+    if (myDrivers.value.length > 0) {
+      const driverIds = myDrivers.value.map(d => d.id)
+      const trackStats = await apiService.tracks.getStats()
+      
+      // Filter tracks that have data for any of the user's connected drivers
+      const tracksWithData = new Set()
+      for (const stat of trackStats) {
+        // Check if this track has sessions from any of the user's drivers
+        if (stat.total_sessions > 0) {
+          tracksWithData.add(stat.track_id)
+        }
+      }
+      
+      tracks.value = allTracks.filter(t => tracksWithData.has(t.id))
+    } else {
+      tracks.value = []
+    }
   } catch (error) {
     console.error('Failed to load tracks:', error)
   }
@@ -173,11 +285,64 @@ const deleteTrackNickname = async (trackId: number) => {
   }
 }
 
+// Driver management methods
+const loadDrivers = async () => {
+  loadingDrivers.value = true
+  try {
+    myDrivers.value = await apiService.getUserDrivers()
+  } catch (error) {
+    console.error('Failed to load drivers:', error)
+  } finally {
+    loadingDrivers.value = false
+  }
+}
+
+// Password change method
+const changePassword = async () => {
+  // Validation
+  if (!passwordForm.value.currentPassword.trim()) {
+    alert('Please enter your current password')
+    return
+  }
+  
+  if (passwordForm.value.newPassword.length < 6) {
+    alert('New password must be at least 6 characters long')
+    return
+  }
+  
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    alert('New passwords do not match')
+    return
+  }
+
+  saving.value = true
+  try {
+    await apiService.auth.changePassword({
+      current_password: passwordForm.value.currentPassword,
+      new_password: passwordForm.value.newPassword,
+      new_password_confirmation: passwordForm.value.confirmPassword
+    })
+    
+    // Clear form
+    passwordForm.value = {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    }
+    
+    alert('Password changed successfully!')
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Failed to change password')
+  } finally {
+    saving.value = false
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
-  await Promise.all([
-    loadSettings(),
-    loadTracks(),
-  ])
+  await loadSettings()
+  await loadDrivers()
+  await loadTracks() // Load tracks after drivers so we can filter properly
 })
 </script>
+

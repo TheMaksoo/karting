@@ -65,6 +65,11 @@ function calculateSessionFields(int $sessionId): void
                 $updates['avg_speed'] = round(($session->track->distance / $lap->lap_time) * 3.6, 2);
             }
             
+            // Calculate cost per lap if track pricing is known
+            if ($session->track && isset($session->track->pricing['costPerLap'])) {
+                $updates['cost_per_lap'] = $session->track->pricing['costPerLap'];
+            }
+            
             // Update lap
             $lap->update($updates);
         }
@@ -232,6 +237,9 @@ foreach ($directories as $dir) {
                     'lap_time' => $lapTime,
                     'position' => $lapData['position'] ?? null,
                     'kart_number' => $lapData['kart_number'] ?? null,
+                    'sector1' => $lapData['sector1'] ?? null,
+                    'sector2' => $lapData['sector2'] ?? null,
+                    'sector3' => $lapData['sector3'] ?? null,
                 ]);
                 
                 $sessionLaps++;

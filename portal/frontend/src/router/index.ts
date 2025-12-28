@@ -87,6 +87,12 @@ const router = createRouter({
               meta: { requiresAdmin: true },
             },
             {
+              path: 'users',
+              name: 'user-management',
+              component: () => import('../views/AdminUserManagementView.vue'),
+              meta: { requiresAdmin: true },
+            },
+            {
               path: 'eml-upload',
               name: 'eml-upload',
               component: () => import('../views/EmlUploadView.vue'),

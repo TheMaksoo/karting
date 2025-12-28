@@ -19,6 +19,10 @@ class SessionAnalyticsController extends Controller
     {
         $driverId = $request->input('driver_id');
         
+        // Get logged-in user's driver IDs (user's own + friends)
+        $user = $request->user();
+        $allowedDriverIds = $this->getAllowedDriverIds($user);
+        
         // Build query for all drivers or specific driver
         $query = Lap::select(
                 'drivers.id as driver_id',
@@ -29,6 +33,7 @@ class SessionAnalyticsController extends Controller
             )
             ->join('drivers', 'laps.driver_id', '=', 'drivers.id')
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+            ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
             ->groupBy('drivers.id', 'drivers.name', 'karting_sessions.session_date', 'karting_sessions.id')
             ->orderBy('karting_sessions.session_date')
             ->orderBy('drivers.name');
@@ -55,12 +60,17 @@ class SessionAnalyticsController extends Controller
      * Get best lap per driver per track (for heatmap)
      * Returns: tracks horizontal, drivers vertical
      */
-    public function driverTrackHeatmap()
+    public function driverTrackHeatmap(Request $request)
     {
-        // Get all unique tracks and drivers
+        // Get logged-in user's driver IDs (user's own + friends)
+        $user = $request->user();
+        $allowedDriverIds = $this->getAllowedDriverIds($user);
+        
+        // Get all unique tracks and drivers (filtered by allowed drivers)
         $tracks = DB::table('tracks')
             ->join('karting_sessions', 'tracks.id', '=', 'karting_sessions.track_id')
             ->join('laps', 'karting_sessions.id', '=', 'laps.karting_session_id')
+            ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
             ->select('tracks.id', 'tracks.name')
             ->distinct()
             ->orderBy('tracks.name')
@@ -68,23 +78,25 @@ class SessionAnalyticsController extends Controller
 
         $drivers = DB::table('drivers')
             ->join('laps', 'drivers.id', '=', 'laps.driver_id')
+            ->whereIn('drivers.id', $allowedDriverIds) // Filter by user + friends
             ->select('drivers.id', 'drivers.name')
             ->distinct()
             ->orderBy('drivers.name')
             ->get();
 
-        // Get track records
+        // Get track records (filtered by allowed drivers)
         $trackRecords = Lap::select(
                 'tracks.id as track_id',
                 DB::raw('MIN(laps.lap_time) as track_record')
             )
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
             ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
+            ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
             ->groupBy('tracks.id')
             ->get()
             ->pluck('track_record', 'track_id');
 
-        // Get best laps per driver per track with additional stats
+        // Get best laps per driver per track with additional stats (filtered by allowed drivers)
         $driverTrackStats = Lap::select(
                 'laps.driver_id',
                 'tracks.id as track_id',
@@ -96,6 +108,7 @@ class SessionAnalyticsController extends Controller
             )
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
             ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
+            ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
             ->groupBy('laps.driver_id', 'tracks.id')
             ->get();
 
@@ -481,5 +494,33 @@ class SessionAnalyticsController extends Controller
         }
 
         return response()->json($details);
+    }
+
+    /**
+     * Get allowed driver IDs for the authenticated user (user's own drivers + friends)
+     */
+    private function getAllowedDriverIds($user)
+    {
+        $driverIds = [];
+        
+        // Add user's own driver_id if exists (legacy single driver)
+        if ($user->driver_id) {
+            $driverIds[] = $user->driver_id;
+        }
+        
+        // Add all drivers connected to user (many-to-many)
+        $connectedDriverIds = DB::table('driver_user')
+            ->where('user_id', $user->id)
+            ->pluck('driver_id')
+            ->toArray();
+        $driverIds = array_merge($driverIds, $connectedDriverIds);
+        
+        // Add friend driver IDs
+        $friendIds = DB::table('friends')
+            ->where('user_id', $user->id)
+            ->pluck('friend_driver_id')
+            ->toArray();
+        
+        return array_unique(array_merge($driverIds, $friendIds));
     }
 }

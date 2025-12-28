@@ -7,6 +7,7 @@ use App\Models\Track;
 use App\Models\KartingSession;
 use App\Models\Lap;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TrackController extends Controller
 {
@@ -83,10 +84,14 @@ class TrackController extends Controller
     {
         $driverId = $request->input('driver_id');
         
+        // Get allowed driver IDs for the user (user + friends)
+        $user = $request->user();
+        $allowedDriverIds = $this->getAllowedDriverIds($user);
+        
         // Get all tracks
         $tracks = Track::all();
 
-        $stats = $tracks->map(function ($track) use ($driverId) {
+        $stats = $tracks->map(function ($track) use ($driverId, $allowedDriverIds) {
             $sessions = KartingSession::where('track_id', $track->id);
             
             // Filter sessions to only those the driver participated in
@@ -94,20 +99,27 @@ class TrackController extends Controller
                 $sessions = $sessions->whereHas('laps', function($q) use ($driverId) {
                     $q->where('driver_id', $driverId);
                 });
+            } else {
+                // Filter to user + friends only
+                $sessions = $sessions->whereHas('laps', function($q) use ($allowedDriverIds) {
+                    $q->whereIn('driver_id', $allowedDriverIds);
+                });
             }
             
             $sessions = $sessions->get();
             $sessionIds = $sessions->pluck('id');
             
-            // Get laps (filtered by driver if provided)
+            // Get laps (filtered by driver if provided, or by allowed driver IDs)
             $lapsQuery = Lap::whereIn('karting_session_id', $sessionIds)->with('driver');
             if ($driverId) {
                 $lapsQuery->where('driver_id', $driverId);
+            } else {
+                $lapsQuery->whereIn('driver_id', $allowedDriverIds);
             }
             $laps = $lapsQuery->get();
             
-            // Skip tracks with no laps (when filtering by driver)
-            if ($driverId && $laps->count() === 0) {
+            // Skip tracks with no laps (when filtering)
+            if ($laps->count() === 0) {
                 return null;
             }
             
@@ -147,5 +159,33 @@ class TrackController extends Controller
         })->filter(); // Remove null entries (tracks with no driver data)
 
         return response()->json($stats->values());
+    }
+
+    /**
+     * Get allowed driver IDs for the authenticated user (user's own drivers + friends)
+     */
+    private function getAllowedDriverIds($user)
+    {
+        $driverIds = [];
+        
+        // Add user's own driver_id if exists (legacy single driver)
+        if ($user->driver_id) {
+            $driverIds[] = $user->driver_id;
+        }
+        
+        // Add all drivers connected to user (many-to-many)
+        $connectedDriverIds = DB::table('driver_user')
+            ->where('user_id', $user->id)
+            ->pluck('driver_id')
+            ->toArray();
+        $driverIds = array_merge($driverIds, $connectedDriverIds);
+        
+        // Add friend driver IDs
+        $friendIds = DB::table('friends')
+            ->where('user_id', $user->id)
+            ->pluck('friend_driver_id')
+            ->toArray();
+        
+        return array_unique(array_merge($driverIds, $friendIds));
     }
 }

@@ -229,11 +229,8 @@ class ApiService {
     return response.data
   }
 
-  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    await this.api.post('/auth/change-password', {
-      current_password: currentPassword,
-      new_password: newPassword,
-    })
+  async changePassword(data: { current_password: string; new_password: string; new_password_confirmation: string }): Promise<void> {
+    await this.api.post('/auth/change-password', data)
   }
 
   // Driver endpoints
@@ -244,6 +241,16 @@ class ApiService {
 
   async getDriver(id: number): Promise<Driver> {
     const response = await this.api.get<Driver>(`/drivers/${id}`)
+    return response.data
+  }
+
+  async getLapCount(): Promise<{ total: number }> {
+    const response = await this.api.get<{ total: number }>('/laps/count')
+    return response.data
+  }
+
+  async getDatabaseMetrics(): Promise<{ total_data_points: number, breakdown: any }> {
+    const response = await this.api.get<{ total_data_points: number, breakdown: any }>('/stats/database-metrics')
     return response.data
   }
 
@@ -266,6 +273,24 @@ class ApiService {
       params: { friends_only: friendsOnly },
     })
     return response.data
+  }
+
+  // Driver-User connection endpoints
+  async getUserDrivers(): Promise<Driver[]> {
+    const response = await this.api.get<Driver[]>('/user/drivers')
+    return response.data
+  }
+
+  async connectDriverToUser(driverId: number): Promise<void> {
+    await this.api.post(`/user/drivers/${driverId}`)
+  }
+
+  async disconnectDriverFromUser(driverId: number): Promise<void> {
+    await this.api.delete(`/user/drivers/${driverId}`)
+  }
+
+  async setMainDriver(driverId: number): Promise<void> {
+    await this.api.post(`/user/drivers/${driverId}/set-main`)
   }
 
   // Track endpoints
@@ -427,7 +452,7 @@ class ApiService {
     login: (email: string, password: string) => this.login(email, password),
     logout: () => this.logout(),
     getCurrentUser: () => this.getCurrentUser(),
-    changePassword: (currentPassword: string, newPassword: string) => this.changePassword(currentPassword, newPassword),
+    changePassword: (data: { current_password: string; new_password: string; new_password_confirmation: string }) => this.changePassword(data),
   }
 
   friends = {
@@ -514,9 +539,10 @@ class ApiService {
       return response.data
     },
     // EML Upload
-    parseEml: async (file: File) => {
+    parseEml: async (file: File, trackId?: number) => {
       const formData = new FormData()
       formData.append('file', file)
+      if (trackId) formData.append('track_id', String(trackId))
       const response = await this.api.post('/sessions/upload-eml', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -549,6 +575,37 @@ class ApiService {
       }>
     }) => {
       const response = await this.api.post('/sessions/save-parsed', data)
+      return response.data
+    },
+  }
+
+  adminUsers = {
+    getAll: async () => {
+      const response = await this.api.get('/admin/users')
+      return response.data
+    },
+    create: async (data: { name: string; email: string; role: string; password: string }) => {
+      const response = await this.api.post('/admin/users', data)
+      return response.data
+    },
+    update: async (id: number, data: any) => {
+      const response = await this.api.put(`/admin/users/${id}`, data)
+      return response.data
+    },
+    delete: async (id: number) => {
+      const response = await this.api.delete(`/admin/users/${id}`)
+      return response.data
+    },
+    connectDriver: async (userId: number, driverId: number) => {
+      const response = await this.api.post(`/admin/users/${userId}/drivers/${driverId}`)
+      return response.data
+    },
+    disconnectDriver: async (userId: number, driverId: number) => {
+      const response = await this.api.delete(`/admin/users/${userId}/drivers/${driverId}`)
+      return response.data
+    },
+    availableDrivers: async (userId: number) => {
+      const response = await this.api.get(`/admin/users/${userId}/available-drivers`)
       return response.data
     },
   }

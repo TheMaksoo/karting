@@ -4,7 +4,16 @@
 
     <!-- Step 1: File Upload -->
     <div v-if="step === 'upload'" class="upload-section">
-      <div class="dropzone" @drop.prevent="handleDrop" @dragover.prevent @dragenter="isDragging = true"
+      <div class="mode-selector">
+        <button @click="entryMode = 'file'" :class="{ active: entryMode === 'file' }" class="mode-btn">
+          📧 File Upload
+        </button>
+        <button @click="entryMode = 'manual'" :class="{ active: entryMode === 'manual' }" class="mode-btn">
+          ✏️ Manual Entry
+        </button>
+      </div>
+
+      <div v-if="entryMode === 'file'" class="dropzone" @drop.prevent="handleDrop" @dragover.prevent @dragenter="isDragging = true"
         @dragleave="isDragging = false" :class="{ dragging: isDragging }">
         <input ref="fileInput" type="file" accept=".eml,.txt" @change="handleFileSelect" multiple hidden />
         <div class="dropzone-content">
@@ -23,8 +32,162 @@
               <span class="icon">📁</span> Upload Folder
             </button>
           </div>
+          <div class="force-track" style="margin-top:10px;">
+            <label style="display:flex;align-items:center;gap:8px;">
+              <input type="checkbox" v-model="forceTrack" />
+              <span>Force track for all files</span>
+            </label>
+            <div v-if="forceTrack" style="margin-top:6px;">
+              <select v-model="forcedTrackId">
+                <option value="">Select track to force</option>
+                <option v-for="track in availableTracks" :key="track.id" :value="track.id">{{ track.name }} - {{ track.city }}</option>
+              </select>
+            </div>
+          </div>
           <small>Single file or batch folder upload supported</small>
           <small>Track and drivers auto-detected from each email</small>
+        </div>
+      </div>
+
+      <!-- Manual Entry Form -->
+      <div v-else class="manual-entry-section">
+        <div class="manual-header">
+          <div>
+            <h2>✏️ Manual Lap Entry</h2>
+            <p class="hint">For sessions without email data - enter laps directly</p>
+          </div>
+        </div>
+        
+        <div class="manual-form">
+          <div class="session-info-card">
+            <h3>📍 Session Information</h3>
+            <div class="form-grid">
+              <div class="field full-width">
+                <label>Track <span class="required">*</span></label>
+                <select v-model="manualSession.track_id" required>
+                  <option value="" disabled>Select Track</option>
+                  <option v-for="track in availableTracks" :key="track.id" :value="track.id">
+                    {{ track.name }} - {{ track.city }}
+                  </option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Session Date <span class="required">*</span></label>
+                <input v-model="manualSession.session_date" type="datetime-local" required />
+              </div>
+              <div class="field">
+                <label>Session Type</label>
+                <select v-model="manualSession.session_type">
+                  <option value="race">Race</option>
+                  <option value="practice">Practice</option>
+                  <option value="qualifying">Qualifying</option>
+                  <option value="heat">Heat</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Heat Price (€)</label>
+                <input v-model.number="manualSession.heat_price" type="number" step="0.01" placeholder="0.00" />
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-lap-entry">
+            <div class="entry-header">
+              <h3>⚡ Quick Add Lap</h3>
+              <p class="entry-hint">Type driver name, lap time, and hit Add. Lap number auto-increments!</p>
+            </div>
+            <div class="lap-form">
+              <div class="form-section primary-fields">
+                <div class="field-group required driver-field">
+                  <label>Driver Name</label>
+                  <div class="autocomplete-wrapper">
+                    <input 
+                      v-model="quickLap.driver_name" 
+                      @input="searchDrivers"
+                      @focus="showDriverSuggestions = true"
+                      @blur="hideDriverSuggestions"
+                      type="text" 
+                      placeholder="Start typing driver name..." 
+                      autocomplete="off"
+                    />
+                    <div v-if="showDriverSuggestions && driverSuggestions.length > 0" class="suggestions-dropdown">
+                      <div 
+                        v-for="driver in driverSuggestions" 
+                        :key="driver.id" 
+                        @click="selectDriver(driver)"
+                        class="suggestion-item"
+                      >
+                        {{ driver.name }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label>Lap #</label>
+                  <input v-model.number="quickLap.lap_number" type="number" min="1" placeholder="1" />
+                </div>
+                <div class="field-group required">
+                  <label>Lap Time</label>
+                  <input v-model="quickLap.lap_time" type="text" placeholder="1:23.456 or 83.456" />
+                </div>
+                <div class="field-group">
+                  <label>Position</label>
+                  <input v-model.number="quickLap.position" type="number" min="1" placeholder="P1" />
+                </div>
+                <div class="field-group">
+                  <label>Kart #</label>
+                  <input v-model="quickLap.kart_number" type="text" placeholder="12" />
+                </div>
+              </div>
+              
+              <div class="form-section secondary-fields">
+                <div class="field-group">
+                  <label>Sector 1 <span class="optional">(optional)</span></label>
+                  <input v-model.number="quickLap.sector1" type="number" step="0.001" placeholder="20.123" />
+                </div>
+                <div class="field-group">
+                  <label>Sector 2 <span class="optional">(optional)</span></label>
+                  <input v-model.number="quickLap.sector2" type="number" step="0.001" placeholder="25.456" />
+                </div>
+                <div class="field-group">
+                  <label>Sector 3 <span class="optional">(optional)</span></label>
+                  <input v-model.number="quickLap.sector3" type="number" step="0.001" placeholder="22.789" />
+                </div>
+                <div class="field-group add-button-wrapper">
+                  <button @click="addManualLap" class="btn-add-lap">
+                    <span class="plus-icon">+</span>
+                    <span>Add Lap</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="manualLaps.length > 0" class="manual-laps-preview">
+            <h3>📋 Laps to Import ({{ manualLaps.length }})</h3>
+            <div class="laps-list">
+              <div v-for="(lap, idx) in manualLaps" :key="idx" class="lap-item">
+                <span class="lap-index">{{ idx + 1 }}</span>
+                <span class="lap-driver">{{ lap.driver_name }}</span>
+                <span class="lap-number">L{{ lap.lap_number }}</span>
+                <span class="lap-time">{{ formatLapTime(lap.lap_time) }}</span>
+                <span class="lap-pos">{{ lap.position ? `P${lap.position}` : '-' }}</span>
+                <span class="lap-kart">{{ lap.kart_number ? `#${lap.kart_number}` : '-' }}</span>
+                <span class="lap-sectors">
+                  {{ lap.sector1 || lap.sector2 || lap.sector3 ? 
+                     `S: ${lap.sector1?.toFixed(3) || '-'}/${lap.sector2?.toFixed(3) || '-'}/${lap.sector3?.toFixed(3) || '-'}` : 
+                     'No sectors' }}
+                </span>
+                <button @click="removeManualLap(idx)" class="btn-remove">×</button>
+              </div>
+            </div>
+            <div class="manual-actions">
+              <button @click="clearManualLaps" class="btn-secondary">Clear All</button>
+              <button @click="saveManualSession" class="btn-primary" :disabled="!manualSession.track_id || !manualSession.session_date">
+                Save {{ manualLaps.length }} Laps
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -52,8 +215,19 @@
         <div class="log-container">
           <div v-for="(log, idx) in batchProgress.fileLog" :key="idx" 
                class="log-entry" 
-               :class="{ success: log.status === 'success', failed: log.status === 'failed', processing: log.status === 'processing' }">
-            <span class="log-icon">{{ log.status === 'success' ? '✅' : log.status === 'failed' ? '❌' : '⏳' }}</span>
+               :class="{ 
+                 success: log.status === 'success',
+                 uploaded: log.status === 'uploaded',
+                 'uploaded-incomplete': log.status === 'uploaded-incomplete',
+                 failed: log.status === 'failed',
+                 processing: log.status === 'processing'
+               }">
+            <span class="log-icon">{{ 
+              log.status === 'success' ? '✅' :
+              log.status === 'uploaded' ? '🔵' :
+              log.status === 'uploaded-incomplete' ? '🟡' :
+              log.status === 'failed' ? '❌' : '⏳' 
+            }}</span>
             <span class="log-filename">{{ log.filename }}</span>
             <span class="log-message">{{ log.message }}</span>
           </div>
@@ -69,26 +243,100 @@
           <div class="stat-number">{{ batchResults.success }}</div>
           <div class="stat-label">Sessions Imported</div>
         </div>
-        <div class="stat-card failed">
-          <div class="stat-number">{{ batchResults.failed }}</div>
-          <div class="stat-label">Failed</div>
+        <div class="stat-card duplicates">
+          <div class="stat-number">{{ batchResults.duplicates?.length || 0 }}</div>
+          <div class="stat-label">Duplicates</div>
         </div>
         <div class="stat-card total">
-          <div class="stat-number">{{ batchResults.success + batchResults.failed }}</div>
+          <div class="stat-number">{{ batchProgress.total }}</div>
           <div class="stat-label">Total Files</div>
         </div>
       </div>
 
+      <!-- Duplicates List (Blue) -->
+      <div v-if="batchResults.duplicates && batchResults.duplicates.length > 0" class="duplicates-list">
+        <h3>Duplicate Files</h3>
+        <p>These files were already uploaded previously:</p>
+        <ul>
+          <li v-for="(dup, idx) in batchResults.duplicates" :key="idx">{{ dup }}</li>
+        </ul>
+      </div>
+
+      <!-- Incomplete/Missing Data List (Yellow) -->
+      <div v-if="batchResults.incompleteData && batchResults.incompleteData.length > 0" class="incomplete-list">
+        <h3>Missing Data</h3>
+        <p>These files were uploaded but have incomplete or missing lap data:</p>
+        <ul>
+          <li v-for="(incomplete, idx) in batchResults.incompleteData" :key="idx">{{ incomplete }}</li>
+        </ul>
+      </div>
+
+      <!-- Actual Errors List (Red) -->
       <div v-if="batchResults.errors.length > 0" class="error-list">
-        <h3>Errors:</h3>
+        <h3>Errors</h3>
+        <p>These files failed to process:</p>
         <ul>
           <li v-for="(error, idx) in batchResults.errors" :key="idx">{{ error }}</li>
         </ul>
       </div>
 
+      <!-- Uploaded Laps Review -->
+      <div v-if="batchLaps.length > 0" class="laps-table-section">
+        <div class="laps-header">
+          <h3>Uploaded Laps <small>({{ batchLaps.length }} laps total)</small></h3>
+          <div class="pagination-info">
+            Showing {{ ((currentPage - 1) * pageSize) + 1 }}-{{ Math.min(currentPage * pageSize, batchLaps.length) }} of {{ batchLaps.length }}
+          </div>
+        </div>
+        
+        <div class="table-actions">
+          <div class="pagination-controls">
+            <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1" class="btn-page">« Prev</button>
+            <span class="page-indicator">Page {{ currentPage }} of {{ Math.ceil(batchLaps.length / pageSize) }}</span>
+            <button @click="currentPage = Math.min(Math.ceil(batchLaps.length / pageSize), currentPage + 1)" :disabled="currentPage === Math.ceil(batchLaps.length / pageSize)" class="btn-page">Next »</button>
+            <select v-model.number="pageSize" @change="currentPage = 1" class="page-size-select">
+              <option :value="25">25 per page</option>
+              <option :value="50">50 per page</option>
+              <option :value="100">100 per page</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="laps-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Driver Name</th>
+                <th>Lap #</th>
+                <th>Lap Time (s)</th>
+                <th>Position</th>
+                <th>Kart #</th>
+                <th>Sector 1</th>
+                <th>Sector 2</th>
+                <th>Sector 3</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(lap, index) in batchLaps.slice((currentPage - 1) * pageSize, currentPage * pageSize)" :key="index">
+                <td>{{ ((currentPage - 1) * pageSize) + index + 1 }}</td>
+                <td>{{ lap.driver_name || '-' }}</td>
+                <td>{{ lap.lap_number || '-' }}</td>
+                <td>{{ lap.lap_time ? lap.lap_time.toFixed(3) + 's' : '-' }}</td>
+                <td>{{ lap.position || '-' }}</td>
+                <td>{{ lap.kart_number || '-' }}</td>
+                <td>{{ lap.sector1 ? lap.sector1.toFixed(3) + 's' : '-' }}</td>
+                <td>{{ lap.sector2 ? lap.sector2.toFixed(3) + 's' : '-' }}</td>
+                <td>{{ lap.sector3 ? lap.sector3.toFixed(3) + 's' : '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="button-group">
         <button @click="resetForm" class="btn-secondary">Upload More</button>
-        <button @click="$router.push('/sessions')" class="btn-primary">View Sessions</button>
+        <button @click="$router.push('/sessions')" class="btn-primary">View All Sessions</button>
       </div>
     </div>
 
@@ -159,12 +407,27 @@
 
       <!-- Laps Table (Editable) -->
       <div class="laps-table-section">
-        <h3>Laps Data <small>({{ lapsData.length }} laps - click to edit)</small></h3>
+        <div class="laps-header">
+          <h3>Laps Data <small>({{ lapsData.length }} laps total)</small></h3>
+          <div class="pagination-info">
+            Showing {{ ((currentPage - 1) * pageSize) + 1 }}-{{ Math.min(currentPage * pageSize, lapsData.length) }} of {{ lapsData.length }}
+          </div>
+        </div>
         
         <div class="table-actions">
           <button @click="addNewLap" class="btn-add">+ Add Lap</button>
           <button @click="sortLapsByDriver" class="btn-secondary">Sort by Driver</button>
           <button @click="sortLapsByPosition" class="btn-secondary">Sort by Position</button>
+          <div class="pagination-controls">
+            <button @click="prevPage" :disabled="currentPage === 1" class="btn-page">« Prev</button>
+            <span class="page-indicator">Page {{ currentPage }} of {{ totalPages }}</span>
+            <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-page">Next »</button>
+            <select v-model.number="pageSize" class="page-size-select">
+              <option :value="25">25 per page</option>
+              <option :value="50">50 per page</option>
+              <option :value="100">100 per page</option>
+            </select>
+          </div>
         </div>
 
         <div class="table-wrapper">
@@ -177,11 +440,14 @@
                 <th>Lap Time (s)</th>
                 <th>Position</th>
                 <th>Kart #</th>
+                <th>Sector 1</th>
+                <th>Sector 2</th>
+                <th>Sector 3</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(lap, index) in lapsData" :key="index" 
+              <tr v-for="(lap, index) in paginatedLaps" :key="index" 
                   :class="{ 
                     editing: editingIndex === index,
                     'missing-data': hasMissingData(lap),
@@ -205,14 +471,26 @@
                   <span v-else>{{ lap.position || '-' }}</span>
                 </td>
                 <td>
-                  <input v-if="editingIndex === index" v-model="lap.kart_number" type="text" placeholder="Kart #" />
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model="lap.kart_number" type="text" placeholder="Kart #" />
                   <span v-else>{{ lap.kart_number || '-' }}</span>
                 </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.sector1" type="number" step="0.001" placeholder="S1" />
+                  <span v-else>{{ lap.sector1 ? lap.sector1.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.sector2" type="number" step="0.001" placeholder="S2" />
+                  <span v-else>{{ lap.sector2 ? lap.sector2.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.sector3" type="number" step="0.001" placeholder="S3" />
+                  <span v-else>{{ lap.sector3 ? lap.sector3.toFixed(3) + 's' : '-' }}</span>
+                </td>
                 <td class="actions">
-                  <button v-if="editingIndex === index" @click="saveEdit(index)" class="btn-icon btn-success">✓</button>
-                  <button v-if="editingIndex === index" @click="cancelEdit" class="btn-icon btn-secondary">✗</button>
-                  <button v-else @click="startEdit(index)" class="btn-icon btn-edit">✎</button>
-                  <button @click="deleteLap(index)" class="btn-icon btn-danger">🗑</button>
+                  <button v-if="editingIndex === getGlobalIndex(index)" @click="saveEdit(getGlobalIndex(index))" class="btn-icon btn-success">✓</button>
+                  <button v-if="editingIndex === getGlobalIndex(index)" @click="cancelEdit" class="btn-icon btn-secondary">✗</button>
+                  <button v-else @click="startEdit(getGlobalIndex(index))" class="btn-icon btn-edit">✎</button>
+                  <button @click="deleteLap(getGlobalIndex(index))" class="btn-icon btn-danger">🗑</button>
                 </td>
               </tr>
             </tbody>
@@ -235,11 +513,55 @@
       <div class="spinner"></div>
       <p>{{ loadingMessage }}</p>
     </div>
+
+    <!-- New Drivers Connection Modal -->
+    <div v-if="showNewDriversModal" class="modal-overlay" @click.self="closeNewDriversModal">
+      <div class="modal new-drivers-modal">
+        <div class="modal-header">
+          <h2>🆕 New Drivers Detected</h2>
+          <button @click="closeNewDriversModal" class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-hint">The following new drivers were created from the upload. Connect them to user accounts:</p>
+          
+          <div class="new-drivers-list">
+            <div v-for="driver in newDriversCreated" :key="driver.id" class="new-driver-item">
+              <div class="driver-info-section">
+                <div class="driver-name-badge">
+                  <span class="driver-icon">🏎️</span>
+                  <strong>{{ driver.name }}</strong>
+                </div>
+              </div>
+              
+              <div class="user-selection">
+                <select v-model="driverUserConnections[driver.id]" class="user-select">
+                  <option value="">Select user...</option>
+                  <option v-for="user in availableUsers" :key="user.id" :value="user.id">
+                    {{ user.name }} ({{ user.email }})
+                  </option>
+                </select>
+                <button 
+                  @click="connectNewDriver(driver.id)" 
+                  :disabled="!driverUserConnections[driver.id] || connectingDriver === driver.id"
+                  class="btn-sm btn-connect"
+                >
+                  {{ connectingDriver === driver.id ? 'Connecting...' : 'Connect' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button @click="skipNewDrivers" class="btn-secondary">Skip</button>
+          <button @click="closeNewDriversModal" class="btn-primary">Done</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import apiService from '@/services/api'
 import { useRouter } from 'vue-router'
 
@@ -279,9 +601,62 @@ const batchProgress = ref({
   current: 0, 
   total: 0, 
   currentFile: '',
-  fileLog: [] as Array<{ filename: string, status: 'processing' | 'success' | 'failed', message: string }>
+  fileLog: [] as Array<{ filename: string, status: 'processing' | 'success' | 'uploaded' | 'uploaded-incomplete' | 'failed', message: string }>
 })
-const batchResults = ref<{ success: number, failed: number, errors: string[] }>({ success: 0, failed: 0, errors: [] })
+const batchResults = ref<{ success: number, failed: number, errors: string[], duplicates: string[], incompleteData: string[], savedSessionIds: number[] }>({ 
+  success: 0, 
+  failed: 0, 
+  errors: [], 
+  duplicates: [], 
+  incompleteData: [],
+  savedSessionIds: []
+})
+const batchLaps = ref<any[]>([])
+
+// Manual entry mode
+const entryMode = ref<'file' | 'manual'>('file')
+const availableTracks = ref<any[]>([])
+const forceTrack = ref(false)
+const forcedTrackId = ref<number | ''>('')
+const manualSession = reactive({
+  track_id: '' as number | '',
+  session_date: '',
+  session_type: 'race',
+  heat_price: 0,
+})
+const quickLap = reactive({
+  driver_name: '',
+  lap_number: 1,
+  lap_time: '',
+  position: null as number | null,
+  kart_number: '',
+  sector1: null as number | null,
+  sector2: null as number | null,
+  sector3: null as number | null,
+})
+const manualLaps = ref<any[]>([])
+
+// Driver autocomplete
+const allDrivers = ref<any[]>([])
+const driverSuggestions = ref<any[]>([])
+const showDriverSuggestions = ref(false)
+
+// New drivers connection
+const showNewDriversModal = ref(false)
+const newDriversCreated = ref<any[]>([])
+const availableUsers = ref<any[]>([])
+const driverUserConnections = ref<Record<number, number | ''>>({})
+const connectingDriver = ref<number | null>(null)
+
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(50)
+const totalPages = computed(() => Math.ceil(lapsData.value.length / pageSize.value))
+const paginatedLaps = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return lapsData.value.slice(start, end)
+})
 
 // Methods
 const selectFolder = () => {
@@ -332,7 +707,7 @@ const uploadBatch = async (files: File[]) => {
   loading.value = true
   batchFiles.value = files
   batchProgress.value = { current: 0, total: files.length, currentFile: '', fileLog: [] }
-  batchResults.value = { success: 0, failed: 0, errors: [] }
+  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [] }
   
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
@@ -346,14 +721,29 @@ const uploadBatch = async (files: File[]) => {
     const logIndex = batchProgress.value.fileLog.length - 1
     
     try {
-      const response = await apiService.upload.parseEml(file)
+      const trackIdToSend = forceTrack.value && forcedTrackId.value ? Number(forcedTrackId.value) : undefined
+      const response = await apiService.upload.parseEml(file, trackIdToSend)
       
       // Handle duplicate file (already uploaded before)
       if (response.duplicate_file) {
-        const errorMsg = response.message || 'Duplicate file'
-        batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
-        batchResults.value.failed++
-        batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
+        // Check if the duplicate has missing data
+        const hasMissingData = response.existing_upload && 
+          (response.existing_upload.status === 'partial' || 
+           response.existing_upload.laps_count === 0)
+        
+        const status = hasMissingData ? 'uploaded-incomplete' : 'uploaded'
+        const errorMsg = hasMissingData 
+          ? `Already uploaded (${response.existing_upload.upload_date}) - has missing data`
+          : response.message || 'Already uploaded'
+        
+        // Add to duplicates or incomplete data arrays (not errors)
+        if (hasMissingData) {
+          batchResults.value.incompleteData.push(file.name)
+        } else {
+          batchResults.value.duplicates.push(file.name)
+        }
+        
+        batchProgress.value.fileLog[logIndex] = { filename: file.name, status, message: errorMsg }
         continue
       }
       
@@ -394,6 +784,13 @@ const uploadBatch = async (files: File[]) => {
       
       if (saveResponse.success) {
         batchResults.value.success++
+        if (saveResponse.session_id) {
+          batchResults.value.savedSessionIds.push(saveResponse.session_id)
+        }
+        // Store laps for review
+        if (response.data.laps) {
+          batchLaps.value.push(...response.data.laps)
+        }
         batchProgress.value.fileLog[logIndex] = { 
           filename: file.name, 
           status: 'success', 
@@ -413,6 +810,30 @@ const uploadBatch = async (files: File[]) => {
       
     } catch (error: any) {
       console.error('Upload error for', file.name, error)
+      
+      // Check if this is a duplicate file error (409 status)
+      if (error.response?.status === 409 && error.response?.data?.duplicate_file) {
+        const responseData = error.response.data
+        const hasMissingData = responseData.existing_upload && 
+          (responseData.existing_upload.status === 'partial' || 
+           responseData.existing_upload.laps_count === 0)
+        
+        const status = hasMissingData ? 'uploaded-incomplete' : 'uploaded'
+        const errorMsg = hasMissingData 
+          ? `Already uploaded (${responseData.existing_upload.upload_date}) - has missing data`
+          : responseData.message || 'Already uploaded'
+        
+        // Add to duplicates or incomplete data arrays (not errors)
+        if (hasMissingData) {
+          batchResults.value.incompleteData.push(file.name)
+        } else {
+          batchResults.value.duplicates.push(file.name)
+        }
+        
+        batchProgress.value.fileLog[logIndex] = { filename: file.name, status, message: errorMsg }
+        continue
+      }
+      
       let errorMsg = 'Upload failed'
       
       if (error.response?.data) {
@@ -446,7 +867,8 @@ const uploadFile = async (file: File) => {
   uploadError.value = ''
 
   try {
-    const response = await apiService.upload.parseEml(file)
+    const trackIdToSend = forceTrack.value && forcedTrackId.value ? Number(forcedTrackId.value) : undefined
+    const response = await apiService.upload.parseEml(file, trackIdToSend)
     
     // Handle duplicate file
     if (response.duplicate_file) {
@@ -589,8 +1011,17 @@ const saveSession = async () => {
 
     if (response.success) {
       const action = replaceSession.value ? 'replaced' : 'saved'
-      alert(`Session ${action} successfully! ${response.laps_imported} laps imported, ${response.drivers_processed.length} drivers processed.`)
-      router.push('/admin/data')
+      
+      // Check if new drivers were created
+      if (response.new_drivers_created && response.new_drivers_created.length > 0) {
+        newDriversCreated.value = response.new_drivers_created
+        driverUserConnections.value = {}
+        await loadAvailableUsers()
+        showNewDriversModal.value = true
+      } else {
+        alert(`Session ${action} successfully! ${response.laps_imported} laps imported, ${response.drivers_processed.length} drivers processed.`)
+        router.push('/admin/data')
+      }
     } else {
       alert('Failed to save session: ' + (response.message || 'Unknown error'))
     }
@@ -622,7 +1053,16 @@ const resetForm = () => {
   uploadError.value = ''
   batchFiles.value = []
   batchProgress.value = { current: 0, total: 0, currentFile: '', fileLog: [] }
-  batchResults.value = { success: 0, failed: 0, errors: [] }
+  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [] }
+  batchLaps.value = []
+}
+
+const viewUploadedLaps = () => {
+  // Redirect to sessions view where user can see and edit the uploaded sessions
+  router.push({
+    path: '/sessions',
+    query: { recent: 'true', ids: batchResults.value.savedSessionIds.join(',') }
+  })
 }
 
 // Helper to check if a lap has missing critical data
@@ -630,705 +1070,219 @@ const hasMissingData = (lap: any): boolean => {
   return !lap.driver_name || !lap.lap_time || lap.lap_time === 0
 }
 
+// Pagination methods
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+const getGlobalIndex = (pageIndex: number): number => {
+  return (currentPage.value - 1) * pageSize.value + pageIndex
+}
+
+// Manual entry methods
+const addManualLap = () => {
+  if (!quickLap.driver_name || !quickLap.lap_time) {
+    alert('Driver name and lap time are required')
+    return
+  }
+  
+  // Parse lap time
+  let lapTimeSeconds = 0
+  const timeStr = quickLap.lap_time.trim()
+  
+  // MM:SS.mmm format
+  if (timeStr.includes(':')) {
+    const parts = timeStr.split(':')
+    const min = parts[0]
+    const sec = parts[1]
+    if (min && sec) {
+      lapTimeSeconds = parseInt(min) * 60 + parseFloat(sec)
+    }
+  } else {
+    // SS.mmm format
+    lapTimeSeconds = parseFloat(timeStr)
+  }
+  
+  if (isNaN(lapTimeSeconds) || lapTimeSeconds <= 0) {
+    alert('Invalid lap time format. Use MM:SS.mmm or SS.mmm')
+    return
+  }
+  
+  manualLaps.value.push({
+    driver_name: quickLap.driver_name,
+    lap_number: quickLap.lap_number || 1,
+    lap_time: lapTimeSeconds,
+    position: quickLap.position,
+    kart_number: quickLap.kart_number,
+    sector1: quickLap.sector1,
+    sector2: quickLap.sector2,
+    sector3: quickLap.sector3,
+  })
+  
+  // Auto-increment lap number for next entry (keep driver name)
+  quickLap.lap_number++
+  quickLap.lap_time = ''
+  quickLap.position = null
+  quickLap.kart_number = ''
+  quickLap.sector1 = null
+  quickLap.sector2 = null
+  quickLap.sector3 = null
+}
+
+const removeManualLap = (index: number) => {
+  manualLaps.value.splice(index, 1)
+}
+
+const clearManualLaps = () => {
+  if (confirm('Clear all laps?')) {
+    manualLaps.value = []
+  }
+}
+
+const formatLapTime = (seconds: number): string => {
+  const min = Math.floor(seconds / 60)
+  const sec = (seconds % 60).toFixed(3)
+  return min > 0 ? `${min}:${sec.padStart(6, '0')}` : `${sec}s`
+}
+
+const saveManualSession = async () => {
+  if (!manualSession.track_id || !manualSession.session_date) {
+    alert('Track and session date are required')
+    return
+  }
+  
+  if (manualLaps.value.length === 0) {
+    alert('Add at least one lap')
+    return
+  }
+  
+  saving.value = true
+  
+  try {
+    const response = await apiService.upload.saveParsedSession({
+      track_id: manualSession.track_id,
+      session_date: manualSession.session_date,
+      session_type: manualSession.session_type,
+      heat_price: manualSession.heat_price,
+      session_number: '',
+      file_name: 'Manual Entry',
+      file_hash: `manual_${Date.now()}`,
+      laps: manualLaps.value
+    })
+    
+    if (response.success) {
+      alert(`✅ Session saved! ${manualLaps.value.length} laps imported.`)
+      // Reset form
+      manualSession.track_id = ''
+      manualSession.session_date = ''
+      manualSession.session_type = 'race'
+      manualSession.heat_price = 0
+      manualLaps.value = []
+      quickLap.driver_name = ''
+      quickLap.lap_number = 1
+      router.push('/sessions')
+    } else {
+      alert('Failed to save session: ' + (response.message || 'Unknown error'))
+    }
+  } catch (error: any) {
+    console.error('Save error:', error)
+    alert('Error saving session: ' + (error.response?.data?.message || error.message))
+  } finally {
+    saving.value = false
+  }
+}
+
+// Load available tracks and drivers on mount
+onMounted(async () => {
+  try {
+    availableTracks.value = await apiService.getTracks()
+    // Load all drivers for autocomplete
+    allDrivers.value = await apiService.getDrivers()
+  } catch (error) {
+    console.error('Failed to load data:', error)
+  }
+})
+
+// Driver autocomplete with fuzzy search
+const searchDrivers = () => {
+  const query = quickLap.driver_name.toLowerCase().trim()
+  
+  if (!query || query.length < 2) {
+    driverSuggestions.value = []
+    return
+  }
+  
+  // Fuzzy search: match if query chars appear in order in driver name
+  driverSuggestions.value = allDrivers.value
+    .filter(driver => {
+      const name = driver.name.toLowerCase()
+      let queryIndex = 0
+      
+      for (let i = 0; i < name.length && queryIndex < query.length; i++) {
+        if (name[i] === query[queryIndex]) {
+          queryIndex++
+        }
+      }
+      
+      return queryIndex === query.length
+    })
+    .slice(0, 8) // Limit to 8 suggestions
+}
+
+const selectDriver = (driver: any) => {
+  quickLap.driver_name = driver.name
+  showDriverSuggestions.value = false
+}
+
+const hideDriverSuggestions = () => {
+  setTimeout(() => {
+    showDriverSuggestions.value = false
+  }, 200)
+}
+
+// New drivers connection modal functions
+const loadAvailableUsers = async () => {
+  try {
+    const users = await apiService.adminUsers.getAll()
+    availableUsers.value = users
+  } catch (error) {
+    console.error('Failed to load users:', error)
+  }
+}
+
+const connectNewDriver = async (driverId: number) => {
+  const userId = driverUserConnections.value[driverId]
+  if (!userId) return
+
+  connectingDriver.value = driverId
+  try {
+    await apiService.adminUsers.connectDriver(userId, driverId)
+    alert('Driver connected successfully!')
+    // Remove from list
+    newDriversCreated.value = newDriversCreated.value.filter(d => d.id !== driverId)
+    delete driverUserConnections.value[driverId]
+  } catch (error: any) {
+    alert(error.response?.data?.message || 'Failed to connect driver')
+  } finally {
+    connectingDriver.value = null
+  }
+}
+
+const closeNewDriversModal = () => {
+  showNewDriversModal.value = false
+  router.push('/admin/data')
+}
+
+const skipNewDrivers = () => {
+  if (confirm('Skip connecting these drivers? You can connect them later from User Management.')) {
+    closeNewDriversModal()
+  }
+}
+
 </script>
 
-<style scoped lang="scss">
-.eml-upload-view {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-
-  h1 {
-    margin-bottom: 2rem;
-    color: var(--primary-color);
-  }
-}
-
-.upload-section {
-  .dropzone {
-    border: 3px dashed var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 3rem;
-    text-align: center;
-    background: var(--card-bg);
-    transition: all 0.3s ease;
-    cursor: pointer;
-
-    &.dragging {
-      border-color: var(--primary-color);
-      background: rgba(var(--primary-color-rgb), 0.1);
-    }
-
-    &:hover {
-      border-color: var(--primary-color);
-    }
-
-    .dropzone-content {
-      svg {
-        color: var(--primary-color);
-        margin-bottom: 1rem;
-      }
-
-      p {
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
-
-        button {
-          color: var(--primary-color);
-          text-decoration: underline;
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: inherit;
-          padding: 0;
-
-          &:hover {
-            color: var(--primary-hover);
-          }
-        }
-      }
-
-      small {
-        color: var(--text-secondary);
-        display: block;
-        margin-top: 0.5rem;
-      }
-
-      .upload-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin: 1.5rem 0 1rem 0;
-
-        button {
-          padding: 0.75rem 1.5rem;
-          border-radius: var(--border-radius);
-          border: 2px solid var(--border-color);
-          background: var(--card-bg);
-          cursor: pointer;
-          font-size: 1rem;
-          transition: all 0.3s ease;
-
-          &.btn-primary {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-
-            &:hover {
-              background: var(--primary-hover);
-              border-color: var(--primary-hover);
-            }
-          }
-
-          &.btn-secondary {
-            &:hover {
-              border-color: var(--primary-color);
-              color: var(--primary-color);
-            }
-          }
-
-          .icon {
-            margin-right: 0.5rem;
-          }
-        }
-      }
-    }
-  }
-
-  .error-message {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: var(--error-bg);
-    color: var(--error-color);
-    border-radius: var(--border-radius);
-    border-left: 4px solid var(--error-color);
-  }
-}
-
-.preview-section {
-  .preview-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--border-color);
-
-    h2 {
-      color: var(--primary-color);
-    }
-
-    .preview-stats {
-      display: flex;
-      gap: 2rem;
-
-      span {
-        padding: 0.5rem 1rem;
-        background: var(--card-bg);
-        border-radius: var(--border-radius);
-        font-weight: 600;
-
-        &.track-detected {
-          background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-          color: white;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-      }
-    }
-  }
-
-  .duplicate-warning {
-    background: #fff3cd;
-    border: 2px solid #ffc107;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-
-    h3 {
-      color: #856404;
-      margin-bottom: 1rem;
-    }
-
-    p {
-      margin-bottom: 0.5rem;
-    }
-
-    ul {
-      margin: 1rem 0;
-      padding-left: 2rem;
-
-      li {
-        margin: 0.5rem 0;
-      }
-    }
-
-    .duplicate-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-  }
-
-  .session-metadata {
-    background: var(--card-bg);
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
-    margin-bottom: 2rem;
-
-    h3 {
-      margin-bottom: 1rem;
-    }
-
-    .metadata-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-
-      .field {
-        label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 600;
-          color: var(--text-secondary);
-        }
-
-        input,
-        select {
-          width: 100%;
-          padding: 0.75rem;
-          border: 2px solid var(--border-color);
-          border-radius: var(--border-radius);
-          font-size: 1rem;
-          background: var(--bg-color);
-          color: var(--text-color);
-
-          &:focus {
-            outline: none;
-            border-color: var(--primary-color);
-          }
-
-          &:read-only {
-            background: var(--bg-secondary);
-            cursor: not-allowed;
-          }
-        }
-      }
-    }
-  }
-
-  .laps-table-section {
-    background: var(--card-bg);
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
-    margin-bottom: 2rem;
-
-    h3 {
-      margin-bottom: 1rem;
-
-      small {
-        color: var(--text-secondary);
-        font-weight: normal;
-      }
-    }
-
-    .table-actions {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-    }
-
-    .laps-table {
-      width: 100%;
-      border-collapse: collapse;
-
-      thead {
-        background: var(--bg-secondary);
-
-        th {
-          padding: 0.75rem;
-          text-align: left;
-          font-weight: 600;
-          border-bottom: 2px solid var(--border-color);
-        }
-      }
-
-      tbody {
-        tr {
-          border-bottom: 1px solid var(--border-color);
-
-          &.editing {
-            background: rgba(var(--primary-color-rgb), 0.05);
-          }
-
-          &.missing-data {
-            background: rgba(255, 193, 7, 0.08);
-            border-left: 3px solid #ffc107;
-          }
-
-          &.warning-row {
-            background: rgba(255, 152, 0, 0.05);
-          }
-
-          &:hover {
-            background: var(--bg-secondary);
-          }
-
-          td {
-            padding: 0.75rem;
-
-            &.missing-field {
-              background: rgba(239, 68, 68, 0.1);
-              color: #ef4444;
-              font-weight: 600;
-              position: relative;
-
-              &::before {
-                content: '⚠️';
-                margin-right: 0.25rem;
-              }
-            }
-
-            input {
-              width: 100%;
-              padding: 0.5rem;
-              border: 2px solid var(--border-color);
-              border-radius: 4px;
-              background: var(--bg-color);
-              color: var(--text-color);
-
-              &:focus {
-                outline: none;
-                border-color: var(--primary-color);
-              }
-            }
-
-            &.actions {
-              display: flex;
-              gap: 0.5rem;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .action-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-  }
-}
-
-.btn-primary,
-.btn-secondary,
-.btn-warning,
-.btn-add,
-.btn-icon {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.btn-primary {
-  background: var(--primary-color);
-  color: white;
-
-  &:hover:not(:disabled) {
-    background: var(--primary-hover);
-  }
-}
-
-.btn-secondary {
-  background: var(--bg-secondary);
-  color: var(--text-color);
-
-  &:hover {
-    background: var(--border-color);
-  }
-}
-
-.btn-warning {
-  background: #ffc107;
-  color: #000;
-
-  &:hover {
-    background: #ffb300;
-  }
-}
-
-.btn-add {
-  background: var(--success-color);
-  color: white;
-
-  &:hover {
-    opacity: 0.9;
-  }
-}
-
-.btn-icon {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
-
-  &.btn-success {
-    background: var(--success-color);
-    color: white;
-  }
-
-  &.btn-danger {
-    background: var(--error-color);
-    color: white;
-  }
-
-  &.btn-edit {
-    background: var(--primary-color);
-    color: white;
-  }
-}
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top-color: var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  p {
-    margin-top: 1rem;
-    color: white;
-    font-size: 1.1rem;
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-// Batch upload sections
-.batch-progress-section {
-  padding: 2rem;
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-  text-align: center;
-
-  h2 {
-    margin-bottom: 1.5rem;
-    color: var(--primary-color);
-  }
-
-  .progress-bar {
-    width: 100%;
-    height: 30px;
-    background: var(--border-color);
-    border-radius: 15px;
-    overflow: hidden;
-    margin: 1rem 0;
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-      transition: width 0.3s ease;
-    }
-  }
-
-  .progress-text {
-    font-size: 1rem;
-    color: var(--text-color);
-    margin: 0.5rem 0;
-  }
-
-  .current-file {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-top: 0.5rem;
-  }
-
-  .batch-stats {
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
-    margin-top: 1.5rem;
-
-    span {
-      font-size: 1.1rem;
-      font-weight: 600;
-
-      &.success {
-        color: #22c55e;
-      }
-
-      &.failed {
-        color: #ef4444;
-      }
-    }
-  }
-
-  .file-progress-log {
-    margin-top: 2rem;
-    text-align: left;
-
-    h3 {
-      color: var(--text-color);
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-    }
-
-    .log-container {
-      max-height: 400px;
-      overflow-y: auto;
-      background: var(--bg-secondary);
-      border-radius: var(--border-radius);
-      padding: 1rem;
-    }
-
-    .log-entry {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem;
-      margin-bottom: 0.5rem;
-      background: var(--card-bg);
-      border-radius: 6px;
-      border-left: 3px solid transparent;
-      transition: all 0.2s ease;
-
-      &.processing {
-        border-left-color: #3b82f6;
-        
-        .log-icon {
-          animation: pulse 1.5s ease-in-out infinite;
-        }
-      }
-
-      &.success {
-        border-left-color: #22c55e;
-      }
-
-      &.failed {
-        border-left-color: #ef4444;
-      }
-
-      .log-icon {
-        font-size: 1.2rem;
-        flex-shrink: 0;
-      }
-
-      .log-filename {
-        font-weight: 600;
-        color: var(--text-color);
-        flex-shrink: 0;
-        min-width: 200px;
-      }
-
-      .log-message {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        flex-grow: 1;
-      }
-    }
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.batch-complete-section {
-  padding: 2rem;
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-
-  h2 {
-    text-align: center;
-    margin-bottom: 2rem;
-    color: var(--primary-color);
-  }
-
-  .summary-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-
-    .stat-card {
-      padding: 1.5rem;
-      border-radius: var(--border-radius);
-      text-align: center;
-      background: var(--bg-secondary);
-
-      .stat-number {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-      }
-
-      .stat-label {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      &.success {
-        border-left: 4px solid #22c55e;
-
-        .stat-number {
-          color: #22c55e;
-        }
-      }
-
-      &.failed {
-        border-left: 4px solid #ef4444;
-
-        .stat-number {
-          color: #ef4444;
-        }
-      }
-
-      &.total {
-        border-left: 4px solid var(--primary-color);
-
-        .stat-number {
-          color: var(--primary-color);
-        }
-      }
-    }
-  }
-
-  .error-list {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid #ef4444;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-
-    h3 {
-      color: #ef4444;
-      margin-bottom: 1rem;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-
-      li {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(239, 68, 68, 0.2);
-        color: var(--text-secondary);
-
-        &:last-child {
-          border-bottom: none;
-        }
-      }
-    }
-  }
-
-  .button-group {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-
-    button {
-      padding: 0.75rem 2rem;
-      border-radius: var(--border-radius);
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-
-      &.btn-primary {
-        background: var(--primary-color);
-        color: white;
-
-        &:hover {
-          background: var(--primary-hover);
-        }
-      }
-
-      &.btn-secondary {
-        background: var(--bg-secondary);
-        color: var(--text-primary);
-        border: 2px solid var(--border-color);
-
-        &:hover {
-          border-color: var(--primary-color);
-        }
-      }
-    }
-  }
-}
-</style>
-
+<style scoped lang="scss" src="@/styles/EmlUploadView.scss"></style>

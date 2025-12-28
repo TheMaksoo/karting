@@ -14,6 +14,8 @@ use App\Http\Controllers\API\EmlUploadController;
 use App\Http\Controllers\API\FriendController;
 use App\Http\Controllers\API\UserSettingsController;
 use App\Http\Controllers\API\ActivityController;
+use App\Http\Controllers\API\UserDriverController;
+use App\Http\Controllers\API\UserManagementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,13 +51,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/track-nickname', [UserSettingsController::class, 'setTrackNickname']);
     Route::delete('/user/track-nickname/{id}', [UserSettingsController::class, 'deleteTrackNickname']);
     
+    // User Drivers (connect/disconnect drivers to user account)
+    Route::get('/user/drivers', [UserDriverController::class, 'index']);
+    Route::post('/user/drivers/{driverId}', [UserDriverController::class, 'attach']);
+    Route::delete('/user/drivers/{driverId}', [UserDriverController::class, 'detach']);
+    Route::post('/user/drivers/{driverId}/set-main', [UserDriverController::class, 'setPrimary']);
+    
     // Sessions
     Route::apiResource('sessions', KartingSessionController::class);
     Route::get('/sessions/{session}/laps', [KartingSessionController::class, 'laps']);
     
     // Laps
-    Route::apiResource('laps', LapController::class);
+    Route::get('/laps/count', [LapController::class, 'count']);
     Route::get('/laps/driver/{driver}', [LapController::class, 'byDriver']);
+    Route::apiResource('laps', LapController::class);
     
     // Settings
     Route::get('/settings', [SettingController::class, 'index']);
@@ -65,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/stats/drivers', [DriverController::class, 'stats']);
     Route::get('/stats/tracks', [TrackController::class, 'stats']);
     Route::get('/stats/overview', [LapController::class, 'overview']);
+    Route::get('/stats/database-metrics', [LapController::class, 'databaseMetrics']);
     Route::get('/stats/driver-activity-over-time', [SessionAnalyticsController::class, 'driverActivityOverTime']);
     Route::get('/stats/driver-track-heatmap', [SessionAnalyticsController::class, 'driverTrackHeatmap']);
     Route::get('/stats/trophy-case', [SessionAnalyticsController::class, 'trophyCase']);
@@ -91,5 +101,14 @@ Route::middleware('auth:sanctum')->group(function () {
         // EML Upload
         Route::post('/sessions/upload-eml', [EmlUploadController::class, 'parseEml']);
         Route::post('/sessions/save-parsed', [EmlUploadController::class, 'saveSession']);
+        
+        // User Management
+        Route::get('/admin/users', [UserManagementController::class, 'index']);
+        Route::post('/admin/users', [UserManagementController::class, 'store']);
+        Route::put('/admin/users/{id}', [UserManagementController::class, 'update']);
+        Route::delete('/admin/users/{id}', [UserManagementController::class, 'destroy']);
+        Route::get('/admin/users/{userId}/available-drivers', [UserManagementController::class, 'availableDrivers']);
+        Route::post('/admin/users/{userId}/drivers/{driverId}', [UserManagementController::class, 'connectDriver']);
+        Route::delete('/admin/users/{userId}/drivers/{driverId}', [UserManagementController::class, 'disconnectDriver']);
     });
 });
