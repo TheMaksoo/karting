@@ -280,6 +280,32 @@
         </ul>
       </div>
 
+      <!-- Failed Auto-Detection - Manual Track Selection Needed -->
+      <div v-if="batchResults.failedAutoDetection && batchResults.failedAutoDetection.length > 0" class="manual-track-selection">
+        <h3>⚠️ Manual Track Selection Required</h3>
+        <p>These files could not auto-detect the track. Please select the track manually:</p>
+        <div v-for="(failedFile, idx) in batchResults.failedAutoDetection" :key="idx" class="failed-file-card">
+          <div class="failed-file-header">
+            <strong>📄 {{ failedFile.fileName }}</strong>
+          </div>
+          <div class="failed-file-actions">
+            <label>Select Track:</label>
+            <select v-model="failedFile.selectedTrackId" class="track-select">
+              <option value="" disabled>Choose a track</option>
+              <option v-for="track in failedFile.availableTracks" :key="track.id" :value="track.id">
+                {{ track.name }} - {{ track.city }}
+              </option>
+            </select>
+            <button 
+              @click="retryFileWithTrack(failedFile, failedFile.selectedTrackId)" 
+              :disabled="!failedFile.selectedTrackId"
+              class="btn-primary btn-small">
+              Retry Upload
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Uploaded Laps Review -->
       <div v-if="batchLaps.length > 0" class="laps-table-section">
         <div class="laps-header">
@@ -443,31 +469,35 @@
                 <th>Sector 1</th>
                 <th>Sector 2</th>
                 <th>Sector 3</th>
+                <th>Gap to Best</th>
+                <th>Interval</th>
+                <th>Gap to Prev</th>
+                <th>Avg Speed</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(lap, index) in paginatedLaps" :key="index" 
                   :class="{ 
-                    editing: editingIndex === index,
+                    editing: editingIndex === getGlobalIndex(index),
                     'missing-data': hasMissingData(lap),
                     'warning-row': lap.warning
                   }">
                 <td>{{ index + 1 }}</td>
                 <td :class="{ 'missing-field': !lap.driver_name }">
-                  <input v-if="editingIndex === index" v-model="lap.driver_name" type="text" placeholder="Driver name required" />
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model="lap.driver_name" type="text" placeholder="Driver name required" />
                   <span v-else>{{ lap.driver_name || '⚠️ Missing' }}</span>
                 </td>
                 <td :class="{ 'missing-field': !lap.lap_number }">
-                  <input v-if="editingIndex === index" v-model.number="lap.lap_number" type="number" min="1" placeholder="Lap #" />
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.lap_number" type="number" min="1" placeholder="Lap #" />
                   <span v-else>{{ lap.lap_number || '⚠️ Missing' }}</span>
                 </td>
                 <td :class="{ 'missing-field': !lap.lap_time || lap.lap_time === 0 }">
-                  <input v-if="editingIndex === index" v-model.number="lap.lap_time" type="number" step="0.001" placeholder="Time in seconds" />
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.lap_time" type="number" step="0.001" placeholder="Time in seconds" />
                   <span v-else>{{ lap.lap_time ? lap.lap_time.toFixed(3) + 's' : '⚠️ Missing' }}</span>
                 </td>
                 <td>
-                  <input v-if="editingIndex === index" v-model.number="lap.position" type="number" min="1" placeholder="Position" />
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.position" type="number" min="1" placeholder="Position" />
                   <span v-else>{{ lap.position || '-' }}</span>
                 </td>
                 <td>
@@ -485,6 +515,22 @@
                 <td>
                   <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.sector3" type="number" step="0.001" placeholder="S3" />
                   <span v-else>{{ lap.sector3 ? lap.sector3.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.gap_to_best_lap" type="number" step="0.001" placeholder="Gap" />
+                  <span v-else>{{ lap.gap_to_best_lap ? lap.gap_to_best_lap.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.interval" type="number" step="0.001" placeholder="Interval" />
+                  <span v-else>{{ lap.interval ? lap.interval.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.gap_to_previous" type="number" step="0.001" placeholder="Gap Prev" />
+                  <span v-else>{{ lap.gap_to_previous ? lap.gap_to_previous.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.avg_speed" type="number" step="0.1" placeholder="Speed" />
+                  <span v-else>{{ lap.avg_speed ? lap.avg_speed.toFixed(1) + ' km/h' : '-' }}</span>
                 </td>
                 <td class="actions">
                   <button v-if="editingIndex === getGlobalIndex(index)" @click="saveEdit(getGlobalIndex(index))" class="btn-icon btn-success">✓</button>
@@ -603,13 +649,14 @@ const batchProgress = ref({
   currentFile: '',
   fileLog: [] as Array<{ filename: string, status: 'processing' | 'success' | 'uploaded' | 'uploaded-incomplete' | 'failed', message: string }>
 })
-const batchResults = ref<{ success: number, failed: number, errors: string[], duplicates: string[], incompleteData: string[], savedSessionIds: number[] }>({ 
+const batchResults = ref<{ success: number, failed: number, errors: string[], duplicates: string[], incompleteData: string[], savedSessionIds: number[], failedAutoDetection: Array<{ file: File, fileName: string, availableTracks: any[], selectedTrackId?: number }> }>({ 
   success: 0, 
   failed: 0, 
   errors: [], 
   duplicates: [], 
   incompleteData: [],
-  savedSessionIds: []
+  savedSessionIds: [],
+  failedAutoDetection: []
 })
 const batchLaps = ref<any[]>([])
 
@@ -707,7 +754,7 @@ const uploadBatch = async (files: File[]) => {
   loading.value = true
   batchFiles.value = files
   batchProgress.value = { current: 0, total: files.length, currentFile: '', fileLog: [] }
-  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [] }
+  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [], failedAutoDetection: [] }
   
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
@@ -755,9 +802,24 @@ const uploadBatch = async (files: File[]) => {
         } else if (response.require_manual_input) {
           errorMsg = 'Requires manual input - incomplete data'
         }
-        batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
-        batchResults.value.failed++
-        batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
+        
+        // If it's a track auto-detection failure, store it for manual selection
+        if (response.require_manual_input && response.available_tracks) {
+          batchResults.value.failedAutoDetection.push({
+            file: file,
+            fileName: file.name,
+            availableTracks: response.available_tracks
+          })
+          batchProgress.value.fileLog[logIndex] = { 
+            filename: file.name, 
+            status: 'failed', 
+            message: 'Track auto-detection failed - manual selection needed' 
+          }
+        } else {
+          batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
+          batchResults.value.failed++
+          batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
+        }
         continue
       }
       
@@ -856,6 +918,61 @@ const uploadBatch = async (files: File[]) => {
   
   loading.value = false
   step.value = 'batch-complete'
+}
+
+const retryFileWithTrack = async (failedFile: { file: File, fileName: string, availableTracks: any[], selectedTrackId?: number }, trackId: number | undefined) => {
+  if (!trackId) {
+    alert('Please select a track first')
+    return
+  }
+  
+  try {
+    loading.value = true
+    loadingMessage.value = `Retrying ${failedFile.fileName} with selected track...`
+    
+    const response = await apiService.upload.parseEml(failedFile.file, trackId)
+    
+    if (response.success && response.data) {
+      // Auto-import successful parse
+      const saveResponse = await apiService.upload.saveParsedSession({
+        track_id: response.track.id,
+        session_date: response.data.session_date || new Date().toISOString(),
+        session_type: 'race',
+        heat_price: 0,
+        session_number: response.data.session_number || '',
+        file_name: response.file_name,
+        file_hash: response.data.file_hash,
+        laps: response.data.laps || []
+      })
+      
+      if (saveResponse.success) {
+        alert(`✅ Successfully imported ${failedFile.fileName} with ${response.data.laps?.length || 0} laps!`)
+        
+        // Remove from failedAutoDetection list
+        batchResults.value.failedAutoDetection = batchResults.value.failedAutoDetection.filter(
+          f => f.fileName !== failedFile.fileName
+        )
+        
+        // Update success count
+        batchResults.value.success++
+        
+        // Store laps for review
+        if (response.data.laps) {
+          batchLaps.value.push(...response.data.laps)
+        }
+      } else {
+        alert(`Failed to save ${failedFile.fileName}: ${saveResponse.message || 'Unknown error'}`)
+      }
+    } else {
+      alert(`Failed to parse ${failedFile.fileName}: ${response.errors?.join(', ') || 'Unknown error'}`)
+    }
+  } catch (error: any) {
+    console.error('Retry error:', error)
+    alert(`Error retrying ${failedFile.fileName}: ${error.message || 'Unknown error'}`)
+  } finally {
+    loading.value = false
+    loadingMessage.value = ''
+  }
 }
 
 const uploadFile = async (file: File) => {
@@ -1053,7 +1170,7 @@ const resetForm = () => {
   uploadError.value = ''
   batchFiles.value = []
   batchProgress.value = { current: 0, total: 0, currentFile: '', fileLog: [] }
-  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [] }
+  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [], failedAutoDetection: [] }
   batchLaps.value = []
 }
 

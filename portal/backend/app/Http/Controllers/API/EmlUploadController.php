@@ -19,6 +19,7 @@ class EmlUploadController extends Controller
     {
         $request->validate([
             'file' => 'required|file|max:10240',
+            'track_id' => 'nullable|exists:tracks,id',
         ]);
 
         $file = $request->file('file');
@@ -60,32 +61,45 @@ class EmlUploadController extends Controller
             }
             file_put_contents($tempPath, $content);
             
-            // Auto-detect track from filename or content
-            $track = $this->detectTrackFromFile($fileName, $content);
-            
-            if (!$track) {
-                // Save a small debug snapshot for failed detections to help investigate batch issues
-                try {
-                    $emailData = $this->parseEmailContent($content);
-                    $snippet = substr($emailData['subject'] ?? '', 0, 200) . "\n" . substr($emailData['from'] ?? '', 0, 200) . "\n\n" . substr($emailData['body'] ?? '', 0, 2000);
-                } catch (\Exception $e) {
-                    $snippet = substr($content, 0, 2000);
+            // Check if track_id was manually provided (force track override)
+            if ($request->has('track_id') && $request->track_id) {
+                $track = Track::find($request->track_id);
+                if (!$track) {
+                    @unlink($tempPath);
+                    return response()->json([
+                        'success' => false,
+                        'file_name' => $fileName,
+                        'errors' => ['Invalid track ID provided'],
+                    ], 400);
                 }
+            } else {
+                // Auto-detect track from filename or content
+                $track = $this->detectTrackFromFile($fileName, $content);
+                
+                if (!$track) {
+                    // Save a small debug snapshot for failed detections to help investigate batch issues
+                    try {
+                        $emailData = $this->parseEmailContent($content);
+                        $snippet = substr($emailData['subject'] ?? '', 0, 200) . "\n" . substr($emailData['from'] ?? '', 0, 200) . "\n\n" . substr($emailData['body'] ?? '', 0, 2000);
+                    } catch (\Exception $e) {
+                        $snippet = substr($content, 0, 2000);
+                    }
 
-                $debugPath = storage_path('app/temp/failed-detection-' . time() . '-' . md5($fileName) . '.txt');
-                @mkdir(dirname($debugPath), 0777, true);
-                @file_put_contents($debugPath, "filename: {$fileName}\n\nsnippet:\n{$snippet}");
+                    $debugPath = storage_path('app/temp/failed-detection-' . time() . '-' . md5($fileName) . '.txt');
+                    @mkdir(dirname($debugPath), 0777, true);
+                    @file_put_contents($debugPath, "filename: {$fileName}\n\nsnippet:\n{$snippet}");
 
-                $errors[] = 'Could not auto-detect track. Please select manually.';
-                @unlink($tempPath);
-                return response()->json([
-                    'success' => false,
-                    'file_name' => $fileName,
-                    'errors' => $errors,
-                    'available_tracks' => Track::select('id', 'name', 'city')->get(),
-                    'require_manual_input' => true,
-                    'debug_file' => $debugPath,
-                ], 400);
+                    // Don't delete temp file - keep it for potential retry with manual track selection
+                    $errors[] = 'Could not auto-detect track. Please select manually.';
+                    return response()->json([
+                        'success' => false,
+                        'file_name' => $fileName,
+                        'errors' => $errors,
+                        'available_tracks' => Track::select('id', 'name', 'city')->get(),
+                        'require_manual_input' => true,
+                        'debug_file' => $debugPath,
+                    ], 400);
+                }
             }
             
             // Use EmlParser service to parse the file
