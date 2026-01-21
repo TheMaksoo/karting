@@ -161,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
 import { useKartingAPI } from '@/composables/useKartingAPI'
@@ -578,6 +578,14 @@ const formatDate = (date: string): string => {
 // Load data on mount
 onMounted(async () => {
   await loadFinancialData()
+})
+
+onUnmounted(() => {
+  // Clean up chart instances to prevent memory leaks
+  if (spendingChartInstance) spendingChartInstance.destroy()
+  if (breakdownChartInstance) breakdownChartInstance.destroy()
+  if (monthlyChartInstance) monthlyChartInstance.destroy()
+  if (valueChartInstance) valueChartInstance.destroy()
 })
 </script>
 

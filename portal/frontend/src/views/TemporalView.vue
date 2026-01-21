@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
 import { useKartingAPI } from '@/composables/useKartingAPI'
@@ -681,6 +681,14 @@ const formatTime = (seconds: number): string => {
 
 onMounted(async () => {
   await loadData()
+})
+
+onUnmounted(() => {
+  // Clean up chart instances to prevent memory leaks
+  if (performanceChartInstance) performanceChartInstance.destroy()
+  if (timeOfDayChartInstance) timeOfDayChartInstance.destroy()
+  if (dayOfWeekChartInstance) dayOfWeekChartInstance.destroy()
+  if (seasonalChartInstance) seasonalChartInstance.destroy()
 })
 </script>
 

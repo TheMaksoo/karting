@@ -167,20 +167,13 @@ async function loadTrackData() {
   try {
     // Ensure auth store has loaded the user
     if (!authStore.user) {
-      console.log('⏳ User not loaded, fetching current user...')
       await authStore.fetchCurrentUser()
-      console.log('✅ User fetched:', authStore.user)
     }
 
     let driverId = loggedInDriverId.value
-
-    console.log('🔍 Loading data for driver ID:', driverId)
-    console.log('🔍 Auth store user:', authStore.user)
-    console.log('🔍 Driver ID type:', typeof driverId)
     
     // If no driver_id, try to find driver by name
     if (!driverId || driverId === undefined) {
-      console.warn('⚠️ No driver_id in user object, attempting to find driver by name...')
       
       if (authStore.user?.name) {
         try {
@@ -194,29 +187,27 @@ async function loadTrackData() {
             if (matchingDriver) {
               driverId = matchingDriver.driver_id
               resolvedDriverId.value = driverId // Store resolved ID
-              console.log('✅ Found driver by name match:', matchingDriver.driver_name, 'ID:', driverId)
             } else {
-              console.error('❌ No driver found matching user name:', authStore.user.name)
+              console.error('No driver found matching user name:', authStore.user.name)
               error.value = `No driver profile found for "${authStore.user.name}". Please contact an administrator.`
               loading.value = false
               return
             }
           }
         } catch (err) {
-          console.error('❌ Error finding driver by name:', err)
+          console.error('Error finding driver by name:', err)
         }
       }
       
       // Still no driver ID
       if (!driverId) {
-        console.error('❌ Driver ID is null or undefined! Auth user:', authStore.user)
+        console.error('Driver ID not found. Auth user:', authStore.user)
         error.value = 'Driver ID not found. Please contact an administrator to link your account to a driver profile.'
         loading.value = false
         return
       }
     }
 
-    console.log('✅ Using driver ID:', driverId)
     resolvedDriverId.value = driverId // Store resolved ID
 
     const data = await getTrackStats()

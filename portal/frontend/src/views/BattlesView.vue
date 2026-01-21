@@ -125,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
 import { useKartingAPI } from '@/composables/useKartingAPI'
@@ -492,6 +492,13 @@ function formatDate(dateString: string): string {
 
 onMounted(async () => {
   await loadDrivers()
+})
+
+onUnmounted(() => {
+  // Clean up chart instances to prevent memory leaks
+  if (lapTimeChartInstance) lapTimeChartInstance.destroy()
+  if (gapChartInstance) gapChartInstance.destroy()
+  if (trackComparisonChartInstance) trackComparisonChartInstance.destroy()
 })
 </script>
 
