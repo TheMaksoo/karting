@@ -1,5 +1,8 @@
 ﻿<template>
   <div class="elite-dashboard">
+    <!-- Toast Container -->
+    <ToastContainer />
+    
     <!-- Loading State -->
     <div v-if="dataLoading" class="loading-state">
       <div class="spinner"></div>
@@ -512,15 +515,18 @@ import TrackMap from '@/components/TrackMap.vue'
 import FriendsSection from '@/components/home/FriendsSection.vue'
 import LatestActivity from '@/components/home/LatestActivity.vue'
 import QuickStats from '@/components/home/QuickStats.vue'
+import ToastContainer from '@/components/ToastContainer.vue'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 import { useKartingAPI, type OverviewStats, type DriverStat, type TrackStat } from '@/composables/useKartingAPI'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import apiService from '@/services/api'
 
 Chart.register(...registerables)
 
 const authStore = useAuthStore()
+const toast = useToast()
 const loggedInDriverId = computed(() => authStore.user?.driver_id)
 const resolvedDriverId = ref<number | null>(null) // Store the actual driver ID after resolution
 
@@ -1503,7 +1509,7 @@ const loadAllDrivers = async () => {
     allDrivers.value = response
   } catch (error) {
     console.error('Failed to load drivers:', error)
-    alert('Failed to load drivers. Please try again.')
+    toast.error('Failed to load drivers. Please try again.')
   } finally {
     driversLoading.value = false
   }
@@ -1539,12 +1545,6 @@ const addFriend = async (driverId: number) => {
   try {
     const response = await apiService.friends.add(driverId)
     
-    // Show success message
-    if (response.success && response.friend) {
-      // Success feedback - could use a toast notification here
-      console.log('Friend added successfully:', response.friend.name)
-    }
-    
     // Reload friends and activity
     await Promise.all([
       loadFriends(),
@@ -1553,11 +1553,11 @@ const addFriend = async (driverId: number) => {
     
     showAddFriendModal.value = false
     
-    // Show a simple success message
-    alert(`✓ ${response.friend?.name || 'Friend'} added to your racing crew!`)
+    // Show success toast
+    toast.success(`${response.friend?.name || 'Friend'} added to your racing crew!`)
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || 'Failed to add friend'
-    alert('⚠️ ' + errorMessage)
+    toast.error(errorMessage)
     console.error('Failed to add friend:', error)
   }
 }
@@ -1576,11 +1576,11 @@ const removeFriend = async (friendId: number) => {
     
     // Show success feedback
     if (response.success) {
-      console.log('Friend removed successfully')
+      toast.success('Friend removed from your racing crew')
     }
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || 'Failed to remove friend'
-    alert('⚠️ ' + errorMessage)
+    toast.error(errorMessage)
     console.error('Failed to remove friend:', error)
   }
 }

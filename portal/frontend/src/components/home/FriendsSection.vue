@@ -85,17 +85,9 @@ const emit = defineEmits<{
 
 const removingFriendId = ref<number | null>(null)
 
-const handleRemoveFriend = async (friendId: number) => {
+const handleRemoveFriend = (friendId: number) => {
   removingFriendId.value = friendId
-  try {
-    emit('remove-friend', friendId)
-    // Reset after a delay to allow parent to handle
-    setTimeout(() => {
-      removingFriendId.value = null
-    }, 1000)
-  } catch (error) {
-    removingFriendId.value = null
-  }
+  emit('remove-friend', friendId)
 }
 
 const formatDate = (dateString: string) => {
