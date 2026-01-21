@@ -484,7 +484,16 @@
                   aria-label="Search drivers"
                   @keydown.escape="driverSearchQuery = ''"
                 />
-                <span v-if="driverSearchQuery" @click="driverSearchQuery = ''" class="clear-search">✕</span>
+                <button
+                  v-if="driverSearchQuery" 
+                  @click="driverSearchQuery = ''" 
+                  @keydown.enter="driverSearchQuery = ''"
+                  class="clear-search"
+                  role="button"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
               </div>
               
               <div v-if="driversLoading" class="loading-state">Loading drivers...</div>
@@ -547,13 +556,15 @@ const showAddFriendModal = ref(false)
 const driverSearchQuery = ref('')
 const excludedDriverIds = ref<number[]>([])
 
-// Computed property for filtered available drivers
+// Computed property for filtered available drivers (optimized)
 const filteredAvailableDrivers = computed(() => {
   const query = driverSearchQuery.value.toLowerCase().trim()
+  const excludedIds = new Set(excludedDriverIds.value)
   
   return allDrivers.value
-    .filter(driver => !excludedDriverIds.value.includes(driver.id))
     .filter(driver => {
+      // Filter by excluded IDs and search query in one pass
+      if (excludedIds.has(driver.id)) return false
       if (!query) return true
       return driver.name.toLowerCase().includes(query)
     })

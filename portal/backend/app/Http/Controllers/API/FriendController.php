@@ -82,11 +82,16 @@ class FriendController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return response()->json([
+            $response = [
                 'success' => false,
                 'message' => 'Failed to load friends',
-                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error',
-            ], 500);
+            ];
+            
+            if (config('app.debug')) {
+                $response['error'] = $e->getMessage();
+            }
+            
+            return response()->json($response, 500);
         }
     }
 
@@ -172,11 +177,16 @@ class FriendController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return response()->json([
+            $response = [
                 'success' => false,
                 'message' => 'Failed to add friend',
-                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error',
-            ], 500);
+            ];
+            
+            if (config('app.debug')) {
+                $response['error'] = $e->getMessage();
+            }
+            
+            return response()->json($response, 500);
         }
     }
 
@@ -216,11 +226,16 @@ class FriendController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return response()->json([
+            $response = [
                 'success' => false,
                 'message' => 'Failed to remove friend',
-                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error',
-            ], 500);
+            ];
+            
+            if (config('app.debug')) {
+                $response['error'] = $e->getMessage();
+            }
+            
+            return response()->json($response, 500);
         }
     }
 
@@ -264,12 +279,17 @@ class FriendController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return response()->json([
+            $response = [
                 'success' => false,
                 'message' => 'Failed to retrieve friend driver IDs',
-                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error',
                 'driver_ids' => [],
-            ], 500);
+            ];
+            
+            if (config('app.debug')) {
+                $response['error'] = $e->getMessage();
+            }
+            
+            return response()->json($response, 500);
         }
     }
 }

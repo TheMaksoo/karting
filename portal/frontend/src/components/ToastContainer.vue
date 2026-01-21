@@ -49,7 +49,6 @@ const getIcon = (type: string) => {
   flex-direction: column;
   gap: var(--spacing-3);
   max-width: 400px;
-  pointer-events: none;
 }
 
 .toast {
