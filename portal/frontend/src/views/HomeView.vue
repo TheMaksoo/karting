@@ -1051,7 +1051,10 @@ const createActivityChart = (activityData: any[]) => {
     }
     
     const dateMap = driverDateMap[item.driver_name]
-    if (!dateMap) return // Safety check
+    if (!dateMap) {
+      console.error('Data processing error: dateMap not found for driver', item.driver_name)
+      return
+    }
     
     const date = item.session_date
     
