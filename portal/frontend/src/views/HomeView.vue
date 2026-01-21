@@ -519,7 +519,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
 import TrackMap from '@/components/TrackMap.vue'
 import FriendsSection from '@/components/home/FriendsSection.vue'
 import LatestActivity from '@/components/home/LatestActivity.vue'
@@ -557,6 +557,10 @@ const driverSearchQuery = ref('')
 const excludedDriverIds = ref<number[]>([])
 
 // Computed property for filtered available drivers (optimized)
+// Note: Debouncing is not needed here as we're filtering an in-memory array
+// with O(1) Set lookups. The computed property provides instant feedback which
+// is better UX than debounced updates. Debouncing would only be necessary if
+// we were making API calls on each keystroke.
 const filteredAvailableDrivers = computed(() => {
   const query = driverSearchQuery.value.toLowerCase().trim()
   const excludedIds = new Set(excludedDriverIds.value)
@@ -1519,7 +1523,6 @@ const loadAllDrivers = async () => {
     const response = await apiService.drivers.getAll()
     allDrivers.value = response
   } catch (error) {
-    console.error('Failed to load drivers:', error)
     toast.error('Failed to load drivers. Please try again.')
   } finally {
     driversLoading.value = false
@@ -1530,26 +1533,40 @@ const loadExcludedDriverIds = async () => {
   try {
     excludedDriverIds.value = await apiService.friends.getDriverIds()
   } catch (error) {
-    console.error('Failed to load excluded driver IDs:', error)
-    // Fallback to filtering by current friends only
-    excludedDriverIds.value = friends.value.map(f => f.driver_id)
-    if (loggedInDriverId.value) {
+    // Fallback: only use loaded friends if they're available and not in error state
+    if (!friendsLoading.value && !friendsError.value && friends.value.length > 0) {
+      excludedDriverIds.value = friends.value.map(f => f.driver_id)
+    } else {
+      // Friends not available yet, use minimal exclusion
+      excludedDriverIds.value = []
+    }
+    
+    // Always include logged-in driver ID if available
+    if (loggedInDriverId.value && !excludedDriverIds.value.includes(loggedInDriverId.value)) {
       excludedDriverIds.value.push(loggedInDriverId.value)
     }
   }
 }
 
 const handleAddFriend = async () => {
-  showAddFriendModal.value = true
   driverSearchQuery.value = '' // Reset search
+  
+  // Load all required data before showing modal
+  const loadPromises = []
   
   // Load drivers if not already loaded
   if (allDrivers.value.length === 0) {
-    await loadAllDrivers()
+    loadPromises.push(loadAllDrivers())
   }
   
-  // Load excluded driver IDs (includes all user's connected drivers)
-  await loadExcludedDriverIds()
+  // Always load excluded driver IDs to get latest state
+  loadPromises.push(loadExcludedDriverIds())
+  
+  // Wait for all loading to complete
+  await Promise.all(loadPromises)
+  
+  // Only show modal after data is loaded
+  showAddFriendModal.value = true
 }
 
 const addFriend = async (driverId: number) => {
@@ -1564,12 +1581,16 @@ const addFriend = async (driverId: number) => {
     
     showAddFriendModal.value = false
     
-    // Show success toast
-    toast.success(`${response.friend?.name || 'Friend'} added to your racing crew!`)
+    // Show success toast with friend name
+    const friendName = response.friend?.name
+    if (friendName) {
+      toast.success(`${friendName} added to your racing crew!`)
+    } else {
+      toast.success('New friend added to your racing crew!')
+    }
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || 'Failed to add friend'
     toast.error(errorMessage)
-    console.error('Failed to add friend:', error)
   }
 }
 
@@ -1592,7 +1613,6 @@ const removeFriend = async (friendId: number) => {
   } catch (error: any) {
     const errorMessage = error.response?.data?.message || 'Failed to remove friend'
     toast.error(errorMessage)
-    console.error('Failed to remove friend:', error)
   }
 }
 

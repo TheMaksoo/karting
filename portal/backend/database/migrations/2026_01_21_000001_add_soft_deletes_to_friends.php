@@ -20,7 +20,7 @@ return new class extends Migration
     {
         Schema::table('friends', function (Blueprint $table) {
             $table->dropSoftDeletes();
-            $table->dropIndex(['user_id', 'friendship_status']);
+            $table->dropIndex('friends_user_id_friendship_status_index');
         });
     }
 };
