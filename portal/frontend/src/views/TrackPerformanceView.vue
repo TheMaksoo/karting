@@ -136,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
 import { useKartingAPI } from '@/composables/useKartingAPI'
@@ -395,6 +395,14 @@ onMounted(async () => {
     loadTrackStats(),
     loadDrivers()
   ])
+})
+
+onUnmounted(() => {
+  // Clean up chart instances to prevent memory leaks
+  if (recordsChartInstance) recordsChartInstance.destroy()
+  if (lapTimesChartInstance) lapTimesChartInstance.destroy()
+  if (speedsChartInstance) speedsChartInstance.destroy()
+  if (activityChartInstance) activityChartInstance.destroy()
 })
 
 watch(sortBy, sortTracks)
