@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="elite-dashboard">
     <!-- Loading State -->
     <div v-if="dataLoading" class="loading-state">
@@ -536,7 +536,20 @@ const trophyCase = ref<{ emblems: number; gold: number; silver: number; bronze: 
 })
 const heatmapDrivers = ref<string[]>([])
 const heatmapTracks = ref<string[]>([])
-const heatmapData = ref<Array<Array<{ time: string; gap: string; gapPercentage: number; performance: number; has_data: boolean }>>>([])
+const heatmapData = ref<Array<Array<{ 
+  time: string; 
+  gap: string; 
+  gapPercentage: number; 
+  performance: number; 
+  has_data: boolean;
+  isRecord?: boolean;
+  lapCount?: number;
+  gapSeconds?: number;
+  avgLap?: string;
+  worstLap?: string;
+  trackRecord?: string;
+  consistency?: string;
+}>>>([])
 const heatmapApiData = ref<any>(null)
 const maxGapSeconds = ref<number>(0) // Maximum gap in seconds across all drivers/tracks
 const avgConsistency = ref<number>(0)
@@ -562,16 +575,12 @@ const toggleActivityDriver = (driver: string) => {
 }
 
 const selectAllActivityDrivers = () => {
-  console.log('🔵 BEFORE - allActivityDrivers.value:', allActivityDrivers.value)
   selectedActivityDrivers.value = [...allActivityDrivers.value]
-  console.log('🔵 AFTER - selectedActivityDrivers.value:', selectedActivityDrivers.value)
-  console.log('🔵 Cached activity data length:', cachedActivityData.length)
   refreshActivityChart()
 }
 
 const deselectAllActivityDrivers = () => {
   selectedActivityDrivers.value = []
-  console.log('🔴 Deselect All Drivers')
   refreshActivityChart()
 }
 
@@ -589,15 +598,8 @@ let cachedActivityData: any[] = []
 let chartCreationCount = 0
 
 const refreshActivityChart = () => {
-  console.log('🔄 Refreshing activity chart...')
-  console.log('   - Cached data entries:', cachedActivityData.length)
-  console.log('   - Selected drivers:', selectedActivityDrivers.value)
-  console.log('   - Refresh call #', ++chartCreationCount)
-  
   if (cachedActivityData.length > 0) {
     createActivityChart(cachedActivityData)
-  } else {
-    console.warn('⚠️ No cached activity data to refresh chart')
   }
 }
 
@@ -646,15 +648,12 @@ const showTrophyDetails = async (type: string) => {
     
     if (!driverId) {
       console.error('No driver ID available for trophy details')
-      console.log('Resolved ID:', resolvedDriverId.value, 'Logged-in ID:', loggedInDriverId.value)
       trophyDetails.value = []
       trophyDetailsLoading.value = false
       return
     }
     
-    console.log('🏆 Fetching trophy details for driver ID:', driverId, 'type:', type)
     const details = await fetchTrophyDetails(driverId, type)
-    console.log('🏆 Trophy details received:', details)
     trophyDetails.value = details || []
   } catch (error) {
     console.error('Failed to fetch trophy details:', error)
@@ -703,10 +702,6 @@ const loadRealData = async () => {
     dataError.value = null
 
     let driverId = loggedInDriverId.value
-
-    console.log('🔍 Loading data for driver ID:', driverId)
-    console.log('🔍 Auth store user:', authStore.user)
-    console.log('🔍 Driver ID type:', typeof driverId)
     
     // If no driver_id, try to find driver by name
     if (!driverId || driverId === undefined) {
@@ -724,7 +719,6 @@ const loadRealData = async () => {
             if (matchingDriver) {
               driverId = matchingDriver.driver_id
               resolvedDriverId.value = driverId // Store resolved ID
-              console.log('✅ Found driver by name match:', matchingDriver.driver_name, 'ID:', driverId)
             } else {
               console.error('❌ No driver found matching user name:', authStore.user.name)
               dataError.value = `No driver profile found for "${authStore.user.name}". Please contact an administrator.`
@@ -739,14 +733,13 @@ const loadRealData = async () => {
       
       // Still no driver ID
       if (!driverId) {
-        console.error('❌ Driver ID is null or undefined! Auth user:', authStore.user)
+        console.error('Driver ID not found. Auth user:', authStore.user)
         dataError.value = 'Driver ID not found. Please contact an administrator to link your account to a driver profile.'
         dataLoading.value = false
         return
       }
     }
 
-    console.log('✅ Using driver ID:', driverId)
     resolvedDriverId.value = driverId // Store resolved ID
 
     // Fetch all data from API including new analytics endpoints - filtered by logged-in driver
@@ -759,9 +752,6 @@ const loadRealData = async () => {
       getTrophyCase(driverId)
     ])
 
-    console.log('📊 Overview data:', overviewData)
-    console.log('🏆 Trophy case data:', trophyData)
-
     if (!overviewData) {
       dataError.value = 'Failed to load data. Please try logging out and logging back in.'
       return
@@ -770,17 +760,11 @@ const loadRealData = async () => {
     // Set trophy case data
     if (trophyData) {
       trophyCase.value = trophyData
-      console.log('🏆 Trophy case set:', trophyCase.value)
-    } else {
-      console.warn('⚠️ No trophy data available')
     }
 
     // Get consistency score for logged-in driver from overview stats
     if (overviewData.average_lap_time && overviewData.median_lap_time) {
       avgConsistency.value = calculateConsistencyScore(overviewData.average_lap_time, overviewData.median_lap_time)
-      console.log('✅ Consistency calculated:', avgConsistency.value, 'avg:', overviewData.average_lap_time, 'median:', overviewData.median_lap_time)
-    } else {
-      console.log('❌ No lap time data for consistency:', overviewData)
       avgConsistency.value = 0
     }
 
@@ -828,25 +812,12 @@ const loadRealData = async () => {
       // Store the full API data for reference
       heatmapApiData.value = heatmapApiData
       
-      console.log('Heatmap API data:', heatmapApiData)
-      console.log('Drivers:', heatmapApiData.drivers)
-      console.log('Tracks:', heatmapApiData.tracks)
-      console.log('Drivers:', heatmapApiData.drivers)
-      console.log('Heatmap data array:', heatmapApiData.heatmap_data)
-      
       if (heatmapApiData.tracks && heatmapApiData.drivers && heatmapApiData.heatmap_data) {
         heatmapDrivers.value = heatmapApiData.drivers.map((d: any) => d.name)
         heatmapTracks.value = heatmapApiData.tracks.map((t: any) => t.name)
         
-        console.log('🗺️ heatmapDrivers:', heatmapDrivers.value)
-        console.log('🗺️ heatmapTracks:', heatmapTracks.value)
-        console.log('🗺️ Number of drivers:', heatmapDrivers.value.length)
-        console.log('🗺️ Number of tracks:', heatmapTracks.value.length)
-        
         // Use pre-built matrix from API
         let calculatedMaxGap = 0
-        console.log('🔍 First row of heatmap data:', heatmapApiData.heatmap_data[0])
-        console.log('🔍 First cell:', heatmapApiData.heatmap_data[0]?.[0])
         
         heatmapData.value = heatmapApiData.heatmap_data.map((row: any[]) => {
           return row.map((cell: any) => {
@@ -890,11 +861,7 @@ const loadRealData = async () => {
         
         // Set the maximum gap for color grading
         maxGapSeconds.value = calculatedMaxGap
-        console.log('🗺️ Maximum gap across all drivers/tracks:', maxGapSeconds.value, 'seconds')
         
-        console.log('🗺️ Processed heatmapData:', heatmapData.value)
-        console.log('🗺️ First driver row:', heatmapData.value[0])
-        console.log('🗺️ First driver has data for', heatmapData.value[0].filter((c: any) => c.has_data).length, 'tracks')
       }
     }
 
@@ -1057,14 +1024,12 @@ const createActivityChart = (activityData: any[]) => {
     return
   }
   
-  console.log('🔨 Creating activity chart with', activityData.length, 'data entries')
   
   // Cache the data for filtering
   cachedActivityData = activityData
   
   // Destroy existing chart
   if (chartInstances.activity) {
-    console.log('🗑️ Destroying previous chart instance')
     chartInstances.activity.destroy()
     chartInstances.activity = null as any
   }
@@ -1076,7 +1041,6 @@ const createActivityChart = (activityData: any[]) => {
       return
     }
     
-    console.log('✅ Canvas is ready, proceeding with chart creation')
 
   // Group by driver, then aggregate multiple sessions on same date
   const driverDateMap: { [driver: string]: { [date: string]: { cumulative: number, added: number } } } = {}
@@ -1087,6 +1051,8 @@ const createActivityChart = (activityData: any[]) => {
     }
     
     const dateMap = driverDateMap[item.driver_name]
+    if (!dateMap) return // Safety check
+    
     const date = item.session_date
     
     if (!dateMap[date]) {
@@ -1108,26 +1074,18 @@ const createActivityChart = (activityData: any[]) => {
 
   // Extract all driver names and update the available drivers list
   const allDriverNames = Object.keys(driverDateMap)
-  console.log('🔍 ALL DRIVER NAMES FROM DATA:', allDriverNames, 'Count:', allDriverNames.length)
   
   const previousDrivers = [...allActivityDrivers.value]
-  console.log('🔍 PREVIOUS allActivityDrivers.value:', previousDrivers, 'Count:', previousDrivers.length)
   
   allActivityDrivers.value = allDriverNames
-  console.log('🔍 AFTER ASSIGNMENT allActivityDrivers.value:', allActivityDrivers.value, 'Count:', allActivityDrivers.value.length)
   
-  console.log('👥 Previous drivers:', previousDrivers)
-  console.log('👥 New drivers list:', allDriverNames)
-  console.log('👥 Current selectedActivityDrivers:', selectedActivityDrivers.value)
   
   // Set up selection ONLY on the VERY FIRST load (when there are no previous drivers and no selection)
   if (previousDrivers.length === 0 && selectedActivityDrivers.value.length === 0) {
     // First time - auto-select ALL drivers to show everyone by default
     selectedActivityDrivers.value = [...allDriverNames]
-    console.log('� FIRST LOAD - Auto-selected ALL drivers:', allDriverNames)
   } else {
     // NOT first load - do NOT modify selectedActivityDrivers, keep whatever the user selected
-    console.log('👥 NOT FIRST LOAD - Keeping user selection unchanged:', selectedActivityDrivers.value)
   }
 
   // Get all unique dates across all drivers (sorted)
@@ -1137,16 +1095,12 @@ const createActivityChart = (activityData: any[]) => {
   })
   const allSessionDates = [...allDatesSet].sort()
   
-  console.log('📅 All session dates:', allSessionDates)
   
   // Create datasets - only for selected drivers
-  console.log('🎯 Creating datasets for selected drivers:', selectedActivityDrivers.value)
-  console.log('📋 Available drivers:', Object.keys(driverDateMap))
   
   const datasets = Object.entries(driverDateMap)
     .filter(([driverName]) => {
       const isSelected = selectedActivityDrivers.value.includes(driverName)
-      console.log(`  - ${driverName}: ${isSelected ? '✅ SELECTED' : '❌ FILTERED'}`)
       return isSelected
     })
     .map(([driverName, dateMap], index) => {
@@ -1173,12 +1127,10 @@ const createActivityChart = (activityData: any[]) => {
         }
       })
       
-      console.log(`📊 ${driverName} chart data points:`, chartData.filter(d => d !== null).length, '/', allSessionDates.length)
       
       // Log actual data for debugging
       if (chartData.filter(d => d !== null).length < 13) {
         const nonNullPoints = chartData.map((d, i) => d !== null ? `[${i}:${d?.y}]` : 'null').join(' ')
-        console.log(`   Data: ${nonNullPoints}`)
       }
       
       // Find the original index for consistent colors
@@ -1202,11 +1154,8 @@ const createActivityChart = (activityData: any[]) => {
     }
   })
 
-  console.log('📈 FINAL CHECK - Datasets being passed to chart:')
-  console.log('   - Number of datasets:', datasets.length)
   datasets.forEach((ds, idx) => {
     const validPoints = ds.data.filter((d: any) => d !== null).length
-    console.log(`   - Dataset ${idx + 1}: ${ds.label} (${validPoints} points, color: ${ds.borderColor})`)
   })
   
   // Format dates as "Mon 25" for x-axis
@@ -1217,13 +1166,7 @@ const createActivityChart = (activityData: any[]) => {
     return `${weekday} ${day}`
   })
 
-  console.log('📈 Final datasets count:', datasets.length)
-  console.log('📈 Dataset labels:', datasets.map(d => d.label))
   
-  console.log('🎨 Creating Chart.js instance...')
-  console.log('   - Canvas element:', activityCanvas.value)
-  console.log('   - Canvas width:', activityCanvas.value.width)
-  console.log('   - Canvas height:', activityCanvas.value.height)
   
   chartInstances.activity = new Chart(activityCanvas.value, {
     type: 'line',
@@ -1342,26 +1285,16 @@ const createActivityChart = (activityData: any[]) => {
     }
   })
   
-  console.log('✅ Chart created successfully!')
-  console.log('   - Chart instance:', chartInstances.activity)
-  console.log('   - Chart data:', chartInstances.activity.data)
-  console.log('   - Chart datasets:', chartInstances.activity.data.datasets.length)
   
   // Log each dataset's visibility
   chartInstances.activity.data.datasets.forEach((ds: any, idx: number) => {
-    console.log(`   - Dataset ${idx + 1}: ${ds.label}, hidden: ${ds.hidden}, data points: ${ds.data.length}`)
   })
   
   // Force update to ensure chart renders
   chartInstances.activity.update('none')
-  console.log('✅ Chart updated')
   
   // Check if datasets are actually visible in the chart
   setTimeout(() => {
-    console.log('🔍 POST-RENDER CHECK:')
-    console.log('   - Chart is attached:', chartInstances.activity.attached)
-    console.log('   - Visible datasets:', chartInstances.activity.getVisibleDatasetCount())
-    console.log('   - Chart canvas parent:', activityCanvas.value?.parentElement)
   }, 100)
   
   })  // Close nextTick
@@ -1490,13 +1423,10 @@ const removeFriend = async (friendId: number) => {
 
 onMounted(async () => {
   // Ensure auth store has loaded the user
-  console.log('🎯 Component mounted, auth store user:', authStore.user)
   
   // If user is not loaded, try to fetch it
   if (!authStore.user) {
-    console.log('⏳ User not loaded, fetching current user...')
     await authStore.fetchCurrentUser()
-    console.log('✅ User fetched:', authStore.user)
   }
   
   // Load friends and activity

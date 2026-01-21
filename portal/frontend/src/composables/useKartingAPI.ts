@@ -115,9 +115,7 @@ export function useKartingAPI() {
     try {
       loading.value = true
       error.value = null
-      console.log('🔍 getOverviewStats called with driverId:', driverId, 'type:', typeof driverId)
       const params = driverId ? { driver_id: driverId } : {}
-      console.log('🔍 Request params:', params)
       const response = await axios.get(`${API_BASE_URL}/stats/overview`, {
         headers: getAuthHeaders(),
         params
@@ -250,18 +248,14 @@ export function useKartingAPI() {
 
   const getTrophyCase = async (driverId: number): Promise<any | null> => {
     try {
-      console.log('🏆 getTrophyCase called with driverId:', driverId, 'type:', typeof driverId)
       const params = { driver_id: driverId }
-      console.log('🏆 Request params:', params)
       const response = await axios.get(`${API_BASE_URL}/stats/trophy-case`, {
         headers: getAuthHeaders(),
         params
       })
-      console.log('🏆 Trophy case response:', response.data)
       return response.data
     } catch (err: any) {
-      console.error('❌ Error fetching trophy case:', err)
-      console.error('❌ Error response:', err.response?.data)
+      console.error('Error fetching trophy case:', err)
       return null
     }
   }
@@ -274,7 +268,7 @@ export function useKartingAPI() {
       })
       return response.data || []
     } catch (err: any) {
-      console.error('❌ Error fetching trophy details:', err)
+      console.error('Error fetching trophy details:', err)
       return []
     }
   }
