@@ -1,5 +1,8 @@
 ﻿<template>
   <div class="elite-dashboard">
+    <!-- Toast Container -->
+    <ToastContainer />
+    
     <!-- Loading State -->
     <div v-if="dataLoading" class="loading-state">
       <div class="spinner"></div>
@@ -31,8 +34,10 @@
           <FriendsSection 
             :friends="friends"
             :loading="friendsLoading"
+            :error="friendsError"
             @add-friend="handleAddFriend"
             @remove-friend="removeFriend"
+            @retry="retryLoadFriends"
           />
           
           <LatestActivity 
@@ -458,17 +463,50 @@
           <div class="modal-content" @click.stop>
             <div class="modal-header">
               <h3>Add Friend</h3>
-              <button @click="showAddFriendModal = false" class="close-btn">✕</button>
+              <button 
+                @click="showAddFriendModal = false" 
+                class="close-btn"
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
             </div>
             <div class="modal-body">
               <p class="modal-hint">Select a driver to add to your friends list:</p>
+              
+              <!-- Search Input -->
+              <div class="search-box">
+                <input 
+                  v-model="driverSearchQuery"
+                  type="text"
+                  placeholder="Search drivers..."
+                  class="search-input"
+                  aria-label="Search drivers"
+                  @keydown.escape="driverSearchQuery = ''"
+                />
+                <button
+                  v-if="driverSearchQuery" 
+                  @click="driverSearchQuery = ''" 
+                  @keydown.enter="driverSearchQuery = ''"
+                  class="clear-search"
+                  role="button"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              </div>
+              
               <div v-if="driversLoading" class="loading-state">Loading drivers...</div>
+              <div v-else-if="filteredAvailableDrivers.length === 0" class="empty-state">
+                <p>No drivers found</p>
+              </div>
               <div v-else class="drivers-grid">
                 <button 
-                  v-for="driver in allDrivers.filter(d => d.id !== loggedInDriverId && !friends.some(f => f.driver_id === d.id))" 
+                  v-for="driver in filteredAvailableDrivers" 
                   :key="driver.id"
                   @click="addFriend(driver.id)"
                   class="driver-option"
+                  :aria-label="`Add ${driver.name} as friend`"
                 >
                   <div class="driver-avatar">{{ driver.name.charAt(0) }}</div>
                   <div class="driver-name">{{ driver.name }}</div>
@@ -481,20 +519,23 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
 import TrackMap from '@/components/TrackMap.vue'
 import FriendsSection from '@/components/home/FriendsSection.vue'
 import LatestActivity from '@/components/home/LatestActivity.vue'
 import QuickStats from '@/components/home/QuickStats.vue'
+import ToastContainer from '@/components/ToastContainer.vue'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 import { useKartingAPI, type OverviewStats, type DriverStat, type TrackStat } from '@/composables/useKartingAPI'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import apiService from '@/services/api'
 
 Chart.register(...registerables)
 
 const authStore = useAuthStore()
+const toast = useToast()
 const loggedInDriverId = computed(() => authStore.user?.driver_id)
 const resolvedDriverId = ref<number | null>(null) // Store the actual driver ID after resolution
 
@@ -508,9 +549,31 @@ const friends = ref<any[]>([])
 const activities = ref<any[]>([])
 const allDrivers = ref<any[]>([])
 const friendsLoading = ref(false)
+const friendsError = ref<string | null>(null)
 const activityLoading = ref(false)
 const driversLoading = ref(false)
 const showAddFriendModal = ref(false)
+const driverSearchQuery = ref('')
+const excludedDriverIds = ref<number[]>([])
+
+// Computed property for filtered available drivers (optimized)
+// Note: Debouncing is not needed here as we're filtering an in-memory array
+// with O(1) Set lookups. The computed property provides instant feedback which
+// is better UX than debounced updates. Debouncing would only be necessary if
+// we were making API calls on each keystroke.
+const filteredAvailableDrivers = computed(() => {
+  const query = driverSearchQuery.value.toLowerCase().trim()
+  const excludedIds = new Set(excludedDriverIds.value)
+  
+  return allDrivers.value
+    .filter(driver => {
+      // Filter by excluded IDs and search query in one pass
+      if (excludedIds.has(driver.id)) return false
+      if (!query) return true
+      return driver.name.toLowerCase().includes(query)
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
+})
 
 // Grouped stats with tooltips
 interface StatCard {
@@ -1426,21 +1489,29 @@ const handleLogout = async () => {
 // Friends and Activity Methods
 const loadFriends = async () => {
   friendsLoading.value = true
+  friendsError.value = null
   try {
     friends.value = await apiService.friends.getAll()
-  } catch (error) {
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || error.message || 'Failed to load friends'
+    friendsError.value = errorMessage
     console.error('Failed to load friends:', error)
   } finally {
     friendsLoading.value = false
   }
 }
 
+const retryLoadFriends = async () => {
+  await loadFriends()
+}
+
 const loadActivity = async () => {
   activityLoading.value = true
   try {
     activities.value = await apiService.activity.latest(true, 10)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to load activity:', error)
+    // Don't show error to user for activity - just log it
   } finally {
     activityLoading.value = false
   }
@@ -1452,27 +1523,74 @@ const loadAllDrivers = async () => {
     const response = await apiService.drivers.getAll()
     allDrivers.value = response
   } catch (error) {
-    console.error('Failed to load drivers:', error)
+    toast.error('Failed to load drivers. Please try again.')
   } finally {
     driversLoading.value = false
   }
 }
 
-const handleAddFriend = () => {
-  showAddFriendModal.value = true
-  if (allDrivers.value.length === 0) {
-    loadAllDrivers()
+const loadExcludedDriverIds = async () => {
+  try {
+    excludedDriverIds.value = await apiService.friends.getDriverIds()
+  } catch (error) {
+    // Fallback: only use loaded friends if they're available and not in error state
+    if (!friendsLoading.value && !friendsError.value && friends.value.length > 0) {
+      excludedDriverIds.value = friends.value.map(f => f.driver_id)
+    } else {
+      // Friends not available yet, use minimal exclusion
+      excludedDriverIds.value = []
+    }
+    
+    // Always include logged-in driver ID if available
+    if (loggedInDriverId.value && !excludedDriverIds.value.includes(loggedInDriverId.value)) {
+      excludedDriverIds.value.push(loggedInDriverId.value)
+    }
   }
+}
+
+const handleAddFriend = async () => {
+  driverSearchQuery.value = '' // Reset search
+  
+  // Load all required data before showing modal
+  const loadPromises = []
+  
+  // Load drivers if not already loaded
+  if (allDrivers.value.length === 0) {
+    loadPromises.push(loadAllDrivers())
+  }
+  
+  // Always load excluded driver IDs to get latest state
+  loadPromises.push(loadExcludedDriverIds())
+  
+  // Wait for all loading to complete
+  await Promise.all(loadPromises)
+  
+  // Only show modal after data is loaded
+  showAddFriendModal.value = true
 }
 
 const addFriend = async (driverId: number) => {
   try {
-    await apiService.friends.add(driverId)
-    await loadFriends()
-    await loadActivity()
+    const response = await apiService.friends.add(driverId)
+    
+    // Reload friends and activity
+    await Promise.all([
+      loadFriends(),
+      loadActivity(),
+    ])
+    
     showAddFriendModal.value = false
+    
+    // Show success toast with friend name
+    const friendName = response.friend?.name
+    if (friendName) {
+      toast.success(`${friendName} added to your racing crew!`)
+    } else {
+      toast.success('New friend added to your racing crew!')
+    }
   } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to add friend')
+    const errorMessage = error.response?.data?.message || 'Failed to add friend'
+    toast.error(errorMessage)
   }
 }
 
@@ -1480,11 +1598,21 @@ const removeFriend = async (friendId: number) => {
   if (!confirm('Remove this friend from your list?')) return
   
   try {
-    await apiService.friends.remove(friendId)
-    await loadFriends()
-    await loadActivity()
-  } catch (error) {
-    alert('Failed to remove friend')
+    const response = await apiService.friends.remove(friendId)
+    
+    // Reload friends and activity
+    await Promise.all([
+      loadFriends(),
+      loadActivity(),
+    ])
+    
+    // Show success feedback
+    if (response.success) {
+      toast.success('Friend removed from your racing crew')
+    }
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || 'Failed to remove friend'
+    toast.error(errorMessage)
   }
 }
 
