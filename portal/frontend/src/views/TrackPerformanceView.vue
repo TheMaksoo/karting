@@ -1,7 +1,7 @@
 <template>
   <div class="track-performance-view">
     <header class="page-header">
-      <h1>�️ Track Performance Analysis</h1>
+      <h1>🏁 Track Performance Analysis</h1>
       <p>Compare lap times, speeds, and performance across all tracks</p>
     </header>
 
