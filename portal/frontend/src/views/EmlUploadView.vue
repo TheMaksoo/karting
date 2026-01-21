@@ -280,6 +280,32 @@
         </ul>
       </div>
 
+      <!-- Failed Auto-Detection - Manual Track Selection Needed -->
+      <div v-if="batchResults.failedAutoDetection && batchResults.failedAutoDetection.length > 0" class="manual-track-selection">
+        <h3>⚠️ Manual Track Selection Required</h3>
+        <p>These files could not auto-detect the track. Please select the track manually:</p>
+        <div v-for="(failedFile, idx) in batchResults.failedAutoDetection" :key="idx" class="failed-file-card">
+          <div class="failed-file-header">
+            <strong>📄 {{ failedFile.fileName }}</strong>
+          </div>
+          <div class="failed-file-actions">
+            <label>Select Track:</label>
+            <select v-model="failedFile.selectedTrackId" class="track-select">
+              <option value="" disabled>Choose a track</option>
+              <option v-for="track in failedFile.availableTracks" :key="track.id" :value="track.id">
+                {{ track.name }} - {{ track.city }}
+              </option>
+            </select>
+            <button 
+              @click="retryFileWithTrack(failedFile, failedFile.selectedTrackId)" 
+              :disabled="!failedFile.selectedTrackId"
+              class="btn-primary btn-small">
+              Retry Upload
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Uploaded Laps Review -->
       <div v-if="batchLaps.length > 0" class="laps-table-section">
         <div class="laps-header">
@@ -603,13 +629,14 @@ const batchProgress = ref({
   currentFile: '',
   fileLog: [] as Array<{ filename: string, status: 'processing' | 'success' | 'uploaded' | 'uploaded-incomplete' | 'failed', message: string }>
 })
-const batchResults = ref<{ success: number, failed: number, errors: string[], duplicates: string[], incompleteData: string[], savedSessionIds: number[] }>({ 
+const batchResults = ref<{ success: number, failed: number, errors: string[], duplicates: string[], incompleteData: string[], savedSessionIds: number[], failedAutoDetection: Array<{ file: File, fileName: string, availableTracks: any[], fileContent?: string, selectedTrackId?: number }> }>({ 
   success: 0, 
   failed: 0, 
   errors: [], 
   duplicates: [], 
   incompleteData: [],
-  savedSessionIds: []
+  savedSessionIds: [],
+  failedAutoDetection: []
 })
 const batchLaps = ref<any[]>([])
 
@@ -755,9 +782,25 @@ const uploadBatch = async (files: File[]) => {
         } else if (response.require_manual_input) {
           errorMsg = 'Requires manual input - incomplete data'
         }
-        batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
-        batchResults.value.failed++
-        batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
+        
+        // If it's a track auto-detection failure, store it for manual selection
+        if (response.require_manual_input && response.available_tracks) {
+          batchResults.value.failedAutoDetection.push({
+            file: file,
+            fileName: file.name,
+            availableTracks: response.available_tracks,
+            fileContent: response.file_content
+          })
+          batchProgress.value.fileLog[logIndex] = { 
+            filename: file.name, 
+            status: 'failed', 
+            message: 'Track auto-detection failed - manual selection needed' 
+          }
+        } else {
+          batchResults.value.errors.push(`${file.name}: ${errorMsg}`)
+          batchResults.value.failed++
+          batchProgress.value.fileLog[logIndex] = { filename: file.name, status: 'failed', message: errorMsg }
+        }
         continue
       }
       
@@ -856,6 +899,61 @@ const uploadBatch = async (files: File[]) => {
   
   loading.value = false
   step.value = 'batch-complete'
+}
+
+const retryFileWithTrack = async (failedFile: any, trackId: number | undefined) => {
+  if (!trackId) {
+    alert('Please select a track first')
+    return
+  }
+  
+  try {
+    loading.value = true
+    loadingMessage.value = `Retrying ${failedFile.fileName} with selected track...`
+    
+    const response = await apiService.upload.parseEml(failedFile.file, trackId)
+    
+    if (response.success && response.data) {
+      // Auto-import successful parse
+      const saveResponse = await apiService.upload.saveParsedSession({
+        track_id: response.track.id,
+        session_date: response.data.session_date || new Date().toISOString(),
+        session_type: 'race',
+        heat_price: 0,
+        session_number: response.data.session_number || '',
+        file_name: response.file_name,
+        file_hash: response.data.file_hash,
+        laps: response.data.laps || []
+      })
+      
+      if (saveResponse.success) {
+        alert(`✅ Successfully imported ${failedFile.fileName} with ${response.data.laps?.length || 0} laps!`)
+        
+        // Remove from failedAutoDetection list
+        batchResults.value.failedAutoDetection = batchResults.value.failedAutoDetection.filter(
+          f => f.fileName !== failedFile.fileName
+        )
+        
+        // Update success count
+        batchResults.value.success++
+        
+        // Store laps for review
+        if (response.data.laps) {
+          batchLaps.value.push(...response.data.laps)
+        }
+      } else {
+        alert(`Failed to save ${failedFile.fileName}: ${saveResponse.message || 'Unknown error'}`)
+      }
+    } else {
+      alert(`Failed to parse ${failedFile.fileName}: ${response.errors?.join(', ') || 'Unknown error'}`)
+    }
+  } catch (error: any) {
+    console.error('Retry error:', error)
+    alert(`Error retrying ${failedFile.fileName}: ${error.message || 'Unknown error'}`)
+  } finally {
+    loading.value = false
+    loadingMessage.value = ''
+  }
 }
 
 const uploadFile = async (file: File) => {
