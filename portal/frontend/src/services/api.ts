@@ -456,7 +456,7 @@ class ApiService {
   }
 
   laps = {
-    getAll: (page = 1, driverId?: number, sessionId?: number) => this.getLaps(page, driverId, sessionId),
+    getAll: (params?: any) => this.getLaps(params),
     get: (id: number) => this.getLap(id),
     create: (data: Partial<Lap>) => this.createLap(data),
     update: (id: number, data: Partial<Lap>) => this.updateLap(id, data),
