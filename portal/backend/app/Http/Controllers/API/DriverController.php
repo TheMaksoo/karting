@@ -79,12 +79,13 @@ class DriverController extends Controller
         if ($driverId) {
             $query->where('id', $driverId);
         } elseif ($friendsOnly) {
-            // Keep backward compatibility with friends_only parameter
+            // Filter to user + friends only when explicitly requested
             $query->whereIn('id', $allowedDriverIds);
-        } else {
-            // By default, filter to user + friends only
+        } elseif ($user->role !== 'admin') {
+            // For non-admin users, default to user + friends only
             $query->whereIn('id', $allowedDriverIds);
         }
+        // Admin users with friends_only=false see ALL drivers (no filter)
         
         $drivers = $query->get();
 
