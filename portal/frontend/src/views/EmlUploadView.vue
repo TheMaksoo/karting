@@ -649,7 +649,7 @@ const batchProgress = ref({
   currentFile: '',
   fileLog: [] as Array<{ filename: string, status: 'processing' | 'success' | 'uploaded' | 'uploaded-incomplete' | 'failed', message: string }>
 })
-const batchResults = ref<{ success: number, failed: number, errors: string[], duplicates: string[], incompleteData: string[], savedSessionIds: number[], failedAutoDetection: Array<{ file: File, fileName: string, availableTracks: any[], fileContent?: string, selectedTrackId?: number }> }>({ 
+const batchResults = ref<{ success: number, failed: number, errors: string[], duplicates: string[], incompleteData: string[], savedSessionIds: number[], failedAutoDetection: Array<{ file: File, fileName: string, availableTracks: any[], selectedTrackId?: number }> }>({ 
   success: 0, 
   failed: 0, 
   errors: [], 
@@ -808,8 +808,7 @@ const uploadBatch = async (files: File[]) => {
           batchResults.value.failedAutoDetection.push({
             file: file,
             fileName: file.name,
-            availableTracks: response.available_tracks,
-            fileContent: response.file_content
+            availableTracks: response.available_tracks
           })
           batchProgress.value.fileLog[logIndex] = { 
             filename: file.name, 
@@ -921,7 +920,7 @@ const uploadBatch = async (files: File[]) => {
   step.value = 'batch-complete'
 }
 
-const retryFileWithTrack = async (failedFile: any, trackId: number | undefined) => {
+const retryFileWithTrack = async (failedFile: { file: File, fileName: string, availableTracks: any[], selectedTrackId?: number }, trackId: number | undefined) => {
   if (!trackId) {
     alert('Please select a track first')
     return

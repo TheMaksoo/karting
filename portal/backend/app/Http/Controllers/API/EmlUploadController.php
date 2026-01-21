@@ -89,7 +89,7 @@ class EmlUploadController extends Controller
                     @mkdir(dirname($debugPath), 0777, true);
                     @file_put_contents($debugPath, "filename: {$fileName}\n\nsnippet:\n{$snippet}");
 
-                    // Keep temp file for retry with manual track selection
+                    // Don't delete temp file - keep it for potential retry with manual track selection
                     $errors[] = 'Could not auto-detect track. Please select manually.';
                     return response()->json([
                         'success' => false,
@@ -98,7 +98,6 @@ class EmlUploadController extends Controller
                         'available_tracks' => Track::select('id', 'name', 'city')->get(),
                         'require_manual_input' => true,
                         'debug_file' => $debugPath,
-                        'file_content' => base64_encode($content),
                     ], 400);
                 }
             }
