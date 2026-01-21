@@ -260,7 +260,7 @@ const pageSubtitle = computed(() => {
 
 const handleLogout = async () => {
   await authStore.logout()
-  router.push('/login')
+  router.push({ name: 'login' })
 }
 
 const navigateToSettings = () => {

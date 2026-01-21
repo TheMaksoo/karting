@@ -36,7 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
       apiService.clearAuth()
       user.value = null
       loading.value = false
-      window.location.href = 'https://solyx.gg/karting/login'
+      window.location.href = '/karting/login'
     }
   }
 
