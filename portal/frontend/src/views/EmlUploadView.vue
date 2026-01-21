@@ -469,31 +469,35 @@
                 <th>Sector 1</th>
                 <th>Sector 2</th>
                 <th>Sector 3</th>
+                <th>Gap to Best</th>
+                <th>Interval</th>
+                <th>Gap to Prev</th>
+                <th>Avg Speed</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(lap, index) in paginatedLaps" :key="index" 
                   :class="{ 
-                    editing: editingIndex === index,
+                    editing: editingIndex === getGlobalIndex(index),
                     'missing-data': hasMissingData(lap),
                     'warning-row': lap.warning
                   }">
                 <td>{{ index + 1 }}</td>
                 <td :class="{ 'missing-field': !lap.driver_name }">
-                  <input v-if="editingIndex === index" v-model="lap.driver_name" type="text" placeholder="Driver name required" />
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model="lap.driver_name" type="text" placeholder="Driver name required" />
                   <span v-else>{{ lap.driver_name || '⚠️ Missing' }}</span>
                 </td>
                 <td :class="{ 'missing-field': !lap.lap_number }">
-                  <input v-if="editingIndex === index" v-model.number="lap.lap_number" type="number" min="1" placeholder="Lap #" />
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.lap_number" type="number" min="1" placeholder="Lap #" />
                   <span v-else>{{ lap.lap_number || '⚠️ Missing' }}</span>
                 </td>
                 <td :class="{ 'missing-field': !lap.lap_time || lap.lap_time === 0 }">
-                  <input v-if="editingIndex === index" v-model.number="lap.lap_time" type="number" step="0.001" placeholder="Time in seconds" />
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.lap_time" type="number" step="0.001" placeholder="Time in seconds" />
                   <span v-else>{{ lap.lap_time ? lap.lap_time.toFixed(3) + 's' : '⚠️ Missing' }}</span>
                 </td>
                 <td>
-                  <input v-if="editingIndex === index" v-model.number="lap.position" type="number" min="1" placeholder="Position" />
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.position" type="number" min="1" placeholder="Position" />
                   <span v-else>{{ lap.position || '-' }}</span>
                 </td>
                 <td>
@@ -511,6 +515,22 @@
                 <td>
                   <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.sector3" type="number" step="0.001" placeholder="S3" />
                   <span v-else>{{ lap.sector3 ? lap.sector3.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.gap_to_best_lap" type="number" step="0.001" placeholder="Gap" />
+                  <span v-else>{{ lap.gap_to_best_lap ? lap.gap_to_best_lap.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.interval" type="number" step="0.001" placeholder="Interval" />
+                  <span v-else>{{ lap.interval ? lap.interval.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.gap_to_previous" type="number" step="0.001" placeholder="Gap Prev" />
+                  <span v-else>{{ lap.gap_to_previous ? lap.gap_to_previous.toFixed(3) + 's' : '-' }}</span>
+                </td>
+                <td>
+                  <input v-if="editingIndex === getGlobalIndex(index)" v-model.number="lap.avg_speed" type="number" step="0.1" placeholder="Speed" />
+                  <span v-else>{{ lap.avg_speed ? lap.avg_speed.toFixed(1) + ' km/h' : '-' }}</span>
                 </td>
                 <td class="actions">
                   <button v-if="editingIndex === getGlobalIndex(index)" @click="saveEdit(getGlobalIndex(index))" class="btn-icon btn-success">✓</button>
