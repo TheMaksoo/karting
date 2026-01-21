@@ -754,7 +754,7 @@ const uploadBatch = async (files: File[]) => {
   loading.value = true
   batchFiles.value = files
   batchProgress.value = { current: 0, total: files.length, currentFile: '', fileLog: [] }
-  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [] }
+  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [], failedAutoDetection: [] }
   
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
@@ -1171,7 +1171,7 @@ const resetForm = () => {
   uploadError.value = ''
   batchFiles.value = []
   batchProgress.value = { current: 0, total: 0, currentFile: '', fileLog: [] }
-  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [] }
+  batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [], failedAutoDetection: [] }
   batchLaps.value = []
 }
 
