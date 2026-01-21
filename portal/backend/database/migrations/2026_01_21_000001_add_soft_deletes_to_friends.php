@@ -10,10 +10,8 @@ return new class extends Migration
     {
         Schema::table('friends', function (Blueprint $table) {
             $table->softDeletes();
-        });
-        
-        // Add composite index for better query performance
-        Schema::table('friends', function (Blueprint $table) {
+            
+            // Add composite index for better query performance
             $table->index(['user_id', 'friendship_status']);
         });
     }

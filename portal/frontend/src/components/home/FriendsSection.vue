@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 interface Friend {
   id: number
@@ -84,6 +84,18 @@ const emit = defineEmits<{
 }>()
 
 const removingFriendId = ref<number | null>(null)
+
+// Reset loading state when friends list changes
+watch(() => props.friends, () => {
+  removingFriendId.value = null
+}, { deep: true })
+
+// Reset loading state when the loading prop changes to false
+watch(() => props.loading, (newValue) => {
+  if (!newValue) {
+    removingFriendId.value = null
+  }
+})
 
 const handleRemoveFriend = (friendId: number) => {
   removingFriendId.value = friendId
