@@ -85,7 +85,7 @@ class DriverController extends Controller
             // For non-admin users, default to user + friends only
             $query->whereIn('id', $allowedDriverIds);
         }
-        // Admin users with friends_only=false see ALL drivers (no filter)
+        // Admin users see ALL drivers by default (no filter applied)
         
         $drivers = $query->get();
 
