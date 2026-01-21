@@ -31,8 +31,10 @@
           <FriendsSection 
             :friends="friends"
             :loading="friendsLoading"
+            :error="friendsError"
             @add-friend="handleAddFriend"
             @remove-friend="removeFriend"
+            @retry="retryLoadFriends"
           />
           
           <LatestActivity 
@@ -458,17 +460,41 @@
           <div class="modal-content" @click.stop>
             <div class="modal-header">
               <h3>Add Friend</h3>
-              <button @click="showAddFriendModal = false" class="close-btn">✕</button>
+              <button 
+                @click="showAddFriendModal = false" 
+                class="close-btn"
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
             </div>
             <div class="modal-body">
               <p class="modal-hint">Select a driver to add to your friends list:</p>
+              
+              <!-- Search Input -->
+              <div class="search-box">
+                <input 
+                  v-model="driverSearchQuery"
+                  type="text"
+                  placeholder="Search drivers..."
+                  class="search-input"
+                  aria-label="Search drivers"
+                  @keydown.escape="driverSearchQuery = ''"
+                />
+                <span v-if="driverSearchQuery" @click="driverSearchQuery = ''" class="clear-search">✕</span>
+              </div>
+              
               <div v-if="driversLoading" class="loading-state">Loading drivers...</div>
+              <div v-else-if="filteredAvailableDrivers.length === 0" class="empty-state">
+                <p>No drivers found</p>
+              </div>
               <div v-else class="drivers-grid">
                 <button 
-                  v-for="driver in allDrivers.filter(d => d.id !== loggedInDriverId && !friends.some(f => f.driver_id === d.id))" 
+                  v-for="driver in filteredAvailableDrivers" 
                   :key="driver.id"
                   @click="addFriend(driver.id)"
                   class="driver-option"
+                  :aria-label="`Add ${driver.name} as friend`"
                 >
                   <div class="driver-avatar">{{ driver.name.charAt(0) }}</div>
                   <div class="driver-name">{{ driver.name }}</div>
@@ -508,9 +534,25 @@ const friends = ref<any[]>([])
 const activities = ref<any[]>([])
 const allDrivers = ref<any[]>([])
 const friendsLoading = ref(false)
+const friendsError = ref<string | null>(null)
 const activityLoading = ref(false)
 const driversLoading = ref(false)
 const showAddFriendModal = ref(false)
+const driverSearchQuery = ref('')
+const excludedDriverIds = ref<number[]>([])
+
+// Computed property for filtered available drivers
+const filteredAvailableDrivers = computed(() => {
+  const query = driverSearchQuery.value.toLowerCase().trim()
+  
+  return allDrivers.value
+    .filter(driver => !excludedDriverIds.value.includes(driver.id))
+    .filter(driver => {
+      if (!query) return true
+      return driver.name.toLowerCase().includes(query)
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
+})
 
 // Grouped stats with tooltips
 interface StatCard {
@@ -1426,21 +1468,29 @@ const handleLogout = async () => {
 // Friends and Activity Methods
 const loadFriends = async () => {
   friendsLoading.value = true
+  friendsError.value = null
   try {
     friends.value = await apiService.friends.getAll()
-  } catch (error) {
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || error.message || 'Failed to load friends'
+    friendsError.value = errorMessage
     console.error('Failed to load friends:', error)
   } finally {
     friendsLoading.value = false
   }
 }
 
+const retryLoadFriends = async () => {
+  await loadFriends()
+}
+
 const loadActivity = async () => {
   activityLoading.value = true
   try {
     activities.value = await apiService.activity.latest(true, 10)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to load activity:', error)
+    // Don't show error to user for activity - just log it
   } finally {
     activityLoading.value = false
   }
@@ -1453,26 +1503,62 @@ const loadAllDrivers = async () => {
     allDrivers.value = response
   } catch (error) {
     console.error('Failed to load drivers:', error)
+    alert('Failed to load drivers. Please try again.')
   } finally {
     driversLoading.value = false
   }
 }
 
-const handleAddFriend = () => {
-  showAddFriendModal.value = true
-  if (allDrivers.value.length === 0) {
-    loadAllDrivers()
+const loadExcludedDriverIds = async () => {
+  try {
+    excludedDriverIds.value = await apiService.friends.getDriverIds()
+  } catch (error) {
+    console.error('Failed to load excluded driver IDs:', error)
+    // Fallback to filtering by current friends only
+    excludedDriverIds.value = friends.value.map(f => f.driver_id)
+    if (loggedInDriverId.value) {
+      excludedDriverIds.value.push(loggedInDriverId.value)
+    }
   }
+}
+
+const handleAddFriend = async () => {
+  showAddFriendModal.value = true
+  driverSearchQuery.value = '' // Reset search
+  
+  // Load drivers if not already loaded
+  if (allDrivers.value.length === 0) {
+    await loadAllDrivers()
+  }
+  
+  // Load excluded driver IDs (includes all user's connected drivers)
+  await loadExcludedDriverIds()
 }
 
 const addFriend = async (driverId: number) => {
   try {
-    await apiService.friends.add(driverId)
-    await loadFriends()
-    await loadActivity()
+    const response = await apiService.friends.add(driverId)
+    
+    // Show success message
+    if (response.success && response.friend) {
+      // Success feedback - could use a toast notification here
+      console.log('Friend added successfully:', response.friend.name)
+    }
+    
+    // Reload friends and activity
+    await Promise.all([
+      loadFriends(),
+      loadActivity(),
+    ])
+    
     showAddFriendModal.value = false
+    
+    // Show a simple success message
+    alert(`✓ ${response.friend?.name || 'Friend'} added to your racing crew!`)
   } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to add friend')
+    const errorMessage = error.response?.data?.message || 'Failed to add friend'
+    alert('⚠️ ' + errorMessage)
+    console.error('Failed to add friend:', error)
   }
 }
 
@@ -1480,11 +1566,22 @@ const removeFriend = async (friendId: number) => {
   if (!confirm('Remove this friend from your list?')) return
   
   try {
-    await apiService.friends.remove(friendId)
-    await loadFriends()
-    await loadActivity()
-  } catch (error) {
-    alert('Failed to remove friend')
+    const response = await apiService.friends.remove(friendId)
+    
+    // Reload friends and activity
+    await Promise.all([
+      loadFriends(),
+      loadActivity(),
+    ])
+    
+    // Show success feedback
+    if (response.success) {
+      console.log('Friend removed successfully')
+    }
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || 'Failed to remove friend'
+    alert('⚠️ ' + errorMessage)
+    console.error('Failed to remove friend:', error)
   }
 }
 

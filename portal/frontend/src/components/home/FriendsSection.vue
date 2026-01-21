@@ -1,28 +1,60 @@
 <template>
   <div class="friends-section">
     <div class="section-header">
-      <h2>👥 Your Racing Crew</h2>
-      <button @click="$emit('add-friend')" class="btn-primary btn-sm">
+      <h2 id="friends-section-title">👥 Your Racing Crew</h2>
+      <button 
+        @click="$emit('add-friend')" 
+        class="btn-primary btn-sm"
+        aria-label="Add a new friend"
+      >
         + Add Friend
       </button>
     </div>
 
-    <div v-if="loading" class="loading-state">Loading friends...</div>
+    <div v-if="loading" class="loading-state" role="status" aria-live="polite">
+      Loading friends...
+    </div>
+    <div v-else-if="error" class="error-state" role="alert" aria-live="assertive">
+      <p class="error-message">⚠️ {{ error }}</p>
+      <button @click="$emit('retry')" class="btn-secondary btn-sm">Retry</button>
+    </div>
     <div v-else-if="friends.length === 0" class="empty-state">
       <p>No friends added yet</p>
       <p class="text-muted">Add friends to track their stats alongside yours!</p>
     </div>
-    <div v-else class="friends-list">
-      <div v-for="friend in friends" :key="friend.id" class="friend-card">
+    <div 
+      v-else 
+      class="friends-list" 
+      role="list"
+      aria-labelledby="friends-section-title"
+    >
+      <div 
+        v-for="friend in friends" 
+        :key="friend.id" 
+        class="friend-card"
+        role="listitem"
+      >
         <div class="friend-info">
-          <div class="friend-avatar">{{ friend.name.charAt(0) }}</div>
+          <div 
+            class="friend-avatar" 
+            :aria-label="`${friend.name} avatar`"
+          >
+            {{ friend.name.charAt(0) }}
+          </div>
           <div class="friend-details">
             <div class="friend-name">{{ friend.name }}</div>
             <div class="friend-meta">Added {{ formatDate(friend.added_at) }}</div>
           </div>
         </div>
-        <button @click="$emit('remove-friend', friend.id)" class="btn-icon btn-danger" title="Remove friend">
-          ✕
+        <button 
+          @click="handleRemoveFriend(friend.id)" 
+          :disabled="removingFriendId === friend.id"
+          class="btn-icon btn-danger" 
+          :title="`Remove ${friend.name} from friends`"
+          :aria-label="`Remove ${friend.name} from friends`"
+        >
+          <span v-if="removingFriendId === friend.id">⏳</span>
+          <span v-else>✕</span>
         </button>
       </div>
     </div>
@@ -30,6 +62,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
 interface Friend {
   id: number
   driver_id: number
@@ -37,15 +71,32 @@ interface Friend {
   added_at: string
 }
 
-defineProps<{
+const props = defineProps<{
   friends: Friend[]
   loading: boolean
+  error?: string | null
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   'add-friend': []
   'remove-friend': [id: number]
+  'retry': []
 }>()
+
+const removingFriendId = ref<number | null>(null)
+
+const handleRemoveFriend = async (friendId: number) => {
+  removingFriendId.value = friendId
+  try {
+    emit('remove-friend', friendId)
+    // Reset after a delay to allow parent to handle
+    setTimeout(() => {
+      removingFriendId.value = null
+    }, 1000)
+  } catch (error) {
+    removingFriendId.value = null
+  }
+}
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)

@@ -359,6 +359,65 @@
   margin-bottom: var(--spacing-4);
 }
 
+.search-box {
+  position: relative;
+  margin-bottom: var(--spacing-4);
+  
+  .search-input {
+    width: 100%;
+    padding: var(--spacing-3) var(--spacing-10) var(--spacing-3) var(--spacing-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: var(--text-base);
+    transition: all var(--transition-fast);
+    
+    &:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+    
+    &::placeholder {
+      color: var(--text-secondary);
+    }
+  }
+  
+  .clear-search {
+    position: absolute;
+    right: var(--spacing-3);
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-tertiary);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+    
+    &:hover {
+      background: var(--error-color);
+      color: white;
+    }
+  }
+}
+
+.error-state {
+  text-align: center;
+  padding: var(--spacing-6) var(--spacing-4);
+  
+  .error-message {
+    color: var(--error-color);
+    margin-bottom: var(--spacing-4);
+  }
+}
+
 .drivers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

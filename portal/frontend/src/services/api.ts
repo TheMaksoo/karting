@@ -10,6 +10,33 @@ export interface User {
   must_change_password?: boolean
 }
 
+export interface Friend {
+  id: number
+  driver_id: number
+  name: string
+  added_at: string
+}
+
+export interface FriendResponse {
+  success: boolean
+  message?: string
+  friend?: Friend
+}
+
+export interface FriendsListResponse {
+  data?: Friend[]
+  current_page?: number
+  last_page?: number
+  per_page?: number
+  total?: number
+}
+
+export interface DriverIdsResponse {
+  success: boolean
+  driver_ids: number[]
+  message?: string
+}
+
 export interface Driver {
   id: number
   name: string
@@ -456,21 +483,21 @@ class ApiService {
   }
 
   friends = {
-    getAll: async () => {
-      const response = await this.api.get('/friends')
+    getAll: async (): Promise<Friend[]> => {
+      const response = await this.api.get<Friend[]>('/friends')
       return response.data
     },
-    add: async (driverId: number) => {
-      const response = await this.api.post('/friends', { driver_id: driverId })
+    add: async (driverId: number): Promise<FriendResponse> => {
+      const response = await this.api.post<FriendResponse>('/friends', { driver_id: driverId })
       return response.data
     },
-    remove: async (friendId: number) => {
-      const response = await this.api.delete(`/friends/${friendId}`)
+    remove: async (friendId: number): Promise<FriendResponse> => {
+      const response = await this.api.delete<FriendResponse>(`/friends/${friendId}`)
       return response.data
     },
-    getDriverIds: async () => {
-      const response = await this.api.get('/friends/driver-ids')
-      return response.data.driver_ids
+    getDriverIds: async (): Promise<number[]> => {
+      const response = await this.api.get<DriverIdsResponse>('/friends/driver-ids')
+      return response.data.driver_ids || []
     },
   }
 
