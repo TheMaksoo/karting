@@ -84,12 +84,8 @@ class FriendController extends Controller
             
             $response = [
                 'success' => false,
-                'message' => 'Failed to load friends',
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to load friends',
             ];
-            
-            if (config('app.debug')) {
-                $response['error'] = $e->getMessage();
-            }
             
             return response()->json($response, 500);
         }
@@ -179,12 +175,8 @@ class FriendController extends Controller
             
             $response = [
                 'success' => false,
-                'message' => 'Failed to add friend',
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to add friend',
             ];
-            
-            if (config('app.debug')) {
-                $response['error'] = $e->getMessage();
-            }
             
             return response()->json($response, 500);
         }
@@ -228,12 +220,8 @@ class FriendController extends Controller
             
             $response = [
                 'success' => false,
-                'message' => 'Failed to remove friend',
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to remove friend',
             ];
-            
-            if (config('app.debug')) {
-                $response['error'] = $e->getMessage();
-            }
             
             return response()->json($response, 500);
         }
@@ -281,13 +269,9 @@ class FriendController extends Controller
             
             $response = [
                 'success' => false,
-                'message' => 'Failed to retrieve friend driver IDs',
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to retrieve friend driver IDs',
                 'driver_ids' => [],
             ];
-            
-            if (config('app.debug')) {
-                $response['error'] = $e->getMessage();
-            }
             
             return response()->json($response, 500);
         }
