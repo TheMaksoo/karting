@@ -1,0 +1,1 @@
+const r=["#FF6384","#36A2EB","#FFCE56","#4BC0C0","#9966FF","#FF9F40","#FF6B9D","#36D2EB","#FFDA6B","#5BDB95"],F=new Map;function u(t,n){if(n)return F.set(t,n),n;if(F.has(t))return F.get(t);const e=r[(t-1)%r.length];return F.set(t,e),e}function c(t,n){return t.map(e=>{const a=n==null?void 0:n.get(e);return u(e,a)})}function o(){return[...r]}export{c as a,o as b,u as g};

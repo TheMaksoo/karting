@@ -1,14 +1,161 @@
 # 🔴 CI Pipeline Failed
 
-**Commit:** 88bbe9c3c7e6ae57f67d5124b35f0cb2f13bb011
+**Commit:** 27d44151714ea95ceb757275a13a78fb3538ce41
 **Branch:** main
-**Time:** Wed Jan 28 19:10:10 UTC 2026
+**Time:** Wed Jan 28 20:43:49 UTC 2026
 
 ## Error Details
 
 Copy the content below and paste it to GitHub Copilot to get automatic fixes:
 
 ```
+=== artifacts/backend-test-results/test-output.txt ===
+
+   PASS  Tests\Unit\EmlParserTest
+  ✓ parser can be instantiated                                           0.30s  
+  ✓ parse throws exception for nonexistent file                          0.03s  
+  ✓ parse pdf throws exception for nonexistent file                      0.03s  
+  ✓ parse text file returns array                                        0.03s  
+  ✓ parse eml with minimal content                                       0.03s  
+  ✓ extract lap times from html                                          0.03s  
+  ✓ parse handles empty content gracefully                               0.03s  
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ basic math                                                           0.10s  
+  ✓ string operations
+
+   PASS  Tests\Unit\ModelRelationshipTest
+  ✓ track has many sessions                                              1.41s  
+  ✓ session belongs to track                                             0.04s  
+  ✓ session has many laps                                                0.07s  
+  ✓ lap belongs to session                                               0.05s  
+  ✓ lap belongs to driver                                                0.05s  
+  ✓ driver has many laps                                                 0.06s  
+  ✓ driver display name returns nickname if set                          0.23s  
+  ✓ driver display name returns name if no nickname                      0.04s  
+  ✓ user is admin check                                                  0.05s  
+  ✓ track casts features to array                                        0.04s  
+  ✓ track casts indoor to boolean                                        0.04s  
+
+   PASS  Tests\Feature\AdminMiddlewareTest
+  ✓ admin can access admin routes                                        0.13s  
+  ✓ non admin cannot access admin routes                                 0.04s  
+  ✓ unauthenticated user cannot access admin routes                      0.04s  
+  ✓ admin can access upload routes                                       0.10s  
+  ✓ driver cannot access upload routes                                   0.04s  
+
+   PASS  Tests\Feature\AuthTest
+  ✓ user can login with valid credentials                                0.07s  
+  ✓ user cannot login with invalid credentials                           0.05s  
+  ✓ login requires email and password                                    0.04s  
+  ✓ authenticated user can get profile                                   0.04s  
+  ✓ unauthenticated user cannot get profile                              0.03s  
+  ✓ user can logout                                                      0.04s  
+  ✓ user can change password                                             0.05s  
+  ✓ change password requires correct current password                    0.05s  
+  ✓ change password clears must change password flag                     0.05s  
+
+   PASS  Tests\Feature\DriverControllerTest
+  ✓ index returns all drivers                                            0.27s  
+  ✓ index includes lap count                                             0.07s  
+  ✓ store creates driver                                                 0.05s  
+  ✓ store validates required name                                        0.04s  
+  ✓ store validates unique email                                         0.05s  
+  ✓ show returns driver with laps                                        0.06s  
+  ✓ show returns 404 for nonexistent driver                              0.04s  
+  ✓ update modifies driver                                               0.05s  
+  ✓ update allows same email                                             0.05s  
+  ✓ destroy deletes driver                                               0.05s  
+  ✓ stats returns driver statistics                                      0.06s  
+  ✓ stats can filter by driver id                                        0.05s  
+  ✓ unauthenticated user cannot access drivers                           0.04s  
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ the application returns a successful response                        0.06s  
+
+   FAIL  Tests\Feature\FriendControllerTest
+  ✓ index returns user friends                                           0.10s  
+  ✓ store adds friend                                                    0.06s  
+  ✓ store prevents duplicate friends                                     0.05s  
+  ⨯ destroy removes friend                                               0.05s  
+  ✓ get friend driver ids returns ids                                    0.05s  
+  ✓ user cannot see other users friends                                  0.05s  
+
+   PASS  Tests\Feature\HealthCheckTest
+  ✓ Health Check Endpoints → basic health check returns healthy status   0.07s  
+  ✓ Health Check Endpoints → detailed health check includes all compone… 0.04s  
+  ✓ Health Check Endpoints → readiness check verifies database connecti… 0.04s  
+  ✓ Health Check Endpoints → liveness check always returns alive         0.03s  
+  ✓ Health Check Component Verification → database check returns respon… 0.04s  
+  ✓ Health Check Component Verification → cache check can read and writ… 0.04s  
+  ✓ Health Check Component Verification → storage check can write files  0.04s  
+  ✓ Health Check Metrics → metrics include memory usage                  0.04s  
+  ✓ Health Check Metrics → metrics include version information           0.04s  
+
+   PASS  Tests\Feature\KartingSessionControllerTest
+  ✓ index returns sessions                                               0.10s  
+  ✓ index can filter by track                                            0.06s  
+  ✓ index can filter by date range                                       0.06s  
+  ✓ store creates session                                                0.05s  
+  ✓ store validates track exists                                         0.05s  
+  ✓ show returns session with laps                                       0.07s  
+  ✓ update modifies session                                              0.06s  
+  ✓ destroy deletes session and laps                                     0.06s  
+  ✓ laps returns session laps                                            0.08s  
+
+   PASS  Tests\Feature\LapControllerTest
+  ✓ index returns laps                                                   0.16s  
+  ✓ index can filter by session                                          0.08s  
+  ✓ store creates lap                                                    0.06s  
+  ✓ store validates required fields                                      0.05s  
+  ✓ show returns lap                                                     0.06s  
+  ✓ update modifies lap                                                  0.06s  
+  ✓ destroy deletes lap                                                  0.06s  
+  ✓ by driver returns driver laps                                        0.08s  
+  ✓ overview returns aggregated stats                                    0.08s  
+  ✓ lap stores sector times                                              0.06s  
+
+   PASS  Tests\Feature\TrackControllerTest
+  ✓ index returns all tracks                                             0.10s  
+  ✓ store creates track                                                  0.05s  
+  ✓ store validates required fields                                      0.04s  
+  ✓ show returns track                                                   0.05s  
+  ✓ show returns 404 for nonexistent track                               0.04s  
+  ✓ update modifies track                                                0.05s  
+  ✓ destroy deletes track                                                0.05s  
+  ✓ stats returns track statistics                                       0.06s  
+  ✓ track stores json features                                           0.05s  
+  ✓ track can have coordinates                                           0.05s  
+
+   PASS  Tests\Feature\UploadControllerTest
+  ✓ admin can access upload preview                                      0.06s  
+  ✓ non admin cannot access upload                                       0.05s  
+  ✓ unauthenticated user cannot upload                                   0.05s  
+  ✓ manual entry validates required fields                               0.05s  
+  ✓ manual entry creates session                                         0.05s  
+  ✓ batch upload validates files                                         0.05s  
+  ✓ preview parses eml content                                           0.06s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\FriendControllerTest > destroy removes friend          
+  Expected response status code [200] but received 404.
+Failed asserting that 404 is identical to 200.
+
+  at tests/Feature/FriendControllerTest.php:79
+     75▕         ]);
+     76▕ 
+     77▕         $response = $this->actingAs($this->user)->deleteJson("/api/friends/{$friend->id}");
+     78▕ 
+  ➜  79▕         $response->assertStatus(200);
+     80▕         $this->assertSoftDeleted('friends', ['id' => $friendship->id]);
+     81▕     }
+     82▕ 
+     83▕     public function test_get_friend_driver_ids_returns_ids(): void
+
+
+  Tests:    1 failed, 98 passed (197 assertions)
+  Duration: 7.61s
+
+
 === artifacts/frontend-test-results/test-output.txt ===
 
 > karting-frontend@1.0.0 test:coverage
@@ -18,15 +165,15 @@ Copy the content below and paste it to GitHub Copilot to get automatic fixes:
 [1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/karting/karting/portal/frontend[39m
       [2mCoverage enabled with [22m[33mv8[39m
 
- [32m✓[39m src/stores/__tests__/driver.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 21[2mms[22m[39m
- [32m✓[39m src/stores/__tests__/track.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 19[2mms[22m[39m
- [32m✓[39m src/stores/__tests__/auth.spec.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 26[2mms[22m[39m
+ [32m✓[39m src/stores/__tests__/track.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 20[2mms[22m[39m
+ [32m✓[39m src/stores/__tests__/driver.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 32[2mms[22m[39m
+ [32m✓[39m src/stores/__tests__/auth.spec.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 19[2mms[22m[39m
  [32m✓[39m src/services/__tests__/api.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 6[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
 [2m      Tests [22m [1m[32m48 passed[39m[22m[90m (48)[39m
-[2m   Start at [22m 19:09:22
-[2m   Duration [22m 3.49s[2m (transform 274ms, setup 954ms, collect 387ms, tests 73ms, environment 1.55s, prepare 398ms)[22m
+[2m   Start at [22m 20:42:20
+[2m   Duration [22m 3.36s[2m (transform 262ms, setup 999ms, collect 348ms, tests 76ms, environment 1.41s, prepare 372ms)[22m
 
 [34m % [39m[2mCoverage report from [22m[33mv8[39m
 -------------------|---------|----------|---------|---------|-------------------
@@ -151,7 +298,7 @@ tests/test_session_parser.py::TestLapTimeExtraction::test_extract_multiple_lap_t
 =================================== FAILURES ===================================
 _______ TestSpeedCalculation.test_calculate_speed_from_distance_and_time _______
 
-self = <tests.test_process_karting_sessions.TestSpeedCalculation object at 0x7f1248a76150>
+self = <tests.test_process_karting_sessions.TestSpeedCalculation object at 0x7f1321cba1d0>
 
     def test_calculate_speed_from_distance_and_time(self):
         """Test speed calculation."""
@@ -161,7 +308,7 @@ E       ImportError: cannot import name 'calculate_speed' from 'process_karting_
 tests/test_process_karting_sessions.py:37: ImportError
 _______ TestSpeedCalculation.test_calculate_speed_zero_time_returns_zero _______
 
-self = <tests.test_process_karting_sessions.TestSpeedCalculation object at 0x7f1248a769d0>
+self = <tests.test_process_karting_sessions.TestSpeedCalculation object at 0x7f1321cba990>
 
     def test_calculate_speed_zero_time_returns_zero(self):
         """Test that zero time returns zero speed."""
@@ -171,8 +318,8 @@ E       ImportError: cannot import name 'calculate_speed' from 'process_karting_
 tests/test_process_karting_sessions.py:45: ImportError
 ____ TestDuplicateDetection.test_is_duplicate_session_returns_false_for_new ____
 
-self = <tests.test_process_karting_sessions.TestDuplicateDetection object at 0x7f1248a77810>
-temp_csv_file = '/tmp/tmp4azqwhuz.csv'
+self = <tests.test_process_karting_sessions.TestDuplicateDetection object at 0x7f1321cbb490>
+temp_csv_file = '/tmp/tmp6rvhhaua.csv'
 
     def test_is_duplicate_session_returns_false_for_new(self, temp_csv_file):
         """Test new session is not duplicate."""
@@ -182,8 +329,8 @@ E       ImportError: cannot import name 'is_duplicate_session' from 'process_kar
 tests/test_process_karting_sessions.py:56: ImportError
 __ TestDuplicateDetection.test_is_duplicate_session_returns_true_for_existing __
 
-self = <tests.test_process_karting_sessions.TestDuplicateDetection object at 0x7f1248a77bd0>
-temp_csv_file = '/tmp/tmp5u8q66io.csv'
+self = <tests.test_process_karting_sessions.TestDuplicateDetection object at 0x7f1321cb82d0>
+temp_csv_file = '/tmp/tmphorr4nt1.csv'
 
     def test_is_duplicate_session_returns_true_for_existing(self, temp_csv_file):
         """Test existing session is detected as duplicate."""
@@ -193,8 +340,8 @@ E       ImportError: cannot import name 'is_duplicate_session' from 'process_kar
 tests/test_process_karting_sessions.py:69: ImportError
 __________ TestSessionNumbering.test_get_session_number_first_of_day ___________
 
-self = <tests.test_process_karting_sessions.TestSessionNumbering object at 0x7f1248a74190>
-temp_csv_file = '/tmp/tmphjhwdpc2.csv'
+self = <tests.test_process_karting_sessions.TestSessionNumbering object at 0x7f1321cb8a90>
+temp_csv_file = '/tmp/tmp5h32cga9.csv'
 
     def test_get_session_number_first_of_day(self, temp_csv_file):
         """Test first session of day gets number 1."""
@@ -204,8 +351,8 @@ E       ImportError: cannot import name 'get_session_number' from 'process_karti
 tests/test_process_karting_sessions.py:85: ImportError
 ___________ TestSessionNumbering.test_get_session_number_increments ____________
 
-self = <tests.test_process_karting_sessions.TestSessionNumbering object at 0x7f1248a74490>
-temp_csv_file = '/tmp/tmptgzul_3y.csv'
+self = <tests.test_process_karting_sessions.TestSessionNumbering object at 0x7f1321cb8e10>
+temp_csv_file = '/tmp/tmpaqukvuud.csv'
 
     def test_get_session_number_increments(self, temp_csv_file):
         """Test session number increments for same day/track."""
@@ -215,7 +362,7 @@ E       ImportError: cannot import name 'get_session_number' from 'process_karti
 tests/test_process_karting_sessions.py:96: ImportError
 _____ TestDriverNormalization.test_normalize_driver_name_strips_whitespace _____
 
-self = <tests.test_process_karting_sessions.TestDriverNormalization object at 0x7f1248a75710>
+self = <tests.test_process_karting_sessions.TestDriverNormalization object at 0x7f1321cb98d0>
 
     def test_normalize_driver_name_strips_whitespace(self):
         """Test driver names are trimmed."""
@@ -228,7 +375,7 @@ E       TypeError: normalize_driver_name() missing 1 required positional argumen
 tests/test_process_karting_sessions.py:115: TypeError
 ______ TestDriverNormalization.test_normalize_driver_name_handles_aliases ______
 
-self = <tests.test_process_karting_sessions.TestDriverNormalization object at 0x7f1248c5c550>
+self = <tests.test_process_karting_sessions.TestDriverNormalization object at 0x7f1322cbc210>
 
     def test_normalize_driver_name_handles_aliases(self):
         """Test driver aliases are resolved."""
@@ -242,7 +389,7 @@ E       TypeError: normalize_driver_name() missing 1 required positional argumen
 tests/test_process_karting_sessions.py:123: TypeError
 ____________ TestCSVWriting.test_write_session_to_csv_creates_file _____________
 
-self = <tests.test_process_karting_sessions.TestCSVWriting object at 0x7f1248aa32d0>
+self = <tests.test_process_karting_sessions.TestCSVWriting object at 0x7f1321e082d0>
 
     def test_write_session_to_csv_creates_file(self):
         """Test writing session creates CSV file."""
@@ -256,8 +403,8 @@ E           ImportError: cannot import name 'write_session_to_csv' from 'process
 tests/test_process_karting_sessions.py:137: ImportError
 ____________ TestCSVWriting.test_write_session_appends_to_existing _____________
 
-self = <tests.test_process_karting_sessions.TestCSVWriting object at 0x7f1248aa3950>
-temp_csv_file = '/tmp/tmp8oibw0qw.csv'
+self = <tests.test_process_karting_sessions.TestCSVWriting object at 0x7f1321e0ba50>
+temp_csv_file = '/tmp/tmpfthhm5lp.csv'
 
     def test_write_session_appends_to_existing(self, temp_csv_file):
         """Test writing session appends to existing file."""
@@ -267,8 +414,8 @@ E       ImportError: cannot import name 'write_session_to_csv' from 'process_kar
 tests/test_process_karting_sessions.py:159: ImportError
 _____________ TestSessionParser.test_parse_file_with_invalid_path ______________
 
-self = <tests.test_session_parser.TestSessionParser object at 0x7f1248a7b150>
-parser = <session_parser.SessionParser object at 0x7f1248775f10>
+self = <tests.test_session_parser.TestSessionParser object at 0x7f1321cfd1d0>
+parser = <session_parser.SessionParser object at 0x7f13219f9850>
 
     def test_parse_file_with_invalid_path(self, parser):
         """Test parsing non-existent file returns None or raises."""
@@ -278,7 +425,7 @@ parser = <session_parser.SessionParser object at 0x7f1248775f10>
 tests/test_session_parser.py:29: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-self = <session_parser.SessionParser object at 0x7f1248775f10>
+self = <session_parser.SessionParser object at 0x7f13219f9850>
 file_path = PosixPath('/nonexistent/file.eml')
 
     def parse_file(self, file_path: str) -> Dict:
@@ -297,8 +444,8 @@ session_parser.py:40: FileNotFoundError
 Warning: Tracks database not found at tracks.json
 ____________ TestSessionParser.test_get_email_body_extracts_content ____________
 
-self = <tests.test_session_parser.TestSessionParser object at 0x7f1248a7a810>
-parser = <session_parser.SessionParser object at 0x7f12486e8650>
+self = <tests.test_session_parser.TestSessionParser object at 0x7f1321cfc510>
+parser = <session_parser.SessionParser object at 0x7f132191d3d0>
 
     def test_get_email_body_extracts_content(self, parser):
         """Test email body extraction from multipart message."""
@@ -316,8 +463,8 @@ tests/test_session_parser.py:45: AttributeError
 Warning: Tracks database not found at tracks.json
 ______________ TestSessionParser.test_identify_track_from_content ______________
 
-self = <tests.test_session_parser.TestSessionParser object at 0x7f1248a78150>
-parser = <session_parser.SessionParser object at 0x7f12486d8290>
+self = <tests.test_session_parser.TestSessionParser object at 0x7f1321cfd250>
+parser = <session_parser.SessionParser object at 0x7f13219ec750>
 
     def test_identify_track_from_content(self, parser):
         """Test track identification from email content."""
@@ -363,7 +510,7 @@ FAILED tests/test_process_karting_sessions.py::TestCSVWriting::test_write_sessio
 FAILED tests/test_session_parser.py::TestSessionParser::test_parse_file_with_invalid_path - FileNotFoundError: File not found: /nonexistent/file.eml
 FAILED tests/test_session_parser.py::TestSessionParser::test_get_email_body_extracts_content - AttributeError: 'SessionParser' object has no attribute 'get_email_body'
 FAILED tests/test_session_parser.py::TestSessionParser::test_identify_track_from_content - AttributeError: 'SessionParser' object has no attribute 'identify_track'
-======================== 13 failed, 16 passed in 0.83s =========================
+======================== 13 failed, 16 passed in 0.74s =========================
 
 === artifacts/frontend-lint-results/typecheck-output.txt ===
 

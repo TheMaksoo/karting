@@ -1,0 +1,145 @@
+
+   PASS  Tests\Unit\EmlParserTest
+  ✓ parser can be instantiated                                           0.30s  
+  ✓ parse throws exception for nonexistent file                          0.03s  
+  ✓ parse pdf throws exception for nonexistent file                      0.03s  
+  ✓ parse text file returns array                                        0.03s  
+  ✓ parse eml with minimal content                                       0.03s  
+  ✓ extract lap times from html                                          0.03s  
+  ✓ parse handles empty content gracefully                               0.03s  
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ basic math                                                           0.10s  
+  ✓ string operations
+
+   PASS  Tests\Unit\ModelRelationshipTest
+  ✓ track has many sessions                                              1.41s  
+  ✓ session belongs to track                                             0.04s  
+  ✓ session has many laps                                                0.07s  
+  ✓ lap belongs to session                                               0.05s  
+  ✓ lap belongs to driver                                                0.05s  
+  ✓ driver has many laps                                                 0.06s  
+  ✓ driver display name returns nickname if set                          0.23s  
+  ✓ driver display name returns name if no nickname                      0.04s  
+  ✓ user is admin check                                                  0.05s  
+  ✓ track casts features to array                                        0.04s  
+  ✓ track casts indoor to boolean                                        0.04s  
+
+   PASS  Tests\Feature\AdminMiddlewareTest
+  ✓ admin can access admin routes                                        0.13s  
+  ✓ non admin cannot access admin routes                                 0.04s  
+  ✓ unauthenticated user cannot access admin routes                      0.04s  
+  ✓ admin can access upload routes                                       0.10s  
+  ✓ driver cannot access upload routes                                   0.04s  
+
+   PASS  Tests\Feature\AuthTest
+  ✓ user can login with valid credentials                                0.07s  
+  ✓ user cannot login with invalid credentials                           0.05s  
+  ✓ login requires email and password                                    0.04s  
+  ✓ authenticated user can get profile                                   0.04s  
+  ✓ unauthenticated user cannot get profile                              0.03s  
+  ✓ user can logout                                                      0.04s  
+  ✓ user can change password                                             0.05s  
+  ✓ change password requires correct current password                    0.05s  
+  ✓ change password clears must change password flag                     0.05s  
+
+   PASS  Tests\Feature\DriverControllerTest
+  ✓ index returns all drivers                                            0.27s  
+  ✓ index includes lap count                                             0.07s  
+  ✓ store creates driver                                                 0.05s  
+  ✓ store validates required name                                        0.04s  
+  ✓ store validates unique email                                         0.05s  
+  ✓ show returns driver with laps                                        0.06s  
+  ✓ show returns 404 for nonexistent driver                              0.04s  
+  ✓ update modifies driver                                               0.05s  
+  ✓ update allows same email                                             0.05s  
+  ✓ destroy deletes driver                                               0.05s  
+  ✓ stats returns driver statistics                                      0.06s  
+  ✓ stats can filter by driver id                                        0.05s  
+  ✓ unauthenticated user cannot access drivers                           0.04s  
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ the application returns a successful response                        0.06s  
+
+   FAIL  Tests\Feature\FriendControllerTest
+  ✓ index returns user friends                                           0.10s  
+  ✓ store adds friend                                                    0.06s  
+  ✓ store prevents duplicate friends                                     0.05s  
+  ⨯ destroy removes friend                                               0.05s  
+  ✓ get friend driver ids returns ids                                    0.05s  
+  ✓ user cannot see other users friends                                  0.05s  
+
+   PASS  Tests\Feature\HealthCheckTest
+  ✓ Health Check Endpoints → basic health check returns healthy status   0.07s  
+  ✓ Health Check Endpoints → detailed health check includes all compone… 0.04s  
+  ✓ Health Check Endpoints → readiness check verifies database connecti… 0.04s  
+  ✓ Health Check Endpoints → liveness check always returns alive         0.03s  
+  ✓ Health Check Component Verification → database check returns respon… 0.04s  
+  ✓ Health Check Component Verification → cache check can read and writ… 0.04s  
+  ✓ Health Check Component Verification → storage check can write files  0.04s  
+  ✓ Health Check Metrics → metrics include memory usage                  0.04s  
+  ✓ Health Check Metrics → metrics include version information           0.04s  
+
+   PASS  Tests\Feature\KartingSessionControllerTest
+  ✓ index returns sessions                                               0.10s  
+  ✓ index can filter by track                                            0.06s  
+  ✓ index can filter by date range                                       0.06s  
+  ✓ store creates session                                                0.05s  
+  ✓ store validates track exists                                         0.05s  
+  ✓ show returns session with laps                                       0.07s  
+  ✓ update modifies session                                              0.06s  
+  ✓ destroy deletes session and laps                                     0.06s  
+  ✓ laps returns session laps                                            0.08s  
+
+   PASS  Tests\Feature\LapControllerTest
+  ✓ index returns laps                                                   0.16s  
+  ✓ index can filter by session                                          0.08s  
+  ✓ store creates lap                                                    0.06s  
+  ✓ store validates required fields                                      0.05s  
+  ✓ show returns lap                                                     0.06s  
+  ✓ update modifies lap                                                  0.06s  
+  ✓ destroy deletes lap                                                  0.06s  
+  ✓ by driver returns driver laps                                        0.08s  
+  ✓ overview returns aggregated stats                                    0.08s  
+  ✓ lap stores sector times                                              0.06s  
+
+   PASS  Tests\Feature\TrackControllerTest
+  ✓ index returns all tracks                                             0.10s  
+  ✓ store creates track                                                  0.05s  
+  ✓ store validates required fields                                      0.04s  
+  ✓ show returns track                                                   0.05s  
+  ✓ show returns 404 for nonexistent track                               0.04s  
+  ✓ update modifies track                                                0.05s  
+  ✓ destroy deletes track                                                0.05s  
+  ✓ stats returns track statistics                                       0.06s  
+  ✓ track stores json features                                           0.05s  
+  ✓ track can have coordinates                                           0.05s  
+
+   PASS  Tests\Feature\UploadControllerTest
+  ✓ admin can access upload preview                                      0.06s  
+  ✓ non admin cannot access upload                                       0.05s  
+  ✓ unauthenticated user cannot upload                                   0.05s  
+  ✓ manual entry validates required fields                               0.05s  
+  ✓ manual entry creates session                                         0.05s  
+  ✓ batch upload validates files                                         0.05s  
+  ✓ preview parses eml content                                           0.06s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\FriendControllerTest > destroy removes friend          
+  Expected response status code [200] but received 404.
+Failed asserting that 404 is identical to 200.
+
+  at tests/Feature/FriendControllerTest.php:79
+     75▕         ]);
+     76▕ 
+     77▕         $response = $this->actingAs($this->user)->deleteJson("/api/friends/{$friend->id}");
+     78▕ 
+  ➜  79▕         $response->assertStatus(200);
+     80▕         $this->assertSoftDeleted('friends', ['id' => $friendship->id]);
+     81▕     }
+     82▕ 
+     83▕     public function test_get_friend_driver_ids_returns_ids(): void
+
+
+  Tests:    1 failed, 98 passed (197 assertions)
+  Duration: 7.61s
+
