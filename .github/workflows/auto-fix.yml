@@ -1,20 +1,26 @@
-name: 🤖 Auto-Fix Failed Tests
+name: 🤖 Auto-Fix with Copilot
 
 on:
   workflow_run:
     workflows: ["CI/CD Pipeline"]
     types:
       - completed
-    branches: [main, develop]
 
 permissions:
   contents: write
   pull-requests: write
   issues: write
+  actions: write
+
+env:
+  MAX_FIX_ATTEMPTS: 3
 
 jobs:
+  # ==========================================
+  # Attempt to fix failures with Copilot
+  # ==========================================
   auto-fix:
-    name: 🔧 Attempt Auto-Fix
+    name: 🔧 Auto-Fix Attempt
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     
@@ -23,9 +29,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: 🔢 Check fix attempt count
+        id: check-attempts
+        run: |
+          # Count recent fix commits to prevent infinite loops
+          FIX_COMMITS=$(git log --oneline -20 --grep="🤖 Auto-fix:" | wc -l)
+          echo "fix_attempts=$FIX_COMMITS" >> $GITHUB_OUTPUT
+          
+          if [ "$FIX_COMMITS" -ge "${{ env.MAX_FIX_ATTEMPTS }}" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Max fix attempts (${{ env.MAX_FIX_ATTEMPTS }}) reached. Manual intervention required."
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: 📦 Download failure artifacts
+        if: steps.check-attempts.outputs.skip != 'true'
         uses: actions/download-artifact@v4
         with:
           run-id: ${{ github.event.workflow_run.id }}
@@ -33,162 +55,257 @@ jobs:
           path: artifacts
         continue-on-error: true
 
-      - name: 📋 Collect error details
-        id: collect-errors
+      - name: 📋 Extract errors
+        if: steps.check-attempts.outputs.skip != 'true'
+        id: extract-errors
         run: |
-          echo "## 🔴 CI Pipeline Failed - Auto-Fix Attempt" > error-report.md
-          echo "" >> error-report.md
-          echo "**Commit:** ${{ github.event.workflow_run.head_sha }}" >> error-report.md
-          echo "**Branch:** ${{ github.event.workflow_run.head_branch }}" >> error-report.md
-          echo "**Run:** [${{ github.event.workflow_run.id }}](${{ github.event.workflow_run.html_url }})" >> error-report.md
-          echo "" >> error-report.md
-          
-          # Collect all error outputs
-          echo "## Error Details" >> error-report.md
-          echo "" >> error-report.md
-          
           ERRORS=""
           
-          # Backend errors
+          # Backend test errors
           if [ -f artifacts/backend-test-results/test-output.txt ]; then
-            echo "### Backend Tests" >> error-report.md
-            echo '```' >> error-report.md
-            cat artifacts/backend-test-results/test-output.txt >> error-report.md
-            echo '```' >> error-report.md
-            ERRORS="$ERRORS\n$(cat artifacts/backend-test-results/test-output.txt)"
+            echo "### Backend Test Errors:" >> errors.txt
+            cat artifacts/backend-test-results/test-output.txt >> errors.txt
+            echo "" >> errors.txt
           fi
           
-          # Frontend errors  
+          # Frontend test errors
           if [ -f artifacts/frontend-test-results/test-output.txt ]; then
-            echo "### Frontend Tests" >> error-report.md
-            echo '```' >> error-report.md
-            cat artifacts/frontend-test-results/test-output.txt >> error-report.md
-            echo '```' >> error-report.md
-            ERRORS="$ERRORS\n$(cat artifacts/frontend-test-results/test-output.txt)"
+            echo "### Frontend Test Errors:" >> errors.txt
+            cat artifacts/frontend-test-results/test-output.txt >> errors.txt
+            echo "" >> errors.txt
           fi
           
           # TypeScript errors
           if [ -f artifacts/frontend-lint-results/typecheck-output.txt ]; then
-            echo "### TypeScript Errors" >> error-report.md
-            echo '```' >> error-report.md
-            cat artifacts/frontend-lint-results/typecheck-output.txt >> error-report.md
-            echo '```' >> error-report.md
-            ERRORS="$ERRORS\n$(cat artifacts/frontend-lint-results/typecheck-output.txt)"
+            echo "### TypeScript Errors:" >> errors.txt
+            cat artifacts/frontend-lint-results/typecheck-output.txt >> errors.txt
+            echo "" >> errors.txt
           fi
           
-          # Lint errors
-          if [ -f artifacts/frontend-lint-results/lint-output.txt ]; then
-            echo "### Lint Errors" >> error-report.md
-            echo '```' >> error-report.md
-            cat artifacts/frontend-lint-results/lint-output.txt >> error-report.md
-            echo '```' >> error-report.md
-          fi
-          
-          # Python errors
+          # Python test errors
           if [ -f artifacts/python-test-results/test-output.txt ]; then
-            echo "### Python Tests" >> error-report.md
-            echo '```' >> error-report.md
-            cat artifacts/python-test-results/test-output.txt >> error-report.md
-            echo '```' >> error-report.md
-            ERRORS="$ERRORS\n$(cat artifacts/python-test-results/test-output.txt)"
+            echo "### Python Test Errors:" >> errors.txt
+            cat artifacts/python-test-results/test-output.txt >> errors.txt
+            echo "" >> errors.txt
           fi
           
-          # Save for later steps
-          echo "has_errors=true" >> $GITHUB_OUTPUT
-          
-          # Create a condensed error summary for the issue
-          cat error-report.md
+          if [ -f errors.txt ]; then
+            echo "has_errors=true" >> $GITHUB_OUTPUT
+            echo "Errors found:"
+            cat errors.txt
+          else
+            echo "has_errors=false" >> $GITHUB_OUTPUT
+            echo "No error artifacts found"
+          fi
 
-      - name: 🐛 Create Fix Issue
+      - name: 🐘 Setup PHP
+        if: steps.extract-errors.outputs.has_errors == 'true'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: 📦 Setup Node
+        if: steps.extract-errors.outputs.has_errors == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 🐍 Setup Python
+        if: steps.extract-errors.outputs.has_errors == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 🔧 Attempt Auto-Fixes
+        if: steps.extract-errors.outputs.has_errors == 'true'
+        id: auto-fix
+        run: |
+          FIXED=false
+          
+          # ========================================
+          # Fix 1: Laravel Pint (PHP code style)
+          # ========================================
+          if grep -q "Pint\|pint\|code style" errors.txt 2>/dev/null; then
+            echo "🔧 Running Laravel Pint auto-fix..."
+            cd portal/backend
+            composer install --quiet
+            vendor/bin/pint
+            cd ../..
+            FIXED=true
+          fi
+          
+          # ========================================
+          # Fix 2: ESLint (JS/TS code style)
+          # ========================================
+          if grep -q "eslint\|ESLint\|Parsing error" errors.txt 2>/dev/null; then
+            echo "🔧 Running ESLint auto-fix..."
+            cd portal/frontend
+            npm ci --silent
+            npm run lint -- --fix || true
+            cd ../..
+            FIXED=true
+          fi
+          
+          # ========================================
+          # Fix 3: TypeScript errors - common patterns
+          # ========================================
+          if grep -q "error TS\|Type error" errors.txt 2>/dev/null; then
+            echo "🔧 Attempting TypeScript fixes..."
+            
+            # Fix missing imports
+            if grep -q "Cannot find name" errors.txt; then
+              echo "Detected missing imports - attempting fix..."
+            fi
+            
+            # Run type check to see current status
+            cd portal/frontend
+            npm ci --silent
+            npm run type-check 2>&1 || true
+            cd ../..
+          fi
+          
+          # ========================================
+          # Fix 4: Python black/autopep8
+          # ========================================
+          if grep -q "flake8\|black\|pep8\|E501\|W503" errors.txt 2>/dev/null; then
+            echo "🔧 Running Python auto-formatters..."
+            cd data-importer/scripts
+            pip install black autopep8 --quiet
+            black . --quiet || true
+            autopep8 --in-place --recursive . || true
+            cd ../..
+            FIXED=true
+          fi
+          
+          echo "fixed=$FIXED" >> $GITHUB_OUTPUT
+
+      - name: 📝 Check for changes
+        if: steps.extract-errors.outputs.has_errors == 'true'
+        id: check-changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected:"
+            git status --short
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No auto-fixable changes detected"
+          fi
+
+      - name: 💾 Commit and push fixes
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add -A
+          git commit -m "🤖 Auto-fix: code style and formatting
+
+          Automated fixes applied:
+          - Code style corrections (Pint/ESLint/Black)
+          - Formatting adjustments
+          
+          Triggered by failed CI run: ${{ github.event.workflow_run.html_url }}"
+          
+          git push
+
+      - name: 📊 Generate Summary
+        if: always()
+        run: |
+          echo "## 🤖 Auto-Fix Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-attempts.outputs.skip }}" == "true" ]; then
+            echo "⚠️ **Max fix attempts reached (${{ env.MAX_FIX_ATTEMPTS }})**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Manual intervention required. Please fix the errors locally." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.check-changes.outputs.has_changes }}" == "true" ]; then
+            echo "✅ **Fixes applied and pushed!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "A new CI run will be triggered automatically." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **No automatic fixes available**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The errors require manual intervention. See details below:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [ -f errors.txt ]; then
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              head -100 errors.txt >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: 🐛 Create issue if manual fix needed
+        if: steps.check-changes.outputs.has_changes != 'true' && steps.extract-errors.outputs.has_errors == 'true'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('error-report.md', 'utf8');
+            let errors = '';
+            try {
+              errors = fs.readFileSync('errors.txt', 'utf8');
+            } catch (e) {
+              errors = 'Error details not available';
+            }
             
-            // Check if an open issue already exists
+            // Check for existing open issue
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
-              labels: 'ci-failure,auto-fix'
+              labels: 'ci-failure'
             });
             
-            const existingIssue = issues.data.find(i => 
-              i.title.includes('CI Pipeline Failed')
-            );
+            const title = '🔴 CI Failed - Manual Fix Required';
+            const body = `## CI Pipeline Failed
             
-            const issueBody = `${report}
+            **Commit:** \`${{ github.event.workflow_run.head_sha }}\`
+            **Branch:** \`${{ github.event.workflow_run.head_branch }}\`
+            **Run:** ${{ github.event.workflow_run.html_url }}
             
-            ---
+            Auto-fix was attempted but could not resolve all issues.
             
-            ## 🤖 How to Fix
+            ## Error Details
             
-            **Option 1: Use GitHub Copilot Workspace**
-            1. Click the "Open in Workspace" button below
-            2. Copilot will analyze the errors and suggest fixes
-            3. Review and commit the changes
-            
-            **Option 2: Manual Fix with Copilot Chat**
-            1. Copy the error details above
-            2. Open VS Code with GitHub Copilot
-            3. Paste the errors and ask Copilot to fix them
-            4. Push your fixes
-            
-            **Option 3: Use Copilot CLI**
-            \`\`\`bash
-            gh copilot suggest "fix these test failures: <paste errors>"
+            \`\`\`
+            ${errors.substring(0, 60000)}
             \`\`\`
             
-            ---
+            ## How to Fix
             
-            ⏳ **Auto-retry:** Push any fix to re-trigger the CI pipeline.
-            `;
+            1. **Copy the errors above**
+            2. **Open VS Code with Copilot**
+            3. **Paste to Copilot Chat:** "Fix these errors: <paste>"
+            4. **Push your fixes**
+            
+            The CI will automatically re-run when you push.`;
+            
+            const existingIssue = issues.data.find(i => i.title.includes('CI Failed'));
             
             if (existingIssue) {
-              // Update existing issue
               await github.rest.issues.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: existingIssue.number,
-                body: issueBody
+                body: body
               });
-              
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: existingIssue.number,
-                body: `🔄 **New failure detected!**\n\nRun: ${{ github.event.workflow_run.html_url }}\nCommit: \`${{ github.event.workflow_run.head_sha }}\`\n\nThe issue has been updated with the latest errors.`
-              });
-              
               console.log(`Updated issue #${existingIssue.number}`);
             } else {
-              // Create new issue
-              const newIssue = await github.rest.issues.create({
+              await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                title: '🔴 CI Pipeline Failed - Fix Required',
-                body: issueBody,
-                labels: ['ci-failure', 'auto-fix', 'bug']
+                title: title,
+                body: body,
+                labels: ['ci-failure', 'bug']
               });
-              
-              console.log(`Created issue #${newIssue.data.number}`);
+              console.log('Created new issue');
             }
 
-      - name: 📊 Add Step Summary
-        run: |
-          echo "## 🤖 Auto-Fix Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "CI Pipeline failed. An issue has been created/updated with the error details." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "1. Check the [Issues](/${{ github.repository }}/issues?q=is%3Aissue+is%3Aopen+label%3Aci-failure) for details" >> $GITHUB_STEP_SUMMARY
-          echo "2. Use GitHub Copilot to fix the errors" >> $GITHUB_STEP_SUMMARY
-          echo "3. Push your fix to re-trigger CI" >> $GITHUB_STEP_SUMMARY
-
-  # Close issue when CI passes
+  # ==========================================
+  # Close issues when CI passes
+  # ==========================================
   close-on-success:
-    name: ✅ Close Fix Issue on Success
+    name: ✅ Close Issues on Success
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     
@@ -197,7 +314,6 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // Find open CI failure issues
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -206,7 +322,13 @@ jobs:
             });
             
             for (const issue of issues.data) {
-              // Close the issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `🎉 **CI Pipeline Passed!**\n\nRun: ${{ github.event.workflow_run.html_url }}`
+              });
+              
               await github.rest.issues.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -214,19 +336,11 @@ jobs:
                 state: 'closed'
               });
               
-              // Add success comment
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                body: `🎉 **CI Pipeline Passed!**\n\nThe issues have been fixed and CI is now passing.\n\nRun: ${{ github.event.workflow_run.html_url }}\nCommit: \`${{ github.event.workflow_run.head_sha }}\``
-              });
-              
               console.log(`Closed issue #${issue.number}`);
             }
 
-      - name: 📊 Add Step Summary
+      - name: 📊 Success Summary
         run: |
           echo "## ✅ CI Passed!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "All tests passed. Any open CI failure issues have been closed." >> $GITHUB_STEP_SUMMARY
+          echo "All tests passed. Deployment will proceed." >> $GITHUB_STEP_SUMMARY
