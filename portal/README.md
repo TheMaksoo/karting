@@ -1,5 +1,11 @@
 # 🏎️ Karting Portal
 
+[![CI/CD Pipeline](https://github.com/TheMaksoo/karting-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/TheMaksoo/karting-dashboard/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/TheMaksoo/karting-dashboard/graph/badge.svg)](https://codecov.io/gh/TheMaksoo/karting-dashboard)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting-dashboard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting-dashboard)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting-dashboard&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting-dashboard)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting-dashboard&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting-dashboard)
+
 Modern web application for karting session management, analysis, and visualization.
 
 ## 🎯 Features

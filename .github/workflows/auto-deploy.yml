@@ -1,13 +1,35 @@
 name: 🚀 Auto Deploy
 
 on:
-  push:
-    branches: [ main ]
+  # Only run after CI pipeline passes
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches: [main]
   workflow_dispatch:
 
 jobs:
+  # Log when CI failed (skip deploy)
+  skip-notification:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' }}
+    steps:
+      - name: ⚠️ CI Failed - Skipping Deploy
+        run: |
+          echo "## ⚠️ Deployment Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The CI/CD Pipeline did not pass. Deployment has been skipped." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**CI Result:** ${{ github.event.workflow_run.conclusion }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Run:** [${{ github.event.workflow_run.html_url }}](${{ github.event.workflow_run.html_url }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Fix the failing tests and push again to trigger deployment." >> $GITHUB_STEP_SUMMARY
+
   deploy:
     runs-on: ubuntu-latest
+    # Only deploy if CI passed (or manual trigger)
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     
     steps:
     - name: 📥 Checkout

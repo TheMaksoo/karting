@@ -99,6 +99,7 @@ jobs:
         run: php artisan migrate --force
 
       - name: Run Pest tests with coverage
+        id: pest-tests
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -106,7 +107,19 @@ jobs:
           DB_DATABASE: testing
           DB_USERNAME: root
           DB_PASSWORD: password
-        run: vendor/bin/pest --coverage --coverage-clover=coverage/clover.xml
+        run: |
+          vendor/bin/pest --coverage --coverage-clover=coverage/clover.xml --log-junit=test-results.xml 2>&1 | tee test-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            portal/backend/test-output.txt
+            portal/backend/test-results.xml
+            portal/backend/coverage/
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -116,12 +129,6 @@ jobs:
           flags: backend
           name: backend-coverage
           fail_ci_if_error: false
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-coverage
-          path: portal/backend/coverage/clover.xml
 
   # ==========================================
   # Frontend Lint & Type Check
@@ -148,11 +155,20 @@ jobs:
         run: npm ci
 
       - name: Run type check
-        run: npm run type-check
+        run: npm run type-check 2>&1 | tee typecheck-output.txt
 
       - name: Run ESLint
-        run: npm run lint
+        run: npm run lint 2>&1 | tee lint-output.txt
         continue-on-error: true
+
+      - name: Upload lint results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-lint-results
+          path: |
+            portal/frontend/typecheck-output.txt
+            portal/frontend/lint-output.txt
 
   # ==========================================
   # Frontend Tests (Vue/TypeScript)
@@ -182,7 +198,19 @@ jobs:
         run: npm run type-check
 
       - name: Run tests with coverage
-        run: npm run test:coverage
+        id: frontend-tests
+        run: |
+          npm run test:coverage 2>&1 | tee test-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-results
+          path: |
+            portal/frontend/test-output.txt
+            portal/frontend/coverage/
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -192,12 +220,6 @@ jobs:
           flags: frontend
           name: frontend-coverage
           fail_ci_if_error: false
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-coverage
-          path: portal/frontend/coverage/
 
   # ==========================================
   # Python Tests (Data Importer)
@@ -224,8 +246,21 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run tests with coverage
-        run: pytest --cov=. --cov-report=xml:coverage.xml --cov-report=term-missing
+        id: python-tests
+        run: |
+          pytest --cov=. --cov-report=xml:coverage.xml --cov-report=term-missing --junitxml=test-results.xml 2>&1 | tee test-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
         continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-test-results
+          path: |
+            data-importer/scripts/test-output.txt
+            data-importer/scripts/test-results.xml
+            data-importer/scripts/coverage.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -235,54 +270,128 @@ jobs:
           flags: python
           name: python-coverage
           fail_ci_if_error: false
-        if: always()
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-coverage
-          path: data-importer/scripts/coverage.xml
-        if: always()
 
   # ==========================================
-  # SonarCloud Analysis (Code Quality)
+  # SonarCloud Analysis (Code Quality + Coverage)
   # ==========================================
   sonarcloud:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-tests, python-tests]
+    if: always()
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Download backend coverage
+      - name: Download all test artifacts
         uses: actions/download-artifact@v4
         with:
-          name: backend-coverage
-          path: portal/backend/coverage
+          path: artifacts
         continue-on-error: true
 
-      - name: Download frontend coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-coverage
-          path: portal/frontend/coverage
-        continue-on-error: true
+      - name: Prepare coverage reports for SonarCloud
+        run: |
+          # Create directories
+          mkdir -p portal/backend/coverage
+          mkdir -p portal/frontend/coverage
+          mkdir -p data-importer/scripts
+          
+          # Move coverage files to expected locations
+          if [ -f artifacts/backend-test-results/coverage/clover.xml ]; then
+            cp artifacts/backend-test-results/coverage/clover.xml portal/backend/coverage/
+            echo "✅ Backend coverage found"
+          fi
+          
+          if [ -f artifacts/frontend-test-results/coverage/lcov.info ]; then
+            cp artifacts/frontend-test-results/coverage/lcov.info portal/frontend/coverage/
+            echo "✅ Frontend coverage found"
+          fi
+          
+          if [ -f artifacts/python-test-results/coverage.xml ]; then
+            cp artifacts/python-test-results/coverage.xml data-importer/scripts/
+            echo "✅ Python coverage found"
+          fi
 
-      - name: Download python coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: python-coverage
-          path: data-importer/scripts
-        continue-on-error: true
+      - name: Generate test failure summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          FAILURES=0
+          
+          if [ -f artifacts/backend-test-results/test-output.txt ]; then
+            if grep -q "FAILED\|Error\|Exception" artifacts/backend-test-results/test-output.txt 2>/dev/null; then
+              echo "### ❌ Backend Tests" >> $GITHUB_STEP_SUMMARY
+              echo "<details><summary>Click to expand error details</summary>" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              cat artifacts/backend-test-results/test-output.txt >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo "</details>" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              FAILURES=1
+            else
+              echo "### ✅ Backend Tests - Passed" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          if [ -f artifacts/frontend-test-results/test-output.txt ]; then
+            if grep -q "FAIL\|Error\|failed" artifacts/frontend-test-results/test-output.txt 2>/dev/null; then
+              echo "### ❌ Frontend Tests" >> $GITHUB_STEP_SUMMARY
+              echo "<details><summary>Click to expand error details</summary>" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              cat artifacts/frontend-test-results/test-output.txt >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo "</details>" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              FAILURES=1
+            else
+              echo "### ✅ Frontend Tests - Passed" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          if [ -f artifacts/python-test-results/test-output.txt ]; then
+            if grep -q "FAILED\|ERROR" artifacts/python-test-results/test-output.txt 2>/dev/null; then
+              echo "### ❌ Python Tests" >> $GITHUB_STEP_SUMMARY
+              echo "<details><summary>Click to expand error details</summary>" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              cat artifacts/python-test-results/test-output.txt >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo "</details>" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              FAILURES=1
+            else
+              echo "### ✅ Python Tests - Passed" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          if [ $FAILURES -eq 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "🎉 **All tests passed!** Ready for deployment." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Copy the error output above and paste it to Copilot for automatic fixes.**" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Check SonarCloud Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
 
   # ==========================================
   # Build Check
@@ -317,43 +426,100 @@ jobs:
           path: portal/frontend/dist
 
   # ==========================================
-  # Deploy (Production)
+  # All Tests Gate (ensures all tests pass before deploy)
   # ==========================================
-  deploy:
-    name: Deploy to Production
+  tests-gate:
+    name: ✅ All Tests Gate
     runs-on: ubuntu-latest
     needs: [backend-lint, backend-tests, frontend-lint, frontend-tests, python-tests, build]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
+    if: always()
+    
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.backend-lint.result }}" != "success" ]; then
+            echo "❌ Backend lint failed"
+            exit 1
+          fi
+          if [ "${{ needs.backend-tests.result }}" != "success" ]; then
+            echo "❌ Backend tests failed"
+            exit 1
+          fi
+          if [ "${{ needs.frontend-lint.result }}" != "success" ]; then
+            echo "❌ Frontend lint failed"
+            exit 1
+          fi
+          if [ "${{ needs.frontend-tests.result }}" != "success" ]; then
+            echo "❌ Frontend tests failed"
+            exit 1
+          fi
+          if [ "${{ needs.build.result }}" != "success" ]; then
+            echo "❌ Build failed"
+            exit 1
+          fi
+          echo "✅ All tests passed!"
 
+  # ==========================================
+  # Notify on Failure (creates report for Copilot)
+  # ==========================================
+  notify-failure:
+    name: 📋 Report Failures
+    runs-on: ubuntu-latest
+    needs: [tests-gate]
+    if: failure()
+    
     steps:
       - uses: actions/checkout@v4
-
-      - name: Download build artifacts
+      
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: frontend-build
-          path: dist
+          path: artifacts
+        continue-on-error: true
 
-      - name: Deploy notification
+      - name: Create failure report
         run: |
-          echo "🚀 Deployment starting..."
-          echo "Commit: ${{ github.sha }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "All tests passed - ready to deploy"
+          echo "# 🔴 CI Pipeline Failed" > failure-report.md
+          echo "" >> failure-report.md
+          echo "**Commit:** ${{ github.sha }}" >> failure-report.md
+          echo "**Branch:** ${{ github.ref_name }}" >> failure-report.md
+          echo "**Time:** $(date -u)" >> failure-report.md
+          echo "" >> failure-report.md
+          echo "## Error Details" >> failure-report.md
+          echo "" >> failure-report.md
+          echo "Copy the content below and paste it to GitHub Copilot to get automatic fixes:" >> failure-report.md
+          echo "" >> failure-report.md
+          echo '```' >> failure-report.md
+          
+          for file in artifacts/*/test-output.txt artifacts/*/typecheck-output.txt artifacts/*/lint-output.txt; do
+            if [ -f "$file" ]; then
+              echo "=== $file ===" >> failure-report.md
+              cat "$file" >> failure-report.md
+              echo "" >> failure-report.md
+            fi
+          done
+          
+          echo '```' >> failure-report.md
+          
+          cat failure-report.md
 
-      # Add your deployment steps here (e.g., SSH, AWS, etc.)
-      # - name: Deploy to server
-      #   run: |
-      #     # rsync or ssh commands here
+      - name: Upload failure report
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-report
+          path: failure-report.md
 
-      - name: Post-deploy health check
-        run: |
-          echo "Waiting for deployment to stabilize..."
-          sleep 10
-          # Uncomment and configure for your production URL
-          # curl --fail --silent --show-error ${{ vars.PRODUCTION_URL }}/api/health || exit 1
-          echo "✅ Health check passed (placeholder)"
-
-      - name: Deployment complete
-        run: echo "✅ Deployment completed successfully!"
+      - name: Add failure comment to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('failure-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
