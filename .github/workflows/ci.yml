@@ -208,7 +208,16 @@ jobs:
           mkdir -p coverage
           vendor/bin/pest --coverage --coverage-clover=coverage/clover.xml --log-junit=test-results.xml 2>&1 | tee test-output.txt
 
-      - name: 📊 Upload Coverage
+      - name: 📊 Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./portal/backend/coverage/clover.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+      - name: 📊 Upload Coverage Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -246,7 +255,16 @@ jobs:
           npm run test:coverage -- --run 2>&1 | tee test-output.txt
         continue-on-error: false
 
-      - name: 📊 Upload Coverage
+      - name: 📊 Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./portal/frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
+
+      - name: 📊 Upload Coverage Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -313,7 +331,16 @@ jobs:
         run: |
           python -m pytest --cov=. --cov-report=xml:coverage.xml --cov-report=term -v 2>&1 | tee test-output.txt || true
 
-      - name: 📊 Upload Coverage
+      - name: 📊 Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./data-importer/scripts/coverage.xml
+          flags: python
+          name: python-coverage
+          fail_ci_if_error: false
+
+      - name: 📊 Upload Coverage Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -365,12 +392,21 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
           find . -name "clover.xml" -o -name "lcov.info" -o -name "coverage.xml" 2>/dev/null >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          # List coverage file contents to verify they exist
+          echo "### Coverage File Locations:"
+          ls -la portal/backend/coverage/ 2>/dev/null || echo "No backend coverage dir"
+          ls -la portal/frontend/coverage/ 2>/dev/null || echo "No frontend coverage dir"
+          ls -la data-importer/scripts/ 2>/dev/null | grep coverage || echo "No python coverage"
 
       - name: 🔍 SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.host.url=https://sonarcloud.io
 
   # ┌──────────────────────────────────────────────────────────────────────────────┐
   # │ ✅ QUALITY GATE - Final Check Before Deploy                                  │

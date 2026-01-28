@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import DriverStatsView from '../DriverStatsView.vue'
+
+// Note: flushPromises available if needed
+// import { flushPromises } from '@vue/test-utils'
 
 // Mock vue-toastification
 vi.mock('vue-toastification', () => ({

@@ -488,9 +488,6 @@ def extract_session_data(file_path, track_name):
         
         base64_content = base64_match.group(1).replace('\n', '')
         decoded = base64.b64decode(base64_content).decode('utf-8')
-            
-        base64_content = base64_match.group(1).replace('\n', '')
-        decoded = base64.b64decode(base64_content).decode('utf-8')
         
         # Find our target drivers and their results
         found_drivers = {}
@@ -928,8 +925,9 @@ def get_weather_data(track_name, date_str, time_str, session_data=None):
                 try:
                     # For historical weather, we'll use a simpler approach
                     # Current weather API call (historical data requires paid plan)
+                    # Note: API key is passed as parameter, not logged
                     url = f"http://api.openweathermap.org/data/2.5/weather?q={city},{country}&appid={api_key}&units=metric"
-                    response = requests.get(url, timeout=10)
+                    response = requests.get(url, timeout=10, headers={'User-Agent': 'KartingApp/1.0'})
                     
                     if response.status_code == 200:
                         weather_data = response.json()

@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Tester</title>
+    <title>API Tester - Development Only</title>
+    <!-- 
+    ⚠️ SECURITY WARNING: This file is for DEVELOPMENT/TESTING only.
+    DO NOT deploy to production or use with real credentials.
+    Token storage uses sessionStorage (cleared on browser close).
+    -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -114,11 +119,12 @@
                 
                 if (response.ok) {
                     token = data.token;
-                    localStorage.setItem('api_token', token);
+                    // Use sessionStorage for test tokens (cleared on browser close)
+                    sessionStorage.setItem('test_api_token', token);
                     document.getElementById('login-result').innerHTML = 
                         `<p class="success">✓ Logged in successfully!</p>
-                         <p><strong>Token:</strong> ${token.substring(0, 20)}...</p>
-                         <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                         <p><strong>Token:</strong> [REDACTED]...</p>
+                         <pre>${JSON.stringify({...data, token: '[REDACTED]'}, null, 2)}</pre>`;
                 } else {
                     document.getElementById('login-result').innerHTML = 
                         `<p class="error">✗ Login failed (${response.status})</p>

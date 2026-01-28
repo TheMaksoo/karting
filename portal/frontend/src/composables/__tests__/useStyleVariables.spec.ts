@@ -72,7 +72,8 @@ describe('useStyleVariables', () => {
       mockFetch.mockImplementationOnce(() => new Promise(() => {})) // Never resolves
       
       const styleVars = useStyleVariables()
-      const fetchPromise = styleVars.fetchVariables()
+      // Start fetch but don't await - we're testing the loading state
+      void styleVars.fetchVariables()
       
       expect(styleVars.loading.value).toBe(true)
     })

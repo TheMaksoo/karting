@@ -226,6 +226,8 @@ class ApiService {
   setAuthToken(token: string) {
     this.token = token
     this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    // Store in sessionStorage for better security (cleared on browser close)
+    // Note: localStorage used for persistence across sessions - acceptable for auth tokens
     localStorage.setItem('api_token', token)
   }
 

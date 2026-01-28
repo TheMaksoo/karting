@@ -172,7 +172,7 @@ async function loadTrackData() {
     let driverId = loggedInDriverId.value
     
     // If no driver_id, try to find driver by name
-    if (!driverId || driverId === undefined) {
+    if (!driverId) {
       
       if (authStore.user?.name) {
         try {

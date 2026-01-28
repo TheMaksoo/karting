@@ -112,7 +112,7 @@ class TestDriverNormalization:
         """Test driver names are trimmed."""
         from process_karting_sessions import normalize_driver_name
         
-        result = normalize_driver_name("  Driver 1  ")
+        result = normalize_driver_name("  Driver 1  ", "Test Track")
         assert result == "Driver 1"
 
     def test_normalize_driver_name_handles_aliases(self):
@@ -120,7 +120,7 @@ class TestDriverNormalization:
         from process_karting_sessions import normalize_driver_name
         
         # This depends on configured aliases
-        result = normalize_driver_name("Some Alias")
+        result = normalize_driver_name("Some Alias", "Test Track")
         assert isinstance(result, str)
         assert len(result) > 0
 

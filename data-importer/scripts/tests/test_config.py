@@ -25,10 +25,12 @@ class TestLoadConfig:
         try:
             with patch('config.Path') as mock_path:
                 mock_path.return_value.parent.__truediv__.return_value.exists.return_value = True
-                with patch('builtins.open', MagicMock(return_value=open(temp_path))):
-                    config = load_config()
-                    assert config is not None
-                    assert isinstance(config, dict)
+                # Use context manager to ensure file is properly closed
+                with open(temp_path, 'r') as temp_file:
+                    with patch('builtins.open', MagicMock(return_value=temp_file)):
+                        config = load_config()
+                        assert config is not None
+                        assert isinstance(config, dict)
         finally:
             os.unlink(temp_path)
 

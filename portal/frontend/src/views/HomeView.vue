@@ -766,7 +766,7 @@ const loadRealData = async () => {
     let driverId = loggedInDriverId.value
     
     // If no driver_id, try to find driver by name
-    if (!driverId || driverId === undefined) {
+    if (!driverId) {
       console.warn('⚠️ No driver_id in user object, attempting to find driver by name...')
       
       if (authStore.user?.name) {

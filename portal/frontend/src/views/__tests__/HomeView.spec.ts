@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, shallowMount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing'
+
+// Note: mount and createTestingPinia kept available for future tests
+// import { mount } from '@vue/test-utils'
+// import { createTestingPinia } from '@pinia/testing'
 
 // Mock vue-router
 vi.mock('vue-router', () => ({

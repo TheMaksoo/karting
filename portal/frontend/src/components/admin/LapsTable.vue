@@ -158,22 +158,22 @@ const localTrackFilter = ref(props.trackFilter)
 const editingId = ref<number | null>(null)
 const editForm = reactive<any>({})
 
-const formatTime = (time: any): string => {
-  if (!time || time === 0 || time === null || time === undefined) return '-'
+const formatTime = (time: string | number | null | undefined): string => {
+  if (time === null || time === undefined || time === '' || time === 0) return '-'
   const num = typeof time === 'string' ? parseFloat(time) : time
-  if (isNaN(num)) return '-'
+  if (isNaN(num) || num === 0) return '-'
   return num.toFixed(3) + 's'
 }
 
-const formatSpeed = (speed: any): string => {
-  if (!speed || speed === null || speed === undefined) return '-'
+const formatSpeed = (speed: string | number | null | undefined): string => {
+  if (speed === null || speed === undefined || speed === '') return '-'
   const num = typeof speed === 'string' ? parseFloat(speed) : speed
   if (isNaN(num)) return '-'
   return num.toFixed(1) + ' km/h'
 }
 
-const formatCost = (cost: any): string => {
-  if (!cost || cost === null || cost === undefined) return '-'
+const formatCost = (cost: string | number | null | undefined): string => {
+  if (cost === null || cost === undefined || cost === '') return '-'
   const num = typeof cost === 'string' ? parseFloat(cost) : cost
   if (isNaN(num)) return '-'
   return '€' + num.toFixed(2)
