@@ -152,6 +152,8 @@ interface Session {
   track?: any
 }
 
+import type { Track } from '@/services/api'
+
 const props = defineProps<{
   items: Session[]
   loading: boolean
@@ -159,7 +161,7 @@ const props = defineProps<{
   currentPage: number
   totalPages: number
   total: number
-  tracks: unknown[]
+  tracks: Track[]
 }>()
 
 // Expose props for template usage

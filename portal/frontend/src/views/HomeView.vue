@@ -661,7 +661,26 @@ const refreshActivityChart = () => {
 const showTrophyModal = ref(false)
 const selectedTrophyType = ref<string>('')
 const trophyModalTitle = ref('')
-const trophyDetails = ref<unknown[]>([])
+interface TrophyDetailDriver {
+  position: number
+  name: string
+  time: number
+  is_current_driver: boolean
+}
+
+interface TrophyDetail {
+  track_name: string
+  time: number
+  session_date: string
+  position?: number
+  all_drivers?: TrophyDetailDriver[]
+  gap_ahead?: string
+  gap_behind?: string
+  driver_ahead?: string
+  driver_behind?: string
+}
+
+const trophyDetails = ref<TrophyDetail[]>([])
 const trophyDetailsLoading = ref(false)
 
 const showTrophyDetails = async (type: string) => {
@@ -697,7 +716,7 @@ const showTrophyDetails = async (type: string) => {
     }
     
     const details = await fetchTrophyDetails(driverId, type)
-    trophyDetails.value = details || []
+    trophyDetails.value = (details || []) as TrophyDetail[]
   } catch (error) {
     console.error('Failed to fetch trophy details:', error)
     trophyDetails.value = []
@@ -802,7 +821,7 @@ const loadRealData = async () => {
 
     // Set trophy case data
     if (trophyData) {
-      trophyCase.value = trophyData
+      trophyCase.value = trophyData as { emblems: number; gold: number; silver: number; bronze: number; coal: number }
     }
 
     // Get consistency score for logged-in driver from overview stats
@@ -887,8 +906,8 @@ const loadRealData = async () => {
             
             return {
               time: formatTime(cellData.best_lap_time),
-              gap: isRecord ? cellData.best_lap_time : ((cellData.gap || 0) >= 0 ? `+${(cellData.gap || 0).toFixed(2)}s` : `${(cellData.gap || 0).toFixed(2)}s`),
-              gapPercentage: cellData.gap_percentage,
+              gap: isRecord ? formatTime(cellData.best_lap_time) : ((cellData.gap || 0) >= 0 ? `+${(cellData.gap || 0).toFixed(2)}s` : `${(cellData.gap || 0).toFixed(2)}s`),
+              gapPercentage: cellData.gap_percentage ?? 0,
               performance: 100 - (cellData.gap_percentage || 0),
               has_data: true,
               isRecord: isRecord,

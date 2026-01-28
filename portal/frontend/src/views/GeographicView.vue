@@ -122,20 +122,21 @@ const loggedInDriverId = computed(() => authStore.user?.driver_id)
 const resolvedDriverId = ref<number | null>(null) // Store the actual driver ID after resolution
 
 const { getTrackStats, getDriverStats, loading, error } = useKartingAPI()
+import type { TrackStat } from '@/composables/useKartingAPI'
 
 // State
-const trackStats = ref<unknown[]>([])
+const trackStats = ref<TrackStat[]>([])
 const selectedRegion = ref('')
 const selectedCountry = ref('')
 
 // Computed
 const regions = computed(() => {
-  const uniqueRegions = [...new Set(trackStats.value.map(t => t.region).filter(Boolean))]
+  const uniqueRegions = [...new Set(trackStats.value.map(t => t.region).filter((r): r is string => r !== null))]
   return uniqueRegions.sort()
 })
 
 const countries = computed(() => {
-  const uniqueCountries = [...new Set(trackStats.value.map(t => t.country).filter(Boolean))]
+  const uniqueCountries = [...new Set(trackStats.value.map(t => t.country).filter((c): c is string => c !== null))]
   return uniqueCountries.sort()
 })
 

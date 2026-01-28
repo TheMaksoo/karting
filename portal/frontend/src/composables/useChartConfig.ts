@@ -128,16 +128,16 @@ export function useChartConfig() {
   }))
 
   // Pie/Doughnut chart options
-  const pieChartOptions = computed<ChartOptions<'pie'>>(() => ({
+  const pieChartOptions = computed(() => ({
     ...baseOptions,
     plugins: {
       ...baseOptions.plugins,
       legend: {
         ...baseOptions.plugins?.legend,
-        position: 'right',
+        position: 'right' as const,
       },
     },
-  }))
+  }) as ChartOptions<'pie'>)
 
   // Scatter chart options
   const scatterChartOptions = computed<ChartOptions<'scatter'>>(() => ({
