@@ -24,7 +24,7 @@
             id="email"
             v-model="email"
             type="email"
-            placeholder="maxvanlierop05@gmail.com"
+            placeholder="your@email.com"
             required
             autocomplete="email"
           />
@@ -56,7 +56,7 @@
       </form>
 
       <div class="help-text">
-        <p>💡 Admin credentials: maxvanlierop05@gmail.com / admin123</p>
+        <p>💡 Contact your administrator for login credentials</p>
       </div>
     </div>
   </div>
@@ -70,8 +70,8 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const email = ref('maxvanlierop05@gmail.com')
-const password = ref('admin123')
+const email = ref('')
+const password = ref('')
 
 async function handleLogin() {
   try {

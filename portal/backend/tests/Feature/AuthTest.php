@@ -1,0 +1,129 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
+
+class AuthTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_user_can_login_with_valid_credentials(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'test@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['user', 'token'])
+            ->assertJson(['user' => ['email' => 'test@example.com']]);
+    }
+
+    public function test_user_cannot_login_with_invalid_credentials(): void
+    {
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'test@example.com',
+            'password' => 'wrongpassword',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_login_requires_email_and_password(): void
+    {
+        $response = $this->postJson('/api/auth/login', []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email', 'password']);
+    }
+
+    public function test_authenticated_user_can_get_profile(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->getJson('/api/auth/me');
+
+        $response->assertStatus(200)
+            ->assertJson(['user' => ['id' => $user->id]]);
+    }
+
+    public function test_unauthenticated_user_cannot_get_profile(): void
+    {
+        $response = $this->getJson('/api/auth/me');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_user_can_logout(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->postJson('/api/auth/logout');
+
+        $response->assertStatus(200)
+            ->assertJson(['message' => 'Logged out successfully']);
+    }
+
+    public function test_user_can_change_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'newpassword123',
+            'new_password_confirmation' => 'newpassword123',
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
+    }
+
+    public function test_change_password_requires_correct_current_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'wrongpassword',
+            'new_password' => 'newpassword123',
+            'new_password_confirmation' => 'newpassword123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['current_password']);
+    }
+
+    public function test_change_password_clears_must_change_password_flag(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+            'must_change_password' => true,
+        ]);
+
+        $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'newpassword123',
+            'new_password_confirmation' => 'newpassword123',
+        ]);
+
+        $this->assertFalse($user->fresh()->must_change_password);
+    }
+}

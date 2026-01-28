@@ -7,10 +7,18 @@ use PHPUnit\Framework\TestCase;
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * Basic sanity check.
      */
-    public function test_that_true_is_true(): void
+    public function test_basic_math(): void
     {
-        $this->assertTrue(true);
+        $this->assertEquals(4, 2 + 2);
+    }
+
+    /**
+     * Test string operations.
+     */
+    public function test_string_operations(): void
+    {
+        $this->assertStringContainsString('world', 'hello world');
     }
 }

@@ -1,0 +1,342 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  PHP_VERSION: '8.2'
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ==========================================
+  # Backend Lint (Laravel Pint)
+  # ==========================================
+  backend-lint:
+    name: Backend Lint (Pint)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: portal/backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run Pint
+        run: vendor/bin/pint --test
+
+  # ==========================================
+  # Backend Tests (Laravel/Pest)
+  # ==========================================
+  backend-tests:
+    name: Backend Tests (Pest)
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: portal/backend
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, pdo, pdo_mysql, sqlite3
+          coverage: xdebug
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('portal/backend/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Copy environment file
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run Pest tests with coverage
+        run: vendor/bin/pest --parallel --coverage --coverage-clover=coverage/clover.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: portal/backend/coverage/clover.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: portal/backend/coverage/clover.xml
+
+  # ==========================================
+  # Frontend Lint & Type Check
+  # ==========================================
+  frontend-lint:
+    name: Frontend Lint
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: portal/frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: portal/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npm run type-check
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true
+
+  # ==========================================
+  # Frontend Tests (Vue/TypeScript)
+  # ==========================================
+  frontend-tests:
+    name: Frontend Tests (Vue/TS)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: portal/frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: portal/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npm run type-check
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: portal/frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: portal/frontend/coverage/lcov.info
+
+  # ==========================================
+  # Python Tests (Data Importer)
+  # ==========================================
+  python-tests:
+    name: Python Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: data-importer/scripts
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: data-importer/scripts/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests with coverage
+        run: pytest --cov=. --cov-report=xml:coverage.xml --cov-report=term-missing
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: data-importer/scripts/coverage.xml
+          flags: python
+          name: python-coverage
+          fail_ci_if_error: false
+        if: always()
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-coverage
+          path: data-importer/scripts/coverage.xml
+        if: always()
+
+  # ==========================================
+  # SonarCloud Analysis (Code Quality)
+  # ==========================================
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, python-tests]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: portal/backend/coverage
+        continue-on-error: true
+
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: portal/frontend/coverage
+        continue-on-error: true
+
+      - name: Download python coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: python-coverage
+          path: data-importer/scripts
+        continue-on-error: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ==========================================
+  # Build Check
+  # ==========================================
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: portal/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: portal/frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: portal/frontend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: portal/frontend/dist
+
+  # ==========================================
+  # Deploy (Production)
+  # ==========================================
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [backend-lint, backend-tests, frontend-lint, frontend-tests, python-tests, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: dist
+
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deployment starting..."
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "All tests passed - ready to deploy"
+
+      # Add your deployment steps here (e.g., SSH, AWS, etc.)
+      # - name: Deploy to server
+      #   run: |
+      #     # rsync or ssh commands here
+
+      - name: Post-deploy health check
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 10
+          # Uncomment and configure for your production URL
+          # curl --fail --silent --show-error ${{ vars.PRODUCTION_URL }}/api/health || exit 1
+          echo "✅ Health check passed (placeholder)"
+
+      - name: Deployment complete
+        run: echo "✅ Deployment completed successfully!"

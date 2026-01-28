@@ -1,6 +1,6 @@
 <?php
 
-$filePath = 'C:\laragon\www\karting\data-importer\eml-samples\De Voltage\Results - Karten Sessie 33.eml';
+$filePath = __DIR__ . '/data-importer/eml-samples/De Voltage/Results - Karten Sessie 33.eml';
 
 $content = file_get_contents($filePath);
 
@@ -37,7 +37,7 @@ foreach ($parts as $i => $part) {
             }
             
             // Save decoded HTML to file for inspection
-            file_put_contents('C:\laragon\www\karting\decoded.html', $decoded);
+            file_put_contents(__DIR__ . '/decoded.html', $decoded);
             echo "\n✓ Saved decoded HTML to decoded.html\n";
             
             break;

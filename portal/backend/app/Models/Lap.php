@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 
 class Lap extends Model
 {
+    use HasFactory, SoftDeletes;
+
     protected $fillable = [
         'karting_session_id',
         'driver_id',
@@ -47,5 +52,39 @@ class Lap extends Model
     public function driver(): BelongsTo
     {
         return $this->belongsTo(Driver::class);
+    }
+
+    /**
+     * Scope to get best laps (fastest lap per session per driver)
+     */
+    public function scopeBestLaps(Builder $query): Builder
+    {
+        return $query->where('is_best_lap', true);
+    }
+
+    /**
+     * Scope to order by fastest lap time
+     */
+    public function scopeFastest(Builder $query): Builder
+    {
+        return $query->orderBy('lap_time', 'asc');
+    }
+
+    /**
+     * Scope to filter by track
+     */
+    public function scopeForTrack(Builder $query, int $trackId): Builder
+    {
+        return $query->whereHas('kartingSession', function ($q) use ($trackId) {
+            $q->where('track_id', $trackId);
+        });
+    }
+
+    /**
+     * Scope to filter by driver
+     */
+    public function scopeForDriver(Builder $query, int $driverId): Builder
+    {
+        return $query->where('driver_id', $driverId);
     }
 }

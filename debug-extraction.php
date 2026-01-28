@@ -7,6 +7,11 @@ $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 $filePath = __DIR__ . '/data-importer/eml-samples/De Voltage/Results - Karten Sessie 33.eml';
 
+if (!file_exists($filePath)) {
+    echo "Error: File not found: $filePath\n";
+    exit(1);
+}
+
 $content = file_get_contents($filePath);
 
 // Parse the EML structure

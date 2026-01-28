@@ -16,6 +16,7 @@ use App\Http\Controllers\API\UserSettingsController;
 use App\Http\Controllers\API\ActivityController;
 use App\Http\Controllers\API\UserDriverController;
 use App\Http\Controllers\API\UserManagementController;
+use App\Http\Controllers\HealthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,11 +24,21 @@ use App\Http\Controllers\API\UserManagementController;
 |--------------------------------------------------------------------------
 */
 
-// Public routes
-Route::post('/auth/login', [AuthController::class, 'login']);
+// Health check routes (public, no auth required)
+Route::prefix('health')->group(function () {
+    Route::get('/', [HealthController::class, 'check']);
+    Route::get('/detailed', [HealthController::class, 'detailed']);
+    Route::get('/ready', [HealthController::class, 'ready']);
+    Route::get('/live', [HealthController::class, 'live']);
+});
 
-// Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+// Public routes with brute-force protection
+Route::middleware('throttle:5,1')->group(function () {
+    Route::post('/auth/login', [AuthController::class, 'login']);
+});
+
+// Protected routes with rate limiting
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     // Auth
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);

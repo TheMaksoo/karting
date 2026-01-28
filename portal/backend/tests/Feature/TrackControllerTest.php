@@ -1,0 +1,136 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Track;
+use App\Models\KartingSession;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class TrackControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+    }
+
+    public function test_index_returns_all_tracks(): void
+    {
+        Track::factory()->count(3)->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks');
+
+        $response->assertStatus(200)->assertJsonCount(3);
+    }
+
+    public function test_store_creates_track(): void
+    {
+        $data = [
+            'name' => 'Circuit Zandvoort',
+            'city' => 'Zandvoort',
+            'country' => 'Netherlands',
+            'distance' => 800,
+            'corners' => 12,
+            'indoor' => false,
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
+
+        $response->assertStatus(201)->assertJson(['name' => 'Circuit Zandvoort']);
+        $this->assertDatabaseHas('tracks', ['name' => 'Circuit Zandvoort']);
+    }
+
+    public function test_store_validates_required_fields(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', []);
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_show_returns_track(): void
+    {
+        $track = Track::factory()->create();
+
+        $response = $this->actingAs($this->user)->getJson("/api/tracks/{$track->id}");
+
+        $response->assertStatus(200)->assertJson(['id' => $track->id]);
+    }
+
+    public function test_show_returns_404_for_nonexistent_track(): void
+    {
+        $response = $this->actingAs($this->user)->getJson('/api/tracks/99999');
+
+        $response->assertStatus(404);
+    }
+
+    public function test_update_modifies_track(): void
+    {
+        $track = Track::factory()->create(['name' => 'Old Circuit']);
+
+        $response = $this->actingAs($this->user)->putJson("/api/tracks/{$track->id}", [
+            'name' => 'New Circuit',
+        ]);
+
+        $response->assertStatus(200)->assertJson(['name' => 'New Circuit']);
+    }
+
+    public function test_destroy_deletes_track(): void
+    {
+        $track = Track::factory()->create();
+
+        $response = $this->actingAs($this->user)->deleteJson("/api/tracks/{$track->id}");
+
+        $response->assertStatus(200);
+        $this->assertDatabaseMissing('tracks', ['id' => $track->id]);
+    }
+
+    public function test_stats_returns_track_statistics(): void
+    {
+        $track = Track::factory()->create();
+        KartingSession::factory()->count(2)->create(['track_id' => $track->id]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks/stats');
+
+        $response->assertStatus(200)->assertJsonStructure([
+            '*' => ['track_id', 'track_name', 'total_sessions'],
+        ]);
+    }
+
+    public function test_track_stores_json_features(): void
+    {
+        $data = [
+            'name' => 'Test Circuit',
+            'city' => 'Test City',
+            'country' => 'Test Country',
+            'features' => ['timing_system' => 'AMB', 'facilities' => ['cafe', 'shop']],
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
+
+        $response->assertStatus(201);
+        $track = Track::first();
+        $this->assertEquals('AMB', $track->features['timing_system']);
+    }
+
+    public function test_track_can_have_coordinates(): void
+    {
+        $track = Track::factory()->create([
+            'latitude' => 52.3676,
+            'longitude' => 4.9041,
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson("/api/tracks/{$track->id}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'latitude' => 52.3676,
+                'longitude' => 4.9041,
+            ]);
+    }
+}

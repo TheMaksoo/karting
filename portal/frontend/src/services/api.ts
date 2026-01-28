@@ -213,7 +213,7 @@ class ApiService {
             this.clearAuth()
             // Only redirect if we're not already on login page
             if (!window.location.pathname.includes('/login')) {
-              window.location.href = '/karting/login'
+              window.location.href = '/login'
             }
           }
         }
