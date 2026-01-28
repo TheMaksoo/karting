@@ -183,11 +183,7 @@ class ApiService {
       },
     })
 
-    // Load token from localStorage
-    this.token = localStorage.getItem('api_token')
-    if (this.token) {
-      this.setAuthToken(this.token)
-    }
+    // Token will be set after successful login; no persistent storage in localStorage
 
     // Request interceptor
     this.api.interceptors.request.use(
@@ -226,13 +222,11 @@ class ApiService {
   setAuthToken(token: string) {
     this.token = token
     this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    localStorage.setItem('api_token', token)
   }
 
   clearAuth() {
     this.token = null
     delete this.api.defaults.headers.common['Authorization']
-    localStorage.removeItem('api_token')
   }
 
   isAuthenticated(): boolean {

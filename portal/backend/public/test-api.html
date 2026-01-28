@@ -92,7 +92,7 @@
     </div>
 
     <script>
-        let token = localStorage.getItem('api_token') || '';
+        let token = '';
 
         async function testLogin() {
             const email = document.getElementById('email').value;
@@ -114,7 +114,6 @@
                 
                 if (response.ok) {
                     token = data.token;
-                    localStorage.setItem('api_token', token);
                     document.getElementById('login-result').innerHTML = 
                         `<p class="success">✓ Logged in successfully!</p>
                          <p><strong>Token:</strong> ${token.substring(0, 20)}...</p>
