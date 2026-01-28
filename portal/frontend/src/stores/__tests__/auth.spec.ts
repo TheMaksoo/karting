@@ -161,5 +161,97 @@ describe('Auth Store', () => {
 
       expect(store.user?.must_change_password).toBe(false)
     })
+
+    it('should set error on password change failure', async () => {
+      vi.mocked(apiService.changePassword).mockRejectedValue({
+        response: { data: { message: 'Current password is incorrect' } },
+      })
+
+      const store = useAuthStore()
+      store.user = { id: 1, name: 'Test', email: 'test@test.com', role: 'driver' }
+
+      await expect(store.changePassword('wrong', 'new')).rejects.toBeDefined()
+      expect(store.error).toBe('Current password is incorrect')
+    })
+
+    it('should set loading during password change', async () => {
+      vi.mocked(apiService.changePassword).mockImplementation(() => new Promise(() => {}))
+
+      const store = useAuthStore()
+      store.user = { id: 1, name: 'Test', email: 'test@test.com', role: 'driver' }
+      store.changePassword('old', 'new')
+
+      expect(store.loading).toBe(true)
+    })
+  })
+
+  describe('logout', () => {
+    it('should call apiService.logout', async () => {
+      vi.mocked(apiService.logout).mockResolvedValue(undefined)
+      
+      // Mock window.location
+      const originalLocation = window.location
+      Object.defineProperty(window, 'location', {
+        value: { href: '' },
+        writable: true,
+      })
+
+      const store = useAuthStore()
+      store.user = { id: 1, name: 'Test', email: 'test@test.com', role: 'driver' }
+      
+      await store.logout()
+
+      expect(apiService.logout).toHaveBeenCalled()
+      expect(apiService.clearAuth).toHaveBeenCalled()
+      expect(store.user).toBeNull()
+      
+      // Restore
+      Object.defineProperty(window, 'location', { value: originalLocation })
+    })
+
+    it('should clear user even if logout fails', async () => {
+      vi.mocked(apiService.logout).mockRejectedValue(new Error('Network error'))
+      
+      const originalLocation = window.location
+      Object.defineProperty(window, 'location', {
+        value: { href: '' },
+        writable: true,
+      })
+
+      const store = useAuthStore()
+      store.user = { id: 1, name: 'Test', email: 'test@test.com', role: 'driver' }
+      
+      await store.logout()
+
+      expect(store.user).toBeNull()
+      expect(apiService.clearAuth).toHaveBeenCalled()
+      
+      Object.defineProperty(window, 'location', { value: originalLocation })
+    })
+  })
+
+  describe('fetchCurrentUser error handling', () => {
+    it('should clear auth on 401 response', async () => {
+      vi.mocked(apiService.isAuthenticated).mockReturnValue(true)
+      vi.mocked(apiService.getCurrentUser).mockRejectedValue({
+        response: { status: 401 },
+      })
+
+      const store = useAuthStore()
+      await store.fetchCurrentUser()
+
+      expect(apiService.clearAuth).toHaveBeenCalled()
+      expect(store.user).toBeNull()
+    })
+
+    it('should set user to null on other errors', async () => {
+      vi.mocked(apiService.isAuthenticated).mockReturnValue(true)
+      vi.mocked(apiService.getCurrentUser).mockRejectedValue(new Error('Network error'))
+
+      const store = useAuthStore()
+      await store.fetchCurrentUser()
+
+      expect(store.user).toBeNull()
+    })
   })
 })

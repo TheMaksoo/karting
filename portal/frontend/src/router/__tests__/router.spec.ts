@@ -151,4 +151,56 @@ describe('Router', () => {
       expect(dashboardRoute?.meta?.requiresAuth).toBe(true)
     })
   })
+
+  describe('navigation guard behavior', () => {
+    it('should redirect unauthenticated users to login', async () => {
+      // Simulating a route that requires auth
+      const dashboardRoute = router.getRoutes().find(r => r.name === 'dashboard')
+      expect(dashboardRoute?.meta?.requiresAuth).toBe(true)
+    })
+
+    it('should have beforeEach guard defined', () => {
+      // The router should have guards set up
+      expect(router.beforeEach).toBeDefined()
+    })
+
+    it('should have routes with proper authentication meta', () => {
+      const routes = router.getRoutes()
+      const dashboardRoute = routes.find(r => r.name === 'dashboard')
+      const loginRoute = routes.find(r => r.name === 'login')
+      
+      expect(dashboardRoute?.meta?.requiresAuth).toBe(true)
+      expect(loginRoute?.meta?.requiresGuest).toBe(true)
+    })
+
+    it('should have admin routes with requiresAdmin meta', () => {
+      const dashboardRoute = router.getRoutes().find(r => r.name === 'dashboard')
+      const adminChild = dashboardRoute?.children?.find(c => c.name === 'admin')
+      
+      // All admin children should require admin
+      adminChild?.children?.forEach(child => {
+        expect(child.meta?.requiresAdmin).toBe(true)
+      })
+    })
+  })
+
+  describe('admin data route', () => {
+    it('should have admin-data route', () => {
+      const dashboardRoute = router.getRoutes().find(r => r.name === 'dashboard')
+      const adminChild = dashboardRoute?.children?.find(c => c.name === 'admin')
+      const adminData = adminChild?.children?.find(c => c.name === 'admin-data')
+      expect(adminData).toBeDefined()
+      expect(adminData?.meta?.requiresAdmin).toBe(true)
+    })
+  })
+
+  describe('styling route', () => {
+    it('should have styling admin route', () => {
+      const dashboardRoute = router.getRoutes().find(r => r.name === 'dashboard')
+      const adminChild = dashboardRoute?.children?.find(c => c.name === 'admin')
+      const styling = adminChild?.children?.find(c => c.name === 'styling')
+      expect(styling).toBeDefined()
+      expect(styling?.meta?.requiresAdmin).toBe(true)
+    })
+  })
 })

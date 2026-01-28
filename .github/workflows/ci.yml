@@ -388,16 +388,42 @@ jobs:
 
       - name: 📂 Debug Coverage Files
         run: |
-          echo "### Coverage Files:" >> $GITHUB_STEP_SUMMARY
+          echo "### 📂 Coverage File Discovery" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Find all coverage files
+          echo "**All coverage files found:**" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          find . -name "clover.xml" -o -name "lcov.info" -o -name "coverage.xml" 2>/dev/null >> $GITHUB_STEP_SUMMARY
+          find . -type f \( -name "clover.xml" -o -name "lcov.info" -o -name "coverage.xml" \) 2>/dev/null | head -20 >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           
-          # List coverage file contents to verify they exist
-          echo "### Coverage File Locations:"
-          ls -la portal/backend/coverage/ 2>/dev/null || echo "No backend coverage dir"
-          ls -la portal/frontend/coverage/ 2>/dev/null || echo "No frontend coverage dir"
-          ls -la data-importer/scripts/ 2>/dev/null | grep coverage || echo "No python coverage"
+          # Check expected paths
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Expected coverage paths:**" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "portal/backend/coverage/clover.xml" ]; then
+            echo "✅ PHP: portal/backend/coverage/clover.xml EXISTS" >> $GITHUB_STEP_SUMMARY
+            echo "   Size: $(wc -c < portal/backend/coverage/clover.xml) bytes" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ PHP: portal/backend/coverage/clover.xml NOT FOUND" >> $GITHUB_STEP_SUMMARY
+            ls -laR portal/backend/ 2>/dev/null | head -30
+          fi
+          
+          if [ -f "portal/frontend/coverage/lcov.info" ]; then
+            echo "✅ Frontend: portal/frontend/coverage/lcov.info EXISTS" >> $GITHUB_STEP_SUMMARY
+            echo "   Size: $(wc -c < portal/frontend/coverage/lcov.info) bytes" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Frontend: portal/frontend/coverage/lcov.info NOT FOUND" >> $GITHUB_STEP_SUMMARY
+            ls -laR portal/frontend/ 2>/dev/null | head -30
+          fi
+          
+          if [ -f "data-importer/scripts/coverage.xml" ]; then
+            echo "✅ Python: data-importer/scripts/coverage.xml EXISTS" >> $GITHUB_STEP_SUMMARY
+            echo "   Size: $(wc -c < data-importer/scripts/coverage.xml) bytes" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Python: data-importer/scripts/coverage.xml NOT FOUND" >> $GITHUB_STEP_SUMMARY
+            ls -laR data-importer/scripts/ 2>/dev/null | head -30
+          fi
 
       - name: 🔍 SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5
