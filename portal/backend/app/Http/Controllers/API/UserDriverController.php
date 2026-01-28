@@ -16,7 +16,7 @@ class UserDriverController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
+
         $drivers = $user->drivers()
             ->withCount('laps')
             ->get()
@@ -81,7 +81,7 @@ class UserDriverController extends Controller
         $user = $request->user();
 
         // Check if driver is connected
-        if (!$user->drivers()->where('driver_id', $driverId)->exists()) {
+        if (! $user->drivers()->where('driver_id', $driverId)->exists()) {
             return response()->json([
                 'message' => 'Driver not connected to your account',
             ], 404);
@@ -89,6 +89,7 @@ class UserDriverController extends Controller
 
         // Don't allow disconnecting the primary driver if there are others
         $isPrimary = $user->drivers()->where('driver_id', $driverId)->first()->pivot->is_primary;
+
         if ($isPrimary && $user->drivers()->count() > 1) {
             return response()->json([
                 'message' => 'Cannot disconnect primary driver. Set another driver as primary first.',
@@ -117,7 +118,7 @@ class UserDriverController extends Controller
         $user = $request->user();
 
         // Check if driver is connected
-        if (!$user->drivers()->where('driver_id', $driverId)->exists()) {
+        if (! $user->drivers()->where('driver_id', $driverId)->exists()) {
             return response()->json([
                 'message' => 'Driver not connected to your account',
             ], 404);

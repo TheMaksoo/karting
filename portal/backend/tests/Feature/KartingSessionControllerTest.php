@@ -15,6 +15,7 @@ class KartingSessionControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Track $track;
 
     protected function setUp(): void

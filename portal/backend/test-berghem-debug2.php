@@ -20,24 +20,28 @@ echo "Session info:\n";
 print_r($result['session_info']);
 echo "\n";
 
-echo "Total laps: " . count($result['laps']) . "\n\n";
+echo 'Total laps: ' . count($result['laps']) . "\n\n";
 
 // Group by driver
 $byDriver = [];
+
 foreach ($result['laps'] as $lap) {
     $driver = $lap['driver_name'];
-    if (!isset($byDriver[$driver])) {
+
+    if (! isset($byDriver[$driver])) {
         $byDriver[$driver] = [];
     }
     $byDriver[$driver][] = $lap;
 }
 
 echo "Laps per driver:\n";
+
 foreach ($byDriver as $driver => $laps) {
     echo "  $driver: " . count($laps) . " laps\n";
 }
 
 echo "\nMax van lierop's laps:\n";
+
 if (isset($byDriver['max van lierop'])) {
     foreach ($byDriver['max van lierop'] as $lap) {
         echo "  Lap {$lap['lap_number']}: {$lap['lap_time']}s\n";

@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Models\Driver;
-use App\Models\Track;
 use App\Models\KartingSession;
 use App\Models\Lap;
 use App\Models\Setting;
+use App\Models\Track;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info('🚀 Starting database seeding...');
 
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        
+
         // Clear existing data
         $this->command->info('🗑️  Clearing existing data...');
         Lap::truncate();
@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
         Track::truncate();
         User::truncate();
         Setting::truncate();
-        
+
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Seed in order
@@ -50,14 +50,16 @@ class DatabaseSeeder extends Seeder
     private function seedTracks(): void
     {
         $this->command->info('📍 Seeding tracks...');
-        
+
         // Skip tracks seeding if file doesn't exist
         $tracksFile = base_path('../../tracks.json');
-        if (!file_exists($tracksFile)) {
+
+        if (! file_exists($tracksFile)) {
             $this->command->warn('⚠️  tracks.json not found - skipping track seeding');
+
             return;
         }
-        
+
         $tracksJson = file_get_contents($tracksFile);
         $data = json_decode($tracksJson, true);
 
@@ -86,20 +88,22 @@ class DatabaseSeeder extends Seeder
     private function seedDrivers(): void
     {
         $this->command->info('🏎️  Seeding drivers...');
-        
+
         // Get unique drivers from CSV
         $csvPath = base_path('../../Karten.csv');
-        if (!file_exists($csvPath)) {
+
+        if (! file_exists($csvPath)) {
             $this->command->warn('⚠️  Karten.csv not found - skipping driver seeding');
+
             return;
         }
-        
+
         $drivers = [];
-        
+
         if (($handle = fopen($csvPath, 'r')) !== false) {
             $header = fgetcsv($handle);
             $driverIndex = array_search('Driver', $header);
-            
+
             while (($row = fgetcsv($handle)) !== false) {
                 if (isset($row[$driverIndex]) && $row[$driverIndex]) {
                     $drivers[$row[$driverIndex]] = true;
@@ -111,10 +115,11 @@ class DatabaseSeeder extends Seeder
         // Default colors for drivers
         $colors = [
             '#ff6b35', '#004e89', '#ffd23f', '#1d3557', '#e63946',
-            '#2a9d8f', '#f77f00', '#06ffa5', '#9d4edd', '#ff006e'
+            '#2a9d8f', '#f77f00', '#06ffa5', '#9d4edd', '#ff006e',
         ];
 
         $index = 0;
+
         foreach (array_keys($drivers) as $driverName) {
             Driver::create([
                 'name' => $driverName,
@@ -130,7 +135,7 @@ class DatabaseSeeder extends Seeder
     private function seedUsers(): void
     {
         $this->command->info('👤 Seeding users...');
-        
+
         // Create admin user
         User::create([
             'name' => 'Max van Lierop',
@@ -146,13 +151,13 @@ class DatabaseSeeder extends Seeder
     private function seedSettings(): void
     {
         $this->command->info('⚙️  Seeding settings...');
-        
+
         // Default color palette
         Setting::setValue('color_palette', [
             '#ff6b35', '#004e89', '#ffd23f', '#1d3557', '#e63946',
             '#2a9d8f', '#f77f00', '#06ffa5', '#9d4edd', '#ff006e',
             '#3a86ff', '#8338ec', '#fb5607', '#ffbe0b', '#06ffa5',
-            '#023047', '#219ebc', '#8ecae6'
+            '#023047', '#219ebc', '#8ecae6',
         ], 'Main color palette for charts');
 
         Setting::setValue('driver_color_map', [], 'Driver to color assignments');
@@ -163,44 +168,49 @@ class DatabaseSeeder extends Seeder
     private function seedKartingData(): void
     {
         $this->command->info('🏁 Seeding karting sessions and laps...');
-        
+
         $csvPath = base_path('../../Karten.csv');
-        
-        if (!file_exists($csvPath)) {
+
+        if (! file_exists($csvPath)) {
             $this->command->warn('⚠️  Karten.csv not found - skipping karting data seeding');
             $this->command->error('CSV file not found!');
+
             return;
         }
 
         $sessions = [];
         $lapsData = [];
-        
+
         if (($handle = fopen($csvPath, 'r')) !== false) {
             $header = fgetcsv($handle);
-            
+
             // Map headers
             $colMap = [];
+
             foreach ($header as $index => $colName) {
                 $colMap[$colName] = $index;
             }
-            
+
             $rowCount = 0;
+
             while (($row = fgetcsv($handle)) !== false) {
                 $rowCount++;
-                
+
                 // Get track
                 $trackId = $row[$colMap['TrackID']] ?? null;
-                if (!$trackId) {
+
+                if (! $trackId) {
                     $this->command->warn("Row $rowCount skipped: Missing TrackID.");
                     continue;
                 }
-                
+
                 $track = Track::where('track_id', $trackId)->first();
-                if (!$track) {
+
+                if (! $track) {
                     $this->command->warn("Row $rowCount skipped: TrackID $trackId not found.");
                     continue;
                 }
-                
+
                 // Create unique session key
                 $sessionKey = sprintf(
                     '%s_%s_%s_%s',
@@ -209,9 +219,9 @@ class DatabaseSeeder extends Seeder
                     $row[$colMap['SessionType']] ?? '',
                     $row[$colMap['Heat']] ?? ''
                 );
-                
+
                 // Create session if not exists
-                if (!isset($sessions[$sessionKey])) {
+                if (! isset($sessions[$sessionKey])) {
                     $session = KartingSession::create([
                         'track_id' => $track->id,
                         'session_date' => $row[$colMap['SessionDate']] ?? now(),
@@ -225,20 +235,22 @@ class DatabaseSeeder extends Seeder
                     ]);
                     $sessions[$sessionKey] = $session->id;
                 }
-                
+
                 // Get driver
                 $driverName = $row[$colMap['Driver']] ?? null;
-                if (!$driverName) {
+
+                if (! $driverName) {
                     $this->command->warn("Row $rowCount skipped: Missing Driver.");
                     continue;
                 }
-                
+
                 $driver = Driver::where('name', $driverName)->first();
-                if (!$driver) {
+
+                if (! $driver) {
                     $this->command->warn("Row $rowCount skipped: Driver $driverName not found.");
                     continue;
                 }
-                
+
                 // Create lap
                 Lap::create([
                     'karting_session_id' => $sessions[$sessionKey],
@@ -258,7 +270,7 @@ class DatabaseSeeder extends Seeder
                     'tyre' => $row[$colMap['Tyre']] ?: null,
                     'cost_per_lap' => $row[$colMap['CostPerLap']] ?: null,
                 ]);
-                
+
                 if ($rowCount % 50 === 0) {
                     $this->command->info("  Processed {$rowCount} rows...");
                 }

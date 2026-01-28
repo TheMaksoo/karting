@@ -11,8 +11,8 @@
 |
 */
 
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
@@ -55,39 +55,39 @@ expect()->extend('toBeValidResponse', function () {
 /**
  * Create an authenticated user for testing
  */
-function createAuthenticatedUser(array $attributes = []): \App\Models\User
+function createAuthenticatedUser(array $attributes = []): App\Models\User
 {
-    return \App\Models\User::factory()->create($attributes);
+    return App\Models\User::factory()->create($attributes);
 }
 
 /**
  * Create a test driver
  */
-function createDriver(array $attributes = []): \App\Models\Driver
+function createDriver(array $attributes = []): App\Models\Driver
 {
-    return \App\Models\Driver::factory()->create($attributes);
+    return App\Models\Driver::factory()->create($attributes);
 }
 
 /**
  * Create a test track
  */
-function createTrack(array $attributes = []): \App\Models\Track
+function createTrack(array $attributes = []): App\Models\Track
 {
-    return \App\Models\Track::factory()->create($attributes);
+    return App\Models\Track::factory()->create($attributes);
 }
 
 /**
  * Create a test karting session
  */
-function createSession(array $attributes = []): \App\Models\KartingSession
+function createSession(array $attributes = []): App\Models\KartingSession
 {
-    return \App\Models\KartingSession::factory()->create($attributes);
+    return App\Models\KartingSession::factory()->create($attributes);
 }
 
 /**
  * Authenticate as user and return token
  */
-function actingAsUser(\App\Models\User $user): string
+function actingAsUser(App\Models\User $user): string
 {
     return $user->createToken('test-token')->plainTextToken;
 }

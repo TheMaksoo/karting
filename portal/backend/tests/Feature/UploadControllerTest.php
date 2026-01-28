@@ -5,8 +5,6 @@ namespace Tests\Feature;
 use App\Models\Track;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class UploadControllerTest extends TestCase
@@ -14,7 +12,9 @@ class UploadControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $user;
+
     private Track $track;
 
     protected function setUp(): void
@@ -91,7 +91,7 @@ class UploadControllerTest extends TestCase
 
     public function test_preview_parses_eml_content(): void
     {
-        $emlContent = <<<EML
+        $emlContent = <<<'EML'
 MIME-Version: 1.0
 Content-Type: text/html
 Subject: Test Results

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class HealthController extends Controller
 {
@@ -50,7 +50,7 @@ class HealthController extends Controller
     public function ready(): JsonResponse
     {
         $dbCheck = $this->checkDatabase();
-        
+
         if ($dbCheck['status'] !== 'healthy') {
             return response()->json([
                 'status' => 'not_ready',
@@ -90,7 +90,7 @@ class HealthController extends Controller
             ];
         } catch (\Exception $e) {
             Log::error('Health check - Database failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'unhealthy',
                 'error' => $e->getMessage(),
@@ -119,7 +119,7 @@ class HealthController extends Controller
             ];
         } catch (\Exception $e) {
             Log::error('Health check - Cache failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'unhealthy',
                 'error' => $e->getMessage(),
@@ -137,7 +137,7 @@ class HealthController extends Controller
             Storage::disk('local')->delete($testFile);
             $responseTime = round((microtime(true) - $start) * 1000, 2);
 
-            if (!$exists) {
+            if (! $exists) {
                 throw new \Exception('Storage write verification failed');
             }
 
@@ -148,7 +148,7 @@ class HealthController extends Controller
             ];
         } catch (\Exception $e) {
             Log::error('Health check - Storage failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'unhealthy',
                 'error' => $e->getMessage(),
@@ -163,8 +163,8 @@ class HealthController extends Controller
             'memory_peak_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
             'php_version' => PHP_VERSION,
             'laravel_version' => app()->version(),
-            'uptime_seconds' => defined('LARAVEL_START') 
-                ? round(microtime(true) - LARAVEL_START, 2) 
+            'uptime_seconds' => defined('LARAVEL_START')
+                ? round(microtime(true) - LARAVEL_START, 2)
                 : null,
         ];
     }

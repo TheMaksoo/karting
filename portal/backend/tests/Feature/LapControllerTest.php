@@ -15,7 +15,9 @@ class LapControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private KartingSession $session;
+
     private Driver $driver;
 
     protected function setUp(): void

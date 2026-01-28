@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Services\EmlParser;
-use App\Models\Track;
 use App\Models\Driver;
 use App\Models\KartingSession;
 use App\Models\Lap;
+use App\Models\Track;
+use App\Services\EmlParser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -36,7 +36,7 @@ class UploadController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -58,28 +58,28 @@ class UploadController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Successfully imported {$totalLaps} laps from " . count($request->file('files')) . " files",
+                'message' => "Successfully imported {$totalLaps} laps from " . count($request->file('files')) . ' files',
                 'data' => [
                     'total_laps' => $totalLaps,
                     'total_drivers' => count(array_unique($totalDrivers)),
                     'files_processed' => count($results),
                     'results' => $results,
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Batch upload failed: ' . $e->getMessage()
+                'message' => 'Batch upload failed: ' . $e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Preview data from uploaded file without importing
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function preview(Request $request)
@@ -92,7 +92,7 @@ class UploadController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -104,7 +104,7 @@ class UploadController extends Controller
 
             // Parse the file
             $extension = $file->getClientOriginalExtension();
-            
+
             if ($extension === 'eml') {
                 $parsed = $this->emlParser->parse($fullPath, $request->track_id);
             } else {
@@ -113,12 +113,13 @@ class UploadController extends Controller
 
             // Validate parsed data
             $validationErrors = $this->emlParser->validate($parsed);
-            
-            if (!empty($validationErrors)) {
+
+            if (! empty($validationErrors)) {
                 Storage::delete($path);
+
                 return response()->json([
                     'success' => false,
-                    'errors' => $validationErrors
+                    'errors' => $validationErrors,
                 ], 422);
             }
 
@@ -144,25 +145,24 @@ class UploadController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $preview
+                'data' => $preview,
             ]);
 
         } catch (\Exception $e) {
             if (isset($path)) {
                 Storage::delete($path);
             }
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to parse file: ' . $e->getMessage()
+                'message' => 'Failed to parse file: ' . $e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Import previewed data to database
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function import(Request $request)
@@ -181,7 +181,7 @@ class UploadController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -189,7 +189,7 @@ class UploadController extends Controller
 
         try {
             $track = Track::find($request->track_id);
-            
+
             // Create session
             $session = KartingSession::create([
                 'track_id' => $track->id,
@@ -245,23 +245,22 @@ class UploadController extends Controller
                     'drivers_processed' => count($driversProcessed),
                     'drivers' => array_values($driversProcessed),
                     'session' => $session,
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to import data: ' . $e->getMessage()
+                'message' => 'Failed to import data: ' . $e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Manual lap entry
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function manualEntry(Request $request)
@@ -280,7 +279,7 @@ class UploadController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -321,15 +320,15 @@ class UploadController extends Controller
                 'data' => [
                     'lap' => $lap->load(['driver', 'session.track']),
                     'session' => $session,
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to add lap: ' . $e->getMessage()
+                'message' => 'Failed to add lap: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -341,10 +340,10 @@ class UploadController extends Controller
     {
         // Clean up name
         $name = trim($name);
-        
+
         // Try to find existing driver (case-insensitive)
         $driver = Driver::whereRaw('LOWER(name) = ?', [strtolower($name)])->first();
-        
+
         if ($driver) {
             return $driver;
         }
@@ -423,6 +422,7 @@ class UploadController extends Controller
 
         } catch (\Exception $e) {
             Storage::delete($path);
+
             throw $e;
         }
     }

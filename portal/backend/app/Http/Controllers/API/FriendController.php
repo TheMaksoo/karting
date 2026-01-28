@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\Friend;
 use App\Models\Driver;
+use App\Models\Friend;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,28 +20,29 @@ class FriendController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             // Get pagination parameters
             $perPage = $request->input('per_page', 50);
             $page = $request->input('page', 1);
-            
+
             $friendsQuery = Friend::where('user_id', $user->id)
                 ->where('friendship_status', 'active')
                 ->with('driver')
                 ->orderBy('created_at', 'desc');
-            
+
             // Handle pagination if requested
             if ($request->has('paginate') && $request->input('paginate') === 'true') {
                 $friends = $friendsQuery->paginate($perPage);
-                
+
                 return response()->json([
                     'data' => $friends->map(function ($friend) {
                         // Handle case where driver might be null (orphaned relationship)
-                        if (!$friend->driver) {
+                        if (! $friend->driver) {
                             Log::warning("Friend ID {$friend->id} references deleted driver {$friend->friend_driver_id}");
+
                             return null;
                         }
-                        
+
                         return [
                             'id' => $friend->id,
                             'driver_id' => $friend->friend_driver_id,
@@ -55,16 +56,17 @@ class FriendController extends Controller
                     'total' => $friends->total(),
                 ]);
             }
-            
+
             // Default: return all friends without pagination
             $friends = $friendsQuery->get()
                 ->map(function ($friend) {
                     // Handle case where driver might be null (orphaned relationship)
-                    if (!$friend->driver) {
+                    if (! $friend->driver) {
                         Log::warning("Friend ID {$friend->id} references deleted driver {$friend->friend_driver_id}");
+
                         return null;
                     }
-                    
+
                     return [
                         'id' => $friend->id,
                         'driver_id' => $friend->friend_driver_id,
@@ -74,19 +76,19 @@ class FriendController extends Controller
                 })
                 ->filter() // Remove null entries
                 ->values(); // Re-index array
-            
+
             return response()->json($friends);
         } catch (\Exception $e) {
             Log::error('Error loading friends: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             $response = [
                 'success' => false,
                 'message' => config('app.debug') ? $e->getMessage() : 'Failed to load friends',
             ];
-            
+
             return response()->json($response, 500);
         }
     }
@@ -105,12 +107,14 @@ class FriendController extends Controller
 
             // Check if trying to add self
             $userDriverIds = $user->drivers()->pluck('drivers.id')->toArray();
+
             if ($user->driver_id) {
                 $userDriverIds[] = $user->driver_id;
             }
-            
+
             if (in_array($validated['driver_id'], $userDriverIds)) {
                 Log::info("User {$user->id} attempted to add their own driver {$validated['driver_id']} as friend");
+
                 return response()->json([
                     'success' => false,
                     'message' => 'You cannot add your own driver as a friend',
@@ -124,6 +128,7 @@ class FriendController extends Controller
 
             if ($existing) {
                 Log::info("User {$user->id} attempted to add existing friend driver {$validated['driver_id']}");
+
                 return response()->json([
                     'success' => false,
                     'message' => 'This driver is already in your friends list',
@@ -137,11 +142,12 @@ class FriendController extends Controller
             ]);
 
             $friend->load('driver');
-            
+
             // Handle case where driver might be deleted between validation and loading
-            if (!$friend->driver) {
+            if (! $friend->driver) {
                 $friend->delete();
                 Log::error("Driver {$validated['driver_id']} was deleted after friend creation");
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Driver not found',
@@ -170,14 +176,14 @@ class FriendController extends Controller
             Log::error('Error adding friend: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'driver_id' => $request->input('driver_id'),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             $response = [
                 'success' => false,
                 'message' => config('app.debug') ? $e->getMessage() : 'Failed to add friend',
             ];
-            
+
             return response()->json($response, 500);
         }
     }
@@ -189,13 +195,14 @@ class FriendController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             $friend = Friend::where('user_id', $user->id)
                 ->where('id', $id)
                 ->first();
 
-            if (!$friend) {
+            if (! $friend) {
                 Log::warning("User {$user->id} attempted to remove non-existent friend {$id}");
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Friend not found or you do not have permission to remove this friend',
@@ -204,7 +211,7 @@ class FriendController extends Controller
 
             $driverName = $friend->driver ? $friend->driver->name : 'Unknown Driver';
             $friend->delete();
-            
+
             Log::info("User {$user->id} removed friend {$id} (driver: {$driverName})");
 
             return response()->json([
@@ -215,14 +222,14 @@ class FriendController extends Controller
             Log::error('Error removing friend: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
                 'friend_id' => $id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             $response = [
                 'success' => false,
                 'message' => config('app.debug') ? $e->getMessage() : 'Failed to remove friend',
             ];
-            
+
             return response()->json($response, 500);
         }
     }
@@ -234,7 +241,7 @@ class FriendController extends Controller
     {
         try {
             $user = Auth::user();
-            
+
             $friendIds = Friend::where('user_id', $user->id)
                 ->where('friendship_status', 'active')
                 ->pluck('friend_driver_id')
@@ -242,12 +249,12 @@ class FriendController extends Controller
 
             // Include ALL user's connected drivers from driver_user pivot table
             $userDriverIds = $user->drivers()->pluck('drivers.id')->toArray();
-            
+
             // Also include legacy driver_id if exists
             if ($user->driver_id) {
                 $userDriverIds[] = $user->driver_id;
             }
-            
+
             // Merge and remove duplicates
             $allExcludedIds = array_unique(array_merge($friendIds, $userDriverIds));
 
@@ -264,15 +271,15 @@ class FriendController extends Controller
         } catch (\Exception $e) {
             Log::error('Error retrieving friend driver IDs: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             $response = [
                 'success' => false,
                 'message' => config('app.debug') ? $e->getMessage() : 'Failed to retrieve friend driver IDs',
                 'driver_ids' => [],
             ];
-            
+
             return response()->json($response, 500);
         }
     }

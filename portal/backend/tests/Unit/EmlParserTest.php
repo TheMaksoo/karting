@@ -3,7 +3,6 @@
 namespace Tests\Unit;
 
 use App\Services\EmlParser;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class EmlParserTest extends TestCase
@@ -55,7 +54,7 @@ class EmlParserTest extends TestCase
     {
         // Create a minimal EML file
         $tempFile = tempnam(sys_get_temp_dir(), 'test_') . '.eml';
-        $emlContent = <<<EML
+        $emlContent = <<<'EML'
 MIME-Version: 1.0
 Content-Type: text/html; charset="utf-8"
 Subject: Test Results
@@ -82,7 +81,7 @@ EML;
     {
         // Test protected/private method via reflection if needed
         $html = '<table><tr><td>Driver</td><td>30.456</td></tr></table>';
-        
+
         // Create temp file with HTML content
         $tempFile = tempnam(sys_get_temp_dir(), 'test_') . '.eml';
         file_put_contents($tempFile, "Content-Type: text/html\n\n$html");

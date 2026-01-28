@@ -70,7 +70,17 @@ class AuthController extends Controller
     {
         $request->validate([
             'current_password' => 'required',
-            'new_password' => 'required|min:8|confirmed',
+            'new_password' => [
+                'required',
+                'min:8',
+                'confirmed',
+                'regex:/[a-z]/',      // at least one lowercase
+                'regex:/[A-Z]/',      // at least one uppercase
+                'regex:/[0-9]/',      // at least one digit
+                'regex:/[@$!%*#?&]/', // at least one special character
+            ],
+        ], [
+            'new_password.regex' => 'Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character (@$!%*#?&).',
         ]);
 
         $user = $request->user();

@@ -10,14 +10,16 @@ echo "====================================\n\n";
 
 $result = $parser->parse($file, 4);
 
-echo "Total laps parsed: " . count($result['laps']) . "\n";
-echo "Session number: " . ($result['session_info']['session_number'] ?? 'unknown') . "\n\n";
+echo 'Total laps parsed: ' . count($result['laps']) . "\n";
+echo 'Session number: ' . ($result['session_info']['session_number'] ?? 'unknown') . "\n\n";
 
 // Group by driver
 $byDriver = [];
+
 foreach ($result['laps'] as $lap) {
     $driver = $lap['driver_name'];
-    if (!isset($byDriver[$driver])) {
+
+    if (! isset($byDriver[$driver])) {
         $byDriver[$driver] = 0;
     }
     $byDriver[$driver]++;
@@ -25,6 +27,7 @@ foreach ($result['laps'] as $lap) {
 
 echo "Laps per driver:\n";
 arsort($byDriver);
+
 foreach ($byDriver as $driver => $count) {
     echo "  $driver: $count laps\n";
 }

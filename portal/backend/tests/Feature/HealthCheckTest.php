@@ -1,10 +1,5 @@
 <?php
 
-use App\Http\Controllers\HealthController;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
-
 /*
 |--------------------------------------------------------------------------
 | Health Check Tests (PEST Style)
@@ -16,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 */
 
 describe('Health Check Endpoints', function () {
-    
+
     test('basic health check returns healthy status', function () {
         $response = $this->getJson('/api/health');
 
@@ -79,13 +74,13 @@ describe('Health Check Component Verification', function () {
         $response = $this->getJson('/api/health/detailed');
 
         $response->assertStatus(200);
-        
+
         $data = $response->json();
-        
+
         expect($data['checks']['database'])
             ->toHaveKey('status')
             ->toHaveKey('response_time_ms');
-        
+
         expect($data['checks']['database']['status'])->toBe('healthy');
     });
 
@@ -93,9 +88,9 @@ describe('Health Check Component Verification', function () {
         $response = $this->getJson('/api/health/detailed');
 
         $response->assertStatus(200);
-        
+
         $data = $response->json();
-        
+
         expect($data['checks']['cache']['status'])->toBe('healthy');
     });
 
@@ -103,9 +98,9 @@ describe('Health Check Component Verification', function () {
         $response = $this->getJson('/api/health/detailed');
 
         $response->assertStatus(200);
-        
+
         $data = $response->json();
-        
+
         expect($data['checks']['storage']['status'])->toBe('healthy');
     });
 
@@ -117,7 +112,7 @@ describe('Health Check Metrics', function () {
         $response = $this->getJson('/api/health/detailed');
 
         $data = $response->json();
-        
+
         expect($data['metrics']['memory_usage_mb'])->toBeFloat();
         expect($data['metrics']['memory_peak_mb'])->toBeFloat();
         expect($data['metrics']['memory_usage_mb'])->toBeLessThan(1024); // Sanity check
@@ -127,7 +122,7 @@ describe('Health Check Metrics', function () {
         $response = $this->getJson('/api/health/detailed');
 
         $data = $response->json();
-        
+
         expect($data['metrics']['php_version'])->toBeString();
         expect($data['metrics']['laravel_version'])->toBeString();
     });

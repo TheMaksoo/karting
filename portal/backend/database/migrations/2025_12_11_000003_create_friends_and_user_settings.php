@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+return new class() extends Migration
 {
     public function up(): void
     {
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('track_id')->constrained()->onDelete('cascade');
             $table->string('nickname'); // The name used at this track (e.g., "Max", "?" or "#")
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'track_id']);
         });
 
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->foreignId('friend_driver_id')->constrained('drivers')->onDelete('cascade');
             $table->string('friendship_status')->default('active'); // active, blocked
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'friend_driver_id']);
             $table->index('user_id');
         });

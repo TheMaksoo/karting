@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+return new class() extends Migration
 {
     /**
      * Run the migrations.
@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->boolean('is_primary')->default(false); // Mark primary driver for the user
             $table->timestamps();
-            
+
             // Ensure unique driver-user pairs
             $table->unique(['driver_id', 'user_id']);
             $table->index('user_id');

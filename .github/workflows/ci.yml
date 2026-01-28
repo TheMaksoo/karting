@@ -89,7 +89,14 @@ jobs:
         run: php artisan key:generate
 
       - name: Run Pest tests with coverage
-        run: vendor/bin/pest --parallel --coverage --coverage-clover=coverage/clover.xml
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD: password
+        run: vendor/bin/pest --coverage --coverage-clover=coverage/clover.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -180,7 +187,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
-          path: portal/frontend/coverage/lcov.info
+          path: portal/frontend/coverage/
 
   # ==========================================
   # Python Tests (Data Importer)

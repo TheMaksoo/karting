@@ -12,14 +12,14 @@ class StyleVariableController extends Controller
     public function index()
     {
         return response()->json([
-            'variables' => StyleVariable::getGroupedByCategory()
+            'variables' => StyleVariable::getGroupedByCategory(),
         ]);
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'value' => 'required|string'
+            'value' => 'required|string',
         ]);
 
         $variable = StyleVariable::findOrFail($id);
@@ -30,7 +30,7 @@ class StyleVariableController extends Controller
 
         return response()->json([
             'message' => 'Style variable updated successfully',
-            'variable' => $variable
+            'variable' => $variable,
         ]);
     }
 
@@ -39,7 +39,7 @@ class StyleVariableController extends Controller
         $request->validate([
             'variables' => 'required|array',
             'variables.*.id' => 'required|exists:style_variables,id',
-            'variables.*.value' => 'required|string'
+            'variables.*.value' => 'required|string',
         ]);
 
         foreach ($request->variables as $varData) {
@@ -51,7 +51,7 @@ class StyleVariableController extends Controller
         Cache::forget('style_variables_css');
 
         return response()->json([
-            'message' => 'Style variables updated successfully'
+            'message' => 'Style variables updated successfully',
         ]);
     }
 
@@ -70,9 +70,9 @@ class StyleVariableController extends Controller
     {
         // This would reset to defaults - you'd need to implement the logic
         Cache::forget('style_variables_css');
-        
+
         return response()->json([
-            'message' => 'Style variables reset to defaults'
+            'message' => 'Style variables reset to defaults',
         ]);
     }
 }

@@ -13,7 +13,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -88,7 +88,7 @@ class User extends Authenticatable
      */
     public function primaryDriver()
     {
-        return $this->drivers()->wherePivot('is_primary', true)->first() 
+        return $this->drivers()->wherePivot('is_primary', true)->first()
             ?? $this->drivers()->first()
             ?? $this->driver; // Fallback to legacy driver_id
     }

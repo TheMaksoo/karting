@@ -13,23 +13,24 @@ class StyleVariable extends Model
         'label',
         'description',
         'type',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [
-        'metadata' => 'array'
+        'metadata' => 'array',
     ];
 
     public static function getAsCSS(): string
     {
         $variables = self::all();
         $css = ":root {\n";
-        
+
         foreach ($variables as $variable) {
             $css .= "  --{$variable->key}: {$variable->value};\n";
         }
-        
+
         $css .= "}\n";
+
         return $css;
     }
 

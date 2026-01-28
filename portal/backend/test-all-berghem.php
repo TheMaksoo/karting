@@ -19,6 +19,7 @@ $sessionDetails = [];
 
 foreach ($files as $file) {
     $filePath = $folder . '\\' . $file;
+
     if (file_exists($filePath)) {
         $result = $parser->parse($filePath, 4); // Track ID 4 = Circuit Park Berghem
         $lapCount = count($result['laps']);
@@ -26,7 +27,7 @@ foreach ($files as $file) {
         $sessionDetails[] = [
             'file' => $file,
             'laps' => $lapCount,
-            'session_number' => $result['session_info']['session_number'] ?? 'unknown'
+            'session_number' => $result['session_info']['session_number'] ?? 'unknown',
         ];
     }
 }
@@ -38,13 +39,15 @@ $allLapsByDriver = [];
 
 foreach ($files as $file) {
     $filePath = $folder . '\\' . $file;
+
     if (file_exists($filePath)) {
         $result = $parser->parse($filePath, 4);
-        
+
         // Count laps per driver for this session
         foreach ($result['laps'] as $lap) {
             $driver = $lap['driver_name'];
-            if (!isset($allLapsByDriver[$driver])) {
+
+            if (! isset($allLapsByDriver[$driver])) {
                 $allLapsByDriver[$driver] = 0;
             }
             $allLapsByDriver[$driver]++;
@@ -57,7 +60,7 @@ foreach ($sessionDetails as $detail) {
 }
 
 echo "\nTotal laps across all 5 sessions: $totalLaps\n";
-echo "Average laps per session: " . round($totalLaps / count($files), 1) . "\n";
+echo 'Average laps per session: ' . round($totalLaps / count($files), 1) . "\n";
 echo "\nTotal unique drivers: " . count($allLapsByDriver) . "\n";
 
 // Show laps for max van lierop
@@ -71,7 +74,11 @@ if (isset($allLapsByDriver['max van lierop'])) {
 arsort($allLapsByDriver);
 echo "\nTop 10 drivers by lap count:\n";
 $count = 0;
+
 foreach ($allLapsByDriver as $driver => $laps) {
     echo "  $driver: $laps laps\n";
-    if (++$count >= 10) break;
+
+    if (++$count >= 10) {
+        break;
+    }
 }

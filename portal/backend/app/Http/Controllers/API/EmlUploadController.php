@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Driver;
 use App\Models\KartingSession;
 use App\Models\Lap;
-use App\Models\Driver;
 use App\Models\Track;
 use App\Models\Upload;
 use App\Services\EmlParser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class EmlUploadController extends Controller
 {
@@ -24,14 +23,14 @@ class EmlUploadController extends Controller
 
         $file = $request->file('file');
         $fileName = $file->getClientOriginalName();
-        
+
         // Read file content
         $content = file_get_contents($file->getRealPath());
         $fileHash = md5($content);
-        
+
         // Check if this exact file was already uploaded
         $existingUpload = Upload::where('file_hash', $fileHash)->first();
-        
+
         if ($existingUpload) {
             return response()->json([
                 'success' => false,
@@ -49,23 +48,26 @@ class EmlUploadController extends Controller
                 'message' => "This exact file '{$existingUpload->file_name}' was already uploaded on {$existingUpload->upload_date->format('Y-m-d H:i:s')}",
             ], 409);
         }
-        
+
         $warnings = [];
         $errors = [];
-        
+
         try {
             // Save temporary file
             $tempPath = storage_path('app/temp/' . $fileName);
-            if (!is_dir(dirname($tempPath))) {
+
+            if (! is_dir(dirname($tempPath))) {
                 mkdir(dirname($tempPath), 0777, true);
             }
             file_put_contents($tempPath, $content);
-            
+
             // Check if track_id was manually provided (force track override)
             if ($request->has('track_id') && $request->track_id) {
                 $track = Track::find($request->track_id);
-                if (!$track) {
+
+                if (! $track) {
                     @unlink($tempPath);
+
                     return response()->json([
                         'success' => false,
                         'file_name' => $fileName,
@@ -75,8 +77,8 @@ class EmlUploadController extends Controller
             } else {
                 // Auto-detect track from filename or content
                 $track = $this->detectTrackFromFile($fileName, $content);
-                
-                if (!$track) {
+
+                if (! $track) {
                     // Save a small debug snapshot for failed detections to help investigate batch issues
                     try {
                         $emailData = $this->parseEmailContent($content);
@@ -91,6 +93,7 @@ class EmlUploadController extends Controller
 
                     // Don't delete temp file - keep it for potential retry with manual track selection
                     $errors[] = 'Could not auto-detect track. Please select manually.';
+
                     return response()->json([
                         'success' => false,
                         'file_name' => $fileName,
@@ -101,13 +104,13 @@ class EmlUploadController extends Controller
                     ], 400);
                 }
             }
-            
+
             // Use EmlParser service to parse the file
             $parser = new EmlParser();
             $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-            
+
             try {
-                $parsedData = match($extension) {
+                $parsedData = match ($extension) {
                     'eml' => $parser->parse($tempPath, $track->id),
                     'txt' => $parser->parseTextFile($tempPath, $track->id),
                     'pdf' => $parser->parsePdfFile($tempPath, $track->id),
@@ -117,40 +120,42 @@ class EmlUploadController extends Controller
             } catch (\Exception $e) {
                 @unlink($tempPath);
                 $errors[] = $e->getMessage();
+
                 return response()->json([
                     'success' => false,
                     'file_name' => $fileName,
                     'errors' => $errors,
                 ], 400);
             }
-            
+
             @unlink($tempPath);
-            
+
             // Validate extracted data
             if (empty($parsedData['laps'])) {
                 $errors[] = 'No lap data found in file. Check if format is supported.';
             }
-            
+
             if (count($parsedData['laps']) === 0) {
                 $errors[] = 'No valid lap times could be extracted';
             }
-            
+
             $driversDetected = count(array_unique(array_column($parsedData['laps'], 'driver_name')));
+
             if ($driversDetected === 0) {
                 $errors[] = 'No drivers detected in lap data';
             }
-            
-            if (!empty($errors)) {
+
+            if (! empty($errors)) {
                 return response()->json([
                     'success' => false,
                     'file_name' => $fileName,
                     'errors' => $errors,
                 ], 400);
             }
-            
+
             // Extract session date
             $sessionDate = $parsedData['session_info']['date'] ?? now()->format('Y-m-d');
-            
+
             // Format response with parsed data (wrap in 'data' for frontend compatibility)
             return response()->json([
                 'success' => true,
@@ -202,7 +207,10 @@ class EmlUploadController extends Controller
                     // Try to return real Track model if DB is available; otherwise return a lightweight object
                     try {
                         $t = Track::find($trackId);
-                        if ($t) return $t;
+
+                        if ($t) {
+                            return $t;
+                        }
                     } catch (\Throwable $e) {
                         // Return fallback object when DB is not reachable in this environment
                         $obj = new \stdClass();
@@ -219,6 +227,7 @@ class EmlUploadController extends Controller
                         $obj->name = $nameMap[$trackId] ?? 'Unknown Track';
                         $obj->city = $this->getTrackCity($obj->name);
                         $obj->country = 'Netherlands';
+
                         return $obj;
                     }
                 }
@@ -235,12 +244,17 @@ class EmlUploadController extends Controller
             $fromLower = strtolower($emailData['from'] ?? '');
 
             $additionalBerghemMarkers = ['smstiming', 'circuitparkberghem', 'circuitpark berghem', 'race overzicht', 'jouw rondetijden'];
+
             foreach ($additionalBerghemMarkers as $marker) {
                 if (stripos($bodyLower, $marker) !== false || stripos($subjectLower, $marker) !== false || stripos($fromLower, $marker) !== false) {
                     // Prefer finding existing track by name; fallback to creating a basic Track record if DB available
                     try {
                         $t = Track::whereRaw('LOWER(name) LIKE ?', ['%circuit park berghem%'])->first();
-                        if ($t) return $t;
+
+                        if ($t) {
+                            return $t;
+                        }
+
                         return Track::create([
                             'track_id' => 'TRK-' . strtoupper(substr(md5('Circuit Park Berghem'), 0, 6)),
                             'name' => 'Circuit Park Berghem',
@@ -255,6 +269,7 @@ class EmlUploadController extends Controller
             }
 
             $detected = $this->detectTrack($emailData);
+
             if ($detected) {
                 return $detected;
             }
@@ -283,20 +298,22 @@ class EmlUploadController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
             // If replacing duplicate, delete old session
             if ($request->replace_duplicate && $request->file_hash) {
                 $oldUpload = Upload::where('file_hash', $request->file_hash)->first();
+
                 if ($oldUpload && $oldUpload->karting_session_id) {
                     $oldSession = KartingSession::find($oldUpload->karting_session_id);
+
                     if ($oldSession) {
                         $oldSession->delete(); // Cascade deletes laps
                     }
                     $oldUpload->delete();
                 }
             }
-            
+
             // Create session
             $session = KartingSession::create([
                 'track_id' => $request->track_id,
@@ -308,16 +325,17 @@ class EmlUploadController extends Controller
 
             // Process laps grouped by driver
             $driverLaps = collect($request->laps)->groupBy('driver_name');
-            
+
             $driversProcessed = [];
             $newDriversCreated = [];
+
             foreach ($driverLaps as $driverName => $laps) {
                 // Find or create driver (unique per track)
                 $driver = Driver::firstOrCreate(
                     ['name' => $driverName, 'track_id' => $session->track_id],
                     ['email' => null]
                 );
-                
+
                 // Track if this is a new driver
                 if ($driver->wasRecentlyCreated) {
                     $newDriversCreated[] = [
@@ -325,7 +343,7 @@ class EmlUploadController extends Controller
                         'name' => $driver->name,
                     ];
                 }
-                
+
                 $driversProcessed[] = $driverName;
 
                 foreach ($laps as $lapData) {
@@ -345,7 +363,7 @@ class EmlUploadController extends Controller
 
             // Calculate all derived fields (best lap, gaps, speed, cost, etc.)
             $this->calculateSessionFields($session->id);
-            
+
             // Record upload
             if ($request->file_name && $request->file_hash) {
                 Upload::create([
@@ -373,15 +391,16 @@ class EmlUploadController extends Controller
                 'new_drivers_created' => $newDriversCreated, // Return new drivers for potential connection
             ]);
 
-                    } catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to save session: ' . $e->getMessage(),
                 'error_details' => [
                     'file' => basename($e->getFile()),
                     'line' => $e->getLine(),
-                ]
+                ],
             ], 500);
         }
     }
@@ -390,31 +409,32 @@ class EmlUploadController extends Controller
     {
         $headers = [];
         $body = '';
-        
+
         // Split headers and body at the first blank line
         $parts = preg_split('/\r?\n\r?\n/', $content, 2);
         $headerText = $parts[0] ?? '';
         $bodyText = $parts[1] ?? '';
-        
+
         // Parse headers
         if (preg_match_all('/^([^:]+):\s*(.*)$/m', $headerText, $headerMatches, PREG_SET_ORDER)) {
             foreach ($headerMatches as $match) {
                 $headers[trim($match[1])] = trim($match[2]);
             }
         }
-        
+
         // Check for multipart content
         $boundary = null;
+
         if (isset($headers['Content-Type']) && preg_match('/boundary="?([^";\s]+)"?/i', $headers['Content-Type'], $matches)) {
             $boundary = $matches[1];
         }
-        
+
         // If multipart, extract the text/plain part
         if ($boundary) {
             $parts = explode('--' . $boundary, $bodyText);
             $plainTextBody = '';
             $htmlBody = '';
-            
+
             foreach ($parts as $part) {
                 // Look for text/plain part
                 if (stripos($part, 'Content-Type: text/plain') !== false) {
@@ -423,12 +443,12 @@ class EmlUploadController extends Controller
                         // Extract base64 content (everything after the headers)
                         if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
                             // Remove all whitespace from base64
-                            $base64Content = str_replace(["\r", "\n", " ", "\t"], '', $contentMatch[1]);
+                            $base64Content = str_replace(["\r", "\n", ' ', "\t"], '', $contentMatch[1]);
                             // Remove boundary markers
                             $base64Content = preg_replace('/--' . preg_quote($boundary, '/') . '.*$/s', '', $base64Content);
                             $plainTextBody = base64_decode($base64Content);
                         }
-                    } else if (preg_match('/Content-Transfer-Encoding:\s*quoted-printable/i', $part)) {
+                    } elseif (preg_match('/Content-Transfer-Encoding:\s*quoted-printable/i', $part)) {
                         if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
                             $plainTextBody = quoted_printable_decode($contentMatch[1]);
                         }
@@ -439,16 +459,16 @@ class EmlUploadController extends Controller
                         }
                     }
                 }
-                
+
                 // Also extract HTML part as fallback
                 if (stripos($part, 'Content-Type: text/html') !== false) {
                     if (preg_match('/Content-Transfer-Encoding:\s*base64/i', $part)) {
                         if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
-                            $base64Content = str_replace(["\r", "\n", " ", "\t"], '', $contentMatch[1]);
+                            $base64Content = str_replace(["\r", "\n", ' ', "\t"], '', $contentMatch[1]);
                             $base64Content = preg_replace('/--' . preg_quote($boundary, '/') . '.*$/s', '', $base64Content);
                             $htmlBody = base64_decode($base64Content);
                         }
-                    } else if (preg_match('/Content-Transfer-Encoding:\s*quoted-printable/i', $part)) {
+                    } elseif (preg_match('/Content-Transfer-Encoding:\s*quoted-printable/i', $part)) {
                         if (preg_match('/\r?\n\r?\n(.+)/s', $part, $contentMatch)) {
                             $htmlBody = quoted_printable_decode($contentMatch[1]);
                         }
@@ -459,26 +479,26 @@ class EmlUploadController extends Controller
                     }
                 }
             }
-            
+
             // Prefer plain text, but use HTML if plain is empty
-            $body = !empty($plainTextBody) ? $plainTextBody : $htmlBody;
+            $body = ! empty($plainTextBody) ? $plainTextBody : $htmlBody;
         } else {
             // Single part message
             if (preg_match('/Content-Transfer-Encoding:\s*base64/i', $content)) {
                 // Extract base64 content after headers
-                $base64Content = str_replace(["\r", "\n", " ", "\t"], '', $bodyText);
+                $base64Content = str_replace(["\r", "\n", ' ', "\t"], '', $bodyText);
                 $body = base64_decode($base64Content);
             } else {
                 $body = $bodyText;
             }
         }
-        
+
         return [
             'headers' => $headers,
             'subject' => $headers['Subject'] ?? '',
             'from' => $headers['From'] ?? '',
             'date' => $headers['Date'] ?? '',
-            'body' => $body
+            'body' => $body,
         ];
     }
 
@@ -487,7 +507,7 @@ class EmlUploadController extends Controller
         $subject = strtolower($emailData['subject']);
         $from = strtolower($emailData['from']);
         $body = strtolower($emailData['body']);
-        
+
         // Track detection patterns
         $trackPatterns = [
             'De Voltage' => ['devoltage', 'de voltage'],
@@ -497,20 +517,20 @@ class EmlUploadController extends Controller
             'Fastkart Elche' => ['fastkart', 'elche'],
             'Lot66' => ['lot66', 'lot 66'],
         ];
-        
+
         foreach ($trackPatterns as $trackName => $patterns) {
             foreach ($patterns as $pattern) {
-                if (stripos($subject, $pattern) !== false || 
-                    stripos($from, $pattern) !== false || 
+                if (stripos($subject, $pattern) !== false ||
+                    stripos($from, $pattern) !== false ||
                     stripos($body, $pattern) !== false) {
-                    
+
                     // Find track in database by name (case insensitive)
                     $track = Track::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($trackName) . '%'])->first();
-                    
+
                     if ($track) {
                         return $track;
                     }
-                    
+
                     // Create track if it doesn't exist
                     return Track::create([
                         'track_id' => 'TRK-' . strtoupper(substr(md5($trackName), 0, 6)),
@@ -521,10 +541,10 @@ class EmlUploadController extends Controller
                 }
             }
         }
-        
+
         return null;
     }
-    
+
     private function getTrackCity($trackName)
     {
         $cities = [
@@ -535,7 +555,7 @@ class EmlUploadController extends Controller
             'Fastkart Elche' => 'Elche',
             'Lot66' => 'Oosterhout',
         ];
-        
+
         return $cities[$trackName] ?? null;
     }
 
@@ -543,50 +563,51 @@ class EmlUploadController extends Controller
     {
         $body = $emailData['body'];
         $subject = $emailData['subject'];
-        
+
         // Extract session number from subject or body
         $sessionNumber = null;
+
         if (preg_match('/Sessie\s+(\d+)/i', $subject, $matches)) {
             $sessionNumber = $matches[1];
         }
-        
+
         // Extract session date from email headers
         $sessionDate = $this->parseEmailDate($emailData['date']);
-        
+
         // Extract lap data based on track format
         $laps = $this->extractLapsData($body, $track);
-        
+
         return [
             'session_number' => $sessionNumber,
             'session_date' => $sessionDate,
             'track_name' => $track->name,
             'laps_count' => count($laps),
             'drivers_detected' => count(array_unique(array_column($laps, 'driver_name'))),
-            'laps' => $laps
+            'laps' => $laps,
         ];
     }
 
     private function extractLapsData($body, $track)
     {
         $laps = [];
-        
+
         // Remove HTML tags to get clean text
         $text = strip_tags($body);
-        
+
         // Detect format based on track or content patterns
         $trackName = strtolower($track->name);
-        
+
         // Lot66 format: Single driver, lap-by-lap with sector times
         if (stripos($trackName, 'lot66') !== false || stripos($text, 'Lap 1') !== false && stripos($text, 'S1') !== false) {
             return $this->extractLot66LapsData($text);
         }
-        
+
         // Elche / Gilesias format: Spanish single driver
-        if (stripos($trackName, 'elche') !== false || stripos($trackName, 'gilesias') !== false || 
+        if (stripos($trackName, 'elche') !== false || stripos($trackName, 'gilesias') !== false ||
             stripos($text, 'RESUMEN DE TU CARRERA') !== false || stripos($text, 'Mejor V.') !== false) {
             return $this->extractElcheLapsData($text);
         }
-        
+
         // De Voltage / Goodwill / Circuit Park Berghem: Multi-driver with detailed lap table
         return $this->extractDeVoltageStyleLapsData($text);
     }
@@ -596,45 +617,49 @@ class EmlUploadController extends Controller
         $laps = [];
         $lines = explode("\n", $text);
         $driverName = null;
-        
+
         // Extract driver name - it's typically on the second line after "Lot66"
         for ($i = 0; $i < min(5, count($lines)); $i++) {
             $line = trim($lines[$i]);
+
             // Skip "Lot66", dates, and header rows
-            if (empty($line) || stripos($line, 'lot66') !== false || 
-                preg_match('/\d{2}\.\d{2}\.\d{4}/', $line) || 
+            if (empty($line) || stripos($line, 'lot66') !== false ||
+                preg_match('/\d{2}\.\d{2}\.\d{4}/', $line) ||
                 preg_match('/^(Lap|S1|S2|S3|Time)$/i', $line)) {
                 continue;
             }
+
             // This should be the driver name
-            if (strlen($line) > 2 && strlen($line) < 50 && !is_numeric($line)) {
+            if (strlen($line) > 2 && strlen($line) < 50 && ! is_numeric($line)) {
                 $driverName = $line;
                 break;
             }
         }
-        
-        if (!$driverName) {
+
+        if (! $driverName) {
             $driverName = 'Unknown Driver';
         }
-        
+
         // Parse lap data - much simpler approach
         $currentLapNumber = null;
         for ($i = 0; $i < count($lines); $i++) {
             $line = trim($lines[$i]);
-            
+
             // Check if this is a lap number line (just a number)
-            if (is_numeric($line) && (int)$line > 0 && (int)$line < 100) {
-                $currentLapNumber = (int)$line;
-                
+            if (is_numeric($line) && (int) $line > 0 && (int) $line < 100) {
+                $currentLapNumber = (int) $line;
+
                 // Look for "Lap X" on next line
                 if ($i + 1 < count($lines) && preg_match('/^Lap\s+\d+$/i', trim($lines[$i + 1]))) {
                     // Skip the sector time lines (-, -, -)
                     // Time should be 5 lines after the lap number (after Lap X, S1, S2, S3, Time)
                     for ($j = $i + 1; $j < min($i + 7, count($lines)); $j++) {
                         $timeLine = trim($lines[$j]);
+
                         // Match time format: 00:35.560 or 35.560
                         if (preg_match('/^(\d{1,2}:)?\d{2}\.\d{3}$/', $timeLine)) {
                             $lapTime = $this->convertTimeToSeconds($timeLine);
+
                             if ($lapTime > 0 && $lapTime < 300) {
                                 $laps[] = [
                                     'driver_name' => $driverName,
@@ -650,7 +675,7 @@ class EmlUploadController extends Controller
                 }
             }
         }
-        
+
         return $laps;
     }
 
@@ -660,35 +685,37 @@ class EmlUploadController extends Controller
         $lines = explode("\n", $text);
         $driverName = null;
         $kartNumber = null;
-        
+
         // Extract pilot name and kart number from header
         foreach ($lines as $line) {
             if (preg_match('/Pilotos.*?([A-Za-z0-9_]+)/i', $line, $match)) {
                 $driverName = trim($match[1]);
             }
+
             if (preg_match('/TB\s+(\d+)/i', $line, $match)) {
                 $kartNumber = $match[1];
             }
         }
-        
-        if (!$driverName) {
+
+        if (! $driverName) {
             $driverName = 'Unknown Driver';
         }
-        
+
         // Parse detailed results section
         $inDetailedSection = false;
+
         foreach ($lines as $line) {
             $line = trim($line);
-            
+
             if (stripos($line, 'RESULTADOS DETALLADOS') !== false) {
                 $inDetailedSection = true;
                 continue;
             }
-            
+
             if ($inDetailedSection && preg_match('/^(\d+)\s+(\d{2}:\d{2}\.\d{3})$/', $line, $matches)) {
-                $lapNumber = (int)$matches[1];
+                $lapNumber = (int) $matches[1];
                 $lapTime = $this->convertTimeToSeconds($matches[2]);
-                
+
                 if ($lapTime > 0 && $lapTime < 300) {
                     $laps[] = [
                         'driver_name' => $driverName,
@@ -699,97 +726,97 @@ class EmlUploadController extends Controller
                     ];
                 }
             }
-            
+
             // Stop at average or end
             if (preg_match('/^Avg\./i', $line)) {
                 break;
             }
         }
-        
+
         return $laps;
     }
 
     private function extractDeVoltageStyleLapsData($text)
     {
         $laps = [];
-        
+
         // Pattern for De Voltage format - looks for lap time tables
         // The format is: driver names in header row, then lap numbers and times in subsequent rows
-        
+
         // Extract best scores overview (final positions)
         $lines = explode("\n", $text);
         $bestScoresSection = false;
         $driverPositions = [];
         $driverKarts = [];
-        
+
         foreach ($lines as $line) {
             $line = trim($line);
-            
+
             // Find the "Heat overview" or "Sessie overzicht" section
-            if (stripos($line, 'Heat overview') !== false || 
+            if (stripos($line, 'Heat overview') !== false ||
                 stripos($line, 'Best score') !== false ||
                 stripos($line, 'Sessie overzicht') !== false ||
                 stripos($line, 'Pos.') !== false && stripos($line, 'Kart') !== false) {
                 $bestScoresSection = true;
                 continue;
             }
-            
+
             // Stop at "Thank you" or other end markers
-            if (stripos($line, 'Thank you') !== false || 
+            if (stripos($line, 'Thank you') !== false ||
                 stripos($line, 'Detailed results') !== false ||
                 stripos($line, 'Rondetijden per piloot') !== false) {
                 $bestScoresSection = false;
                 continue;
             }
-            
+
             // Parse position lines (format: "1.      Driver Name      39.761" or "1  10  JORDI 91  18  34.828  35.606")
             if ($bestScoresSection) {
                 // De Voltage format: "1.      Driver Name      39.761"
                 if (preg_match('/^(\d+)\.\s+(.+?)\s+([\d:.]+)$/', $line, $matches)) {
-                    $position = (int)$matches[1];
+                    $position = (int) $matches[1];
                     $driverName = trim($matches[2]);
                     $bestTime = $this->convertTimeToSeconds($matches[3]);
-                    
-                    if ($bestTime > 0 && !empty($driverName)) {
+
+                    if ($bestTime > 0 && ! empty($driverName)) {
                         $driverPositions[$driverName] = [
                             'position' => $position,
-                            'best_time' => $bestTime
+                            'best_time' => $bestTime,
                         ];
                     }
                 }
                 // Goodwill format: "1  10  JORDI 91  18  34.828  35.606"
-                else if (preg_match('/^(\d+)\s+(\d+)\s+(.+?)\s+(\d+)\s+([\d:.]+)\s/', $line, $matches)) {
-                    $position = (int)$matches[1];
+                elseif (preg_match('/^(\d+)\s+(\d+)\s+(.+?)\s+(\d+)\s+([\d:.]+)\s/', $line, $matches)) {
+                    $position = (int) $matches[1];
                     $kartNum = $matches[2];
                     $driverName = trim($matches[3]);
                     $bestTime = $this->convertTimeToSeconds($matches[5]);
-                    
-                    if ($bestTime > 0 && !empty($driverName)) {
+
+                    if ($bestTime > 0 && ! empty($driverName)) {
                         $driverPositions[$driverName] = [
                             'position' => $position,
-                            'best_time' => $bestTime
+                            'best_time' => $bestTime,
                         ];
                         $driverKarts[$driverName] = $kartNum;
                     }
                 }
             }
         }
-        
+
         // Extract detailed lap-by-lap data from the table
         // Format: columns are drivers, rows are lap numbers
         $detailedSection = false;
         $driverNames = [];
         $lapNumber = 0;
-        
+
         foreach ($lines as $idx => $line) {
             $line = trim($line);
-            
-            if (stripos($line, 'Detailed results') !== false || 
+
+            if (stripos($line, 'Detailed results') !== false ||
                 stripos($line, 'Rondetijden per piloot') !== false) {
                 $detailedSection = true;
                 continue;
             }
-            
+
             if ($detailedSection) {
                 // Look for driver name headers (line with "Kart    Piloot  1  2  3..." or just driver names)
                 if (empty($driverNames) && (stripos($line, 'Piloot') !== false || strlen($line) > 50)) {
@@ -797,30 +824,32 @@ class EmlUploadController extends Controller
                     if (stripos($line, 'Kart') !== false && stripos($line, 'Piloot') !== false) {
                         continue;
                     }
-                    
+
                     // Split by multiple spaces to get driver names
-                    $driverNames = array_filter(preg_split('/\s{2,}/', $line), function($name) {
+                    $driverNames = array_filter(preg_split('/\s{2,}/', $line), function ($name) {
                         $name = trim($name);
-                        return strlen($name) > 2 && !is_numeric($name) && !preg_match('/^\d+$/', $name);
+
+                        return strlen($name) > 2 && ! is_numeric($name) && ! preg_match('/^\d+$/', $name);
                     });
                     $driverNames = array_values(array_map('trim', $driverNames));
                     continue;
                 }
-                
+
                 // For Goodwill format: "10  JORDI 91  36.318  37.711  35.814..."
                 if (preg_match('/^(\d+)\s+(.+?)\s+([\d:.]+(?:\s+[\d:.]+)+)$/', $line, $matches)) {
                     $kartNum = $matches[1];
                     $driverName = trim($matches[2]);
                     $timesStr = trim($matches[3]);
                     $times = preg_split('/\s+/', $timesStr);
-                    
+
                     foreach ($times as $lapIdx => $time) {
-                        if (!empty($time)) {
+                        if (! empty($time)) {
                             $lapTime = $this->convertTimeToSeconds($time);
+
                             if ($lapTime > 0 && $lapTime < 300) {
-                                $position = isset($driverPositions[$driverName]) ? 
+                                $position = isset($driverPositions[$driverName]) ?
                                     $driverPositions[$driverName]['position'] : null;
-                                
+
                                 $laps[] = [
                                     'driver_name' => $driverName,
                                     'lap_number' => $lapIdx + 1,
@@ -833,20 +862,21 @@ class EmlUploadController extends Controller
                     }
                     continue;
                 }
-                
+
                 // De Voltage format: "1       48.762  48.646  48.383  ..."
-                if (!empty($driverNames) && preg_match('/^(\d+)\s+(.+)$/', $line, $matches)) {
-                    $lapNum = (int)$matches[1];
+                if (! empty($driverNames) && preg_match('/^(\d+)\s+(.+)$/', $line, $matches)) {
+                    $lapNum = (int) $matches[1];
                     $times = preg_split('/\s+/', trim($matches[2]));
-                    
+
                     foreach ($times as $index => $time) {
-                        if (isset($driverNames[$index]) && !empty($time)) {
+                        if (isset($driverNames[$index]) && ! empty($time)) {
                             $lapTime = $this->convertTimeToSeconds($time);
+
                             if ($lapTime > 0 && $lapTime < 300) { // Valid lap time (less than 5 minutes)
                                 $driverName = $driverNames[$index];
-                                $position = isset($driverPositions[$driverName]) ? 
+                                $position = isset($driverPositions[$driverName]) ?
                                     $driverPositions[$driverName]['position'] : null;
-                                
+
                                 $laps[] = [
                                     'driver_name' => $driverName,
                                     'lap_number' => $lapNum,
@@ -858,16 +888,16 @@ class EmlUploadController extends Controller
                         }
                     }
                 }
-                
+
                 // Stop at summary rows (Avg., Hist., Overzicht, etc.)
                 if (preg_match('/^(Avg\.|Hist\.|Best scores|Overzicht|Je laatste)/i', $line)) {
                     break;
                 }
             }
         }
-        
+
         // If detailed lap data wasn't found, use best scores as single laps
-        if (empty($laps) && !empty($driverPositions)) {
+        if (empty($laps) && ! empty($driverPositions)) {
             foreach ($driverPositions as $driverName => $data) {
                 $laps[] = [
                     'driver_name' => $driverName,
@@ -878,26 +908,27 @@ class EmlUploadController extends Controller
                 ];
             }
         }
-        
+
         return $laps;
     }
 
     private function convertTimeToSeconds($timeStr)
     {
         $timeStr = trim($timeStr);
-        
+
         // Handle format like "39.761" (seconds.milliseconds)
         if (preg_match('/^(\d+)\.(\d+)$/', $timeStr, $matches)) {
-            return (float)$timeStr;
+            return (float) $timeStr;
         }
-        
+
         // Handle format like "1:23.456" (minutes:seconds.milliseconds)
         if (preg_match('/^(\d+):(\d+\.\d+)$/', $timeStr, $matches)) {
-            $minutes = (int)$matches[1];
-            $seconds = (float)$matches[2];
+            $minutes = (int) $matches[1];
+            $seconds = (float) $matches[2];
+
             return $minutes * 60 + $seconds;
         }
-        
+
         return 0;
     }
 
@@ -905,6 +936,7 @@ class EmlUploadController extends Controller
     {
         try {
             $date = new \DateTime($dateStr);
+
             return $date->format('Y-m-d H:i:s');
         } catch (\Exception $e) {
             return now()->format('Y-m-d H:i:s');
@@ -913,23 +945,23 @@ class EmlUploadController extends Controller
 
     private function checkDuplicateSession($sessionData, $trackId, $fileHash)
     {
-        if (!isset($sessionData['session_date'])) {
+        if (! isset($sessionData['session_date'])) {
             return null;
         }
-        
+
         // Check if a session exists with same track and date (within 1 hour)
         $sessionDate = new \DateTime($sessionData['session_date']);
         $dateFrom = (clone $sessionDate)->modify('-1 hour')->format('Y-m-d H:i:s');
         $dateTo = (clone $sessionDate)->modify('+2 hours')->format('Y-m-d H:i:s');
-        
+
         $existing = KartingSession::where('track_id', $trackId)
             ->whereBetween('session_date', [$dateFrom, $dateTo])
             ->with(['laps.driver'])
             ->first();
-        
+
         if ($existing) {
             $upload = Upload::where('karting_session_id', $existing->id)->first();
-            
+
             return [
                 'exists' => true,
                 'session_id' => $existing->id,
@@ -941,7 +973,7 @@ class EmlUploadController extends Controller
                 'can_replace' => true,
             ];
         }
-        
+
         return null;
     }
 
@@ -950,76 +982,80 @@ class EmlUploadController extends Controller
      */
     private function calculateSessionFields(int $sessionId): void
     {
-        $session = KartingSession::with(['laps' => function($query) {
+        $session = KartingSession::with(['laps' => function ($query) {
             $query->orderBy('driver_id')->orderBy('lap_number');
         }, 'laps.driver', 'track'])->find($sessionId);
-        
-        if (!$session) return;
-        
+
+        if (! $session) {
+            return;
+        }
+
         // Group laps by driver
         $lapsByDriver = $session->laps->groupBy('driver_id');
-        
+
         foreach ($lapsByDriver as $driverId => $driverLaps) {
             // Find best lap for this driver
             $bestLap = $driverLaps->sortBy('lap_time')->first();
             $bestLapTime = $bestLap->lap_time;
-            
+
             $previousLapTime = null;
-            
+
             foreach ($driverLaps->sortBy('lap_number') as $index => $lap) {
                 $updates = [];
-                
+
                 // Mark best lap
                 $updates['is_best_lap'] = ($lap->lap_time == $bestLapTime);
-                
+
                 // Calculate gap to best lap
                 $updates['gap_to_best_lap'] = round($lap->lap_time - $bestLapTime, 3);
-                
+
                 // Calculate interval (time difference from previous lap by THIS driver)
                 if ($previousLapTime !== null) {
                     $updates['interval'] = round($lap->lap_time - $previousLapTime, 3);
                 }
                 $previousLapTime = $lap->lap_time;
-                
+
                 // Calculate average speed if track distance is known
                 if ($session->track && $session->track->distance) {
                     // Speed = distance / time = (distance_meters / lap_time) * 3.6 for km/h
                     $updates['avg_speed'] = round(($session->track->distance / $lap->lap_time) * 3.6, 2);
                 }
-                
+
                 // Calculate cost per lap if track pricing is known
                 if ($session->track && isset($session->track->pricing['costPerLap'])) {
                     $updates['cost_per_lap'] = $session->track->pricing['costPerLap'];
                 }
-                
+
                 // Update lap
                 $lap->update($updates);
             }
         }
-        
+
         // Calculate gap_to_previous (gap to driver in position ahead) for each lap number
         // Group all session laps by lap_number, not the already-grouped driver laps
         $allLaps = $session->laps;
+
         foreach ($allLaps->groupBy('lap_number') as $lapNumber => $lapsAtSameNumber) {
             $sortedLaps = $lapsAtSameNumber->sortBy('lap_time');
-            
+
             $previousLapTime = null;
+
             foreach ($sortedLaps as $lap) {
                 if ($previousLapTime !== null) {
                     $lap->update([
-                        'gap_to_previous' => round($lap->lap_time - $previousLapTime, 3)
+                        'gap_to_previous' => round($lap->lap_time - $previousLapTime, 3),
                     ]);
                 }
                 $previousLapTime = $lap->lap_time;
             }
         }
-        
+
         // Calculate overall session positions based on best lap times
         $allBestLaps = $session->laps()
             ->where('is_best_lap', true)
             ->orderBy('lap_time')
             ->get();
-        
+
         foreach ($allBestLaps as $index => $bestLap) {
             // Update position for ALL laps of this driver in this session
             Lap::where('karting_session_id', $sessionId)

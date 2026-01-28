@@ -14,7 +14,7 @@ class LapFactory extends Factory
     public function definition(): array
     {
         $lapTime = fake()->randomFloat(3, 25, 60);
-        
+
         return [
             'karting_session_id' => KartingSession::factory(),
             'driver_id' => Driver::factory(),

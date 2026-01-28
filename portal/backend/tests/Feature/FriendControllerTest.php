@@ -84,7 +84,7 @@ class FriendControllerTest extends TestCase
     {
         $friend1 = Driver::factory()->create();
         $friend2 = Driver::factory()->create();
-        
+
         Friend::create([
             'user_id' => $this->user->id,
             'friend_driver_id' => $friend1->id,

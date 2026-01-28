@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\Track;
 use App\Models\KartingSession;
+use App\Models\Track;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

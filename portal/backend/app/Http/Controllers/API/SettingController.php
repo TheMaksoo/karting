@@ -13,7 +13,7 @@ class SettingController extends Controller
         $settings = Setting::all()->mapWithKeys(function ($setting) {
             return [$setting->key => $setting->value];
         });
-        
+
         return response()->json($settings);
     }
 
@@ -25,8 +25,9 @@ class SettingController extends Controller
         ]);
 
         Setting::setValue($key, $validated['value'], $validated['description'] ?? null);
-        
+
         $setting = Setting::where('key', $key)->first();
+
         return response()->json($setting);
     }
 }

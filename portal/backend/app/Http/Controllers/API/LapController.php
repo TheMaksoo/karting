@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\Lap;
 use App\Models\KartingSession;
+use App\Models\Lap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -13,28 +13,29 @@ class LapController extends Controller
     public function index(Request $request)
     {
         $query = Lap::with(['driver', 'kartingSession.track']);
-        
+
         if ($request->has('driver_id')) {
             $query->where('driver_id', $request->driver_id);
         }
-        
+
         if ($request->has('session_id')) {
             $query->where('karting_session_id', $request->session_id);
         }
-        
+
         if ($request->has('track_id')) {
-            $query->whereHas('kartingSession', function($q) use ($request) {
+            $query->whereHas('kartingSession', function ($q) use ($request) {
                 $q->where('track_id', $request->track_id);
             });
         }
 
         // Default ordering: Session → Driver → Lap Number
         $query->orderBy('karting_session_id', 'desc')
-              ->orderBy('driver_id', 'asc')
-              ->orderBy('lap_number', 'asc');
+            ->orderBy('driver_id', 'asc')
+            ->orderBy('lap_number', 'asc');
 
         $perPage = $request->get('per_page', 25);
         $laps = $query->paginate($perPage);
+
         return response()->json($laps);
     }
 
@@ -60,19 +61,21 @@ class LapController extends Controller
         ]);
 
         $lap = Lap::create($validated);
+
         return response()->json($lap, 201);
     }
 
     public function show(string $id)
     {
         $lap = Lap::with(['driver', 'kartingSession.track'])->findOrFail($id);
+
         return response()->json($lap);
     }
 
     public function update(Request $request, string $id)
     {
         $lap = Lap::findOrFail($id);
-        
+
         $validated = $request->validate([
             'lap_time' => 'sometimes|numeric',
             'position' => 'nullable|integer',
@@ -80,6 +83,7 @@ class LapController extends Controller
         ]);
 
         $lap->update($validated);
+
         return response()->json($lap);
     }
 
@@ -87,6 +91,7 @@ class LapController extends Controller
     {
         $lap = Lap::findOrFail($id);
         $lap->delete();
+
         return response()->json(['message' => 'Lap deleted successfully']);
     }
 
@@ -96,13 +101,14 @@ class LapController extends Controller
             ->with(['kartingSession.track'])
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         return response()->json($laps);
     }
 
     public function count(Request $request)
     {
         $total = Lap::count();
+
         return response()->json(['total' => $total]);
     }
 
@@ -119,7 +125,7 @@ class LapController extends Controller
         $userTrackNicknamesCount = \DB::table('user_track_nicknames')->count();
         $settingsCount = \DB::table('settings')->count();
         $styleVariablesCount = \DB::table('style_variables')->count();
-        
+
         // Define field counts per table (actual database schema)
         $fieldsPerTable = [
             'laps' => 19, // id, driver_id, karting_session_id, lap_number, lap_time, position, kart_number, sector1, sector2, sector3, is_best_lap, gap_to_best_lap, interval, gap_to_previous, avg_speed, cost_per_lap, tyre, created_at, updated_at
@@ -133,9 +139,9 @@ class LapController extends Controller
             'settings' => 6, // id, key, value, type, description, created_at, updated_at
             'style_variables' => 6, // id, variable_name, value, default_value, category, description, created_at, updated_at (8 if including timestamps)
         ];
-        
+
         // Calculate total data points (rows × fields for each table)
-        $totalDataPoints = 
+        $totalDataPoints =
             ($lapsCount * $fieldsPerTable['laps']) +
             ($sessionsCount * $fieldsPerTable['karting_sessions']) +
             ($driversCount * $fieldsPerTable['drivers']) +
@@ -146,61 +152,61 @@ class LapController extends Controller
             ($userTrackNicknamesCount * $fieldsPerTable['user_track_nicknames']) +
             ($settingsCount * $fieldsPerTable['settings']) +
             ($styleVariablesCount * $fieldsPerTable['style_variables']);
-        
+
         return response()->json([
             'total_data_points' => $totalDataPoints,
             'breakdown' => [
                 'laps' => [
                     'rows' => $lapsCount,
                     'fields' => $fieldsPerTable['laps'],
-                    'data_points' => $lapsCount * $fieldsPerTable['laps']
+                    'data_points' => $lapsCount * $fieldsPerTable['laps'],
                 ],
                 'sessions' => [
                     'rows' => $sessionsCount,
                     'fields' => $fieldsPerTable['karting_sessions'],
-                    'data_points' => $sessionsCount * $fieldsPerTable['karting_sessions']
+                    'data_points' => $sessionsCount * $fieldsPerTable['karting_sessions'],
                 ],
                 'drivers' => [
                     'rows' => $driversCount,
                     'fields' => $fieldsPerTable['drivers'],
-                    'data_points' => $driversCount * $fieldsPerTable['drivers']
+                    'data_points' => $driversCount * $fieldsPerTable['drivers'],
                 ],
                 'tracks' => [
                     'rows' => $tracksCount,
                     'fields' => $fieldsPerTable['tracks'],
-                    'data_points' => $tracksCount * $fieldsPerTable['tracks']
+                    'data_points' => $tracksCount * $fieldsPerTable['tracks'],
                 ],
                 'users' => [
                     'rows' => $usersCount,
                     'fields' => $fieldsPerTable['users'],
-                    'data_points' => $usersCount * $fieldsPerTable['users']
+                    'data_points' => $usersCount * $fieldsPerTable['users'],
                 ],
                 'uploads' => [
                     'rows' => $uploadsCount,
                     'fields' => $fieldsPerTable['uploads'],
-                    'data_points' => $uploadsCount * $fieldsPerTable['uploads']
+                    'data_points' => $uploadsCount * $fieldsPerTable['uploads'],
                 ],
                 'friends' => [
                     'rows' => $friendsCount,
                     'fields' => $fieldsPerTable['friends'],
-                    'data_points' => $friendsCount * $fieldsPerTable['friends']
+                    'data_points' => $friendsCount * $fieldsPerTable['friends'],
                 ],
                 'user_track_nicknames' => [
                     'rows' => $userTrackNicknamesCount,
                     'fields' => $fieldsPerTable['user_track_nicknames'],
-                    'data_points' => $userTrackNicknamesCount * $fieldsPerTable['user_track_nicknames']
+                    'data_points' => $userTrackNicknamesCount * $fieldsPerTable['user_track_nicknames'],
                 ],
                 'settings' => [
                     'rows' => $settingsCount,
                     'fields' => $fieldsPerTable['settings'],
-                    'data_points' => $settingsCount * $fieldsPerTable['settings']
+                    'data_points' => $settingsCount * $fieldsPerTable['settings'],
                 ],
                 'style_variables' => [
                     'rows' => $styleVariablesCount,
                     'fields' => $fieldsPerTable['style_variables'],
-                    'data_points' => $styleVariablesCount * $fieldsPerTable['style_variables']
-                ]
-            ]
+                    'data_points' => $styleVariablesCount * $fieldsPerTable['style_variables'],
+                ],
+            ],
         ]);
     }
 
@@ -208,61 +214,65 @@ class LapController extends Controller
     {
         // Get driver_id from request (for logged-in driver filtering)
         $driverId = $request->input('driver_id');
-        
+
         // Get allowed driver IDs for the user (user + friends)
         $user = $request->user();
         $allowedDriverIds = $this->getAllowedDriverIds($user);
-        
+
         // Base query for laps
         $lapQuery = Lap::query();
+
         if ($driverId) {
             $lapQuery->where('driver_id', $driverId);
         } else {
             // Filter to user + friends only
             $lapQuery->whereIn('driver_id', $allowedDriverIds);
         }
-        
+
         $totalLaps = $lapQuery->count();
-        
+
         // Count distinct drivers from allowed list only
-        $totalDrivers = $driverId 
-            ? 1 
+        $totalDrivers = $driverId
+            ? 1
             : Lap::whereIn('driver_id', $allowedDriverIds)->distinct('driver_id')->count('driver_id');
-        
+
         // Best lap for this driver (or from allowed drivers)
         $bestLapQuery = Lap::where('is_best_lap', true)->orderBy('lap_time')->with(['driver', 'kartingSession.track']);
+
         if ($driverId) {
             $bestLapQuery->where('driver_id', $driverId);
         } else {
             $bestLapQuery->whereIn('driver_id', $allowedDriverIds);
         }
         $bestLapGlobal = $bestLapQuery->first();
-        
+
         // Average lap time and speed
         $avgLapTime = (clone $lapQuery)->avg('lap_time');
-        
+
         // Median lap time
         $allLapTimes = (clone $lapQuery)->pluck('lap_time')->sort()->values();
         $medianLapTime = null;
+
         if ($allLapTimes->count() > 0) {
-            $mid = (int)floor($allLapTimes->count() / 2);
+            $mid = (int) floor($allLapTimes->count() / 2);
+
             if ($allLapTimes->count() % 2 == 0) {
                 $medianLapTime = ($allLapTimes[$mid - 1] + $allLapTimes[$mid]) / 2;
             } else {
                 $medianLapTime = $allLapTimes[$mid];
             }
         }
-        
+
         // Calculate average speed properly: avg(distance / lap_time)
         $lapsWithSpeed = (clone $lapQuery)
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
             ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
             ->selectRaw('(tracks.distance / laps.lap_time) as speed_mps')
             ->get();
-        
+
         $avgSpeedMps = $lapsWithSpeed->avg('speed_mps');
         $avgSpeedKmh = $avgSpeedMps ? round($avgSpeedMps * 3.6, 2) : 0;
-        
+
         // Calculate total distance (sum of laps × track distance)
         $totalDistanceQuery = (clone $lapQuery)
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
@@ -270,51 +280,52 @@ class LapController extends Controller
             ->selectRaw('SUM(tracks.distance) as total');
         $totalDistance = $totalDistanceQuery->value('total');
         $totalDistanceKm = $totalDistance ? round($totalDistance / 1000, 2) : 0;
-        
+
         // Calculate total corners (sum of laps × track corners)
         $totalCornersQuery = (clone $lapQuery)
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
             ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
             ->selectRaw('SUM(tracks.corners) as total');
         $totalCorners = $totalCornersQuery->value('total');
-        
+
         // Get sessions for this driver
         $sessionQuery = KartingSession::query();
+
         if ($driverId) {
-            $sessionQuery->whereHas('laps', function($q) use ($driverId) {
+            $sessionQuery->whereHas('laps', function ($q) use ($driverId) {
                 $q->where('driver_id', $driverId);
             });
         } else {
-            $sessionQuery->whereHas('laps', function($q) use ($allowedDriverIds) {
+            $sessionQuery->whereHas('laps', function ($q) use ($allowedDriverIds) {
                 $q->whereIn('driver_id', $allowedDriverIds);
             });
         }
-        
+
         // Calculate total cost (sum of heat_price from sessions)
         $totalCost = (clone $sessionQuery)->sum('heat_price');
-        
+
         // Calculate cost per lap
         $costPerLap = $totalLaps > 0 ? round($totalCost / $totalLaps, 2) : 0;
-        
+
         // Calculate cost per km
         $costPerKm = $totalDistanceKm > 0 ? round($totalCost / $totalDistanceKm, 2) : 0;
-        
+
         // Calculate total sessions
         $totalSessions = $sessionQuery->count();
-        
+
         // Calculate cost per session
         $costPerSession = $totalSessions > 0 ? round($totalCost / $totalSessions, 2) : 0;
-        
+
         // Calculate CO₂ emissions (rough estimate: 0.15 kg per km for electric karts, 0.25 for gas)
         // Using average of 0.2 kg/km
         $co2Emissions = round($totalDistanceKm * 0.2, 2);
-        
+
         // Get unique tracks count
         $uniqueTracks = (clone $lapQuery)
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
             ->distinct('karting_sessions.track_id')
             ->count('karting_sessions.track_id');
-        
+
         return response()->json([
             'total_laps' => $totalLaps,
             'total_drivers' => $totalDrivers,
@@ -340,25 +351,25 @@ class LapController extends Controller
     private function getAllowedDriverIds($user)
     {
         $driverIds = [];
-        
+
         // Add user's own driver_id if exists (legacy single driver)
         if ($user->driver_id) {
             $driverIds[] = $user->driver_id;
         }
-        
+
         // Add all drivers connected to user (many-to-many)
         $connectedDriverIds = DB::table('driver_user')
             ->where('user_id', $user->id)
             ->pluck('driver_id')
             ->toArray();
         $driverIds = array_merge($driverIds, $connectedDriverIds);
-        
+
         // Add friend driver IDs
         $friendIds = DB::table('friends')
             ->where('user_id', $user->id)
             ->pluck('friend_driver_id')
             ->toArray();
-        
+
         return array_unique(array_merge($driverIds, $friendIds));
     }
 }

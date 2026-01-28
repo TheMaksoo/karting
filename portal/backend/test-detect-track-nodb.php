@@ -23,6 +23,7 @@ $trackPatternsId = [
 ];
 
 $found = false;
+
 foreach ($trackPatternsId as $trackId => $patterns) {
     foreach ($patterns as $pattern) {
         if (stripos($searchText, $pattern) !== false) {
@@ -32,7 +33,8 @@ foreach ($trackPatternsId as $trackId => $patterns) {
         }
     }
 }
-if (!$found) {
+
+if (! $found) {
     echo "No heuristic match from filename/content.\n";
 }
 
@@ -43,7 +45,7 @@ $parseMethod->setAccessible(true);
 $emailData = $parseMethod->invoke($controller, $content);
 
 echo "\nParsed subject: " . ($emailData['subject'] ?? '') . "\n";
-echo "Parsed from: " . ($emailData['from'] ?? '') . "\n\n";
+echo 'Parsed from: ' . ($emailData['from'] ?? '') . "\n\n";
 
 // 3) Use detectTrack-like patterns (no DB) to check subject/from/body
 $trackNamePatterns = [
@@ -60,6 +62,7 @@ $from = strtolower($emailData['from'] ?? '');
 $body = strtolower($emailData['body'] ?? '');
 
 $matched = false;
+
 foreach ($trackNamePatterns as $trackName => $patterns) {
     foreach ($patterns as $pattern) {
         if (stripos($subject, $pattern) !== false || stripos($from, $pattern) !== false || stripos($body, $pattern) !== false) {
@@ -69,7 +72,8 @@ foreach ($trackNamePatterns as $trackName => $patterns) {
         }
     }
 }
-if (!$matched) {
+
+if (! $matched) {
     echo "No match found in parsed email subject/from/body.\n";
 }
 

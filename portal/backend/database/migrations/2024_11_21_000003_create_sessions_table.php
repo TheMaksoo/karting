@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+return new class() extends Migration
 {
     public function up(): void
     {
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->decimal('heat_price', 8, 2)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->index(['track_id', 'session_date']);
         });
     }

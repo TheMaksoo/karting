@@ -1,7 +1,8 @@
 # 🏎️ Karting Dashboard - Improvement TODO List
 
 > Last updated: Auto-generated
-> Status: **87 improvements identified** across 10 categories
+> Status: **87 improvements identified** across 10 categories  
+> **27 completed** ✅ | **60 remaining**
 
 ## Summary
 
@@ -23,14 +24,14 @@
 ## 🔴 Critical Priority (Do First)
 
 ### Security
-- [ ] **Implement API rate limiting** - Add `throttle:60,1` middleware to routes/api.php
-- [ ] **Add brute-force protection on login** - Use `throttle:5,1` on login route
-- [ ] **Set Sanctum token expiration** - Configure 24h expiration in `config/sanctum.php`
-- [ ] **Strengthen password policy** - Require uppercase, number, special char
+- [x] **Implement API rate limiting** - Add `throttle:60,1` middleware to routes/api.php ✅
+- [x] **Add brute-force protection on login** - Use `throttle:5,1` on login route ✅
+- [x] **Set Sanctum token expiration** - Configure 24h expiration in `config/sanctum.php` ✅
+- [x] **Strengthen password policy** - Require uppercase, number, special char ✅
 
 ### Performance
-- [ ] **Add database index on `laps.lap_time`** - Critical for sorting/best lap queries
-- [ ] **Add caching to stats endpoints** - `/api/drivers/stats`, `/api/tracks/stats`
+- [x] **Add database index on `laps.lap_time`** - Critical for sorting/best lap queries ✅
+- [x] **Add caching to stats endpoints** - `/api/drivers/stats`, `/api/tracks/stats` ✅
 
 ---
 
@@ -41,17 +42,17 @@
 - [ ] Consider moving token storage from localStorage to httpOnly cookies
 
 ### Performance
-- [ ] Add index on `karting_sessions.session_type`
-- [ ] Add index on `drivers.name`
-- [ ] Add index on `drivers.is_active`
-- [ ] Fix N+1 queries in `DriverController@stats`
-- [ ] Fix N+1 queries in `TrackController@stats`
+- [x] Add index on `karting_sessions.session_type` ✅
+- [x] Add index on `drivers.name` ✅
+- [x] Add index on `drivers.is_active` ✅
+- [x] Fix N+1 queries in `DriverController@stats` ✅
+- [x] Fix N+1 queries in `TrackController@stats` ✅
 - [ ] Implement response caching on `/api/sessions/{id}/stats`
 
 ### API Features
-- [ ] Add rate limiting middleware to all API routes
-- [ ] Add soft deletes to Driver, Track, Session models
-- [ ] Create FormRequest classes for all controller validations
+- [x] Add rate limiting middleware to all API routes ✅
+- [x] Add soft deletes to Driver, Track, Session models ✅
+- [x] Create FormRequest classes for all controller validations ✅
 - [ ] Add API versioning (`/api/v1/`) for future compatibility
 
 ### Code Quality
@@ -75,21 +76,21 @@
 ## 🟡 Medium Priority
 
 ### Security
-- [ ] Add HTTPS enforcement in production
-- [ ] Add Content-Security-Policy headers via middleware
+- [x] Add HTTPS enforcement in production ✅
+- [x] Add Content-Security-Policy headers via middleware ✅
 - [ ] Add frontend input validation (vuelidate or zod)
 
 ### Database
-- [ ] Add `deleted_at` column for soft deletes on all main tables
+- [x] Add `deleted_at` column for soft deletes on all main tables ✅
 - [ ] Add `last_login_at` and `last_login_ip` to users table
 - [ ] Add `uploaded_from` IP address to uploads table
-- [ ] Add SoftDeletes trait to all models
-- [ ] Add model scopes: `scopeBestLaps()`, `scopeActive()`
+- [x] Add SoftDeletes trait to all models ✅
+- [x] Add model scopes: `scopeBestLaps()`, `scopeActive()` ✅
 - [ ] Define `$with` property on KartingSession for eager loading
 
 ### Frontend UX
 - [ ] Create `ErrorBoundary.vue` component for Vue error handling
-- [ ] Add toast notifications (vue-toastification) for user feedback
+- [x] Add toast notifications (vue-toastification) for user feedback ✅
 - [ ] Add skeleton loaders for all data loading states
 - [ ] Add ARIA labels to all interactive elements
 - [ ] Add "Skip to content" link for accessibility
@@ -168,6 +169,20 @@
 - [x] Configure SonarQube integration
 - [x] Fix security issues (hardcoded credentials, CORS, absolute paths)
 - [x] Remove dead/duplicate code
+- [x] Implement API rate limiting on all routes
+- [x] Add brute-force protection on login (throttle:5,1)
+- [x] Set Sanctum token expiration (24 hours)
+- [x] Strengthen password policy (uppercase, number, special char)
+- [x] Add database indexes (lap_time, session_type, driver name, is_active)
+- [x] Add caching to stats endpoints (5 minute cache)
+- [x] Fix N+1 queries in DriverController@stats and TrackController@stats
+- [x] Add soft deletes to Driver, Track, Session models
+- [x] Create FormRequest classes (StoreDriver, UpdateDriver, StoreSession, StoreLap)
+- [x] Add model scopes (scopeBestLaps, scopeActive)
+- [x] Add HTTPS enforcement in production
+- [x] Add Content-Security-Policy headers via middleware
+- [x] Add toast notifications (vue-toastification)
+- [x] Configure SonarCloud + Codecov integration
 
 ---
 

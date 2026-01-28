@@ -15,7 +15,7 @@ class UserSettingsController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         $trackNicknames = UserTrackNickname::where('user_id', $user->id)
             ->with('track:id,name')
             ->get()
@@ -93,12 +93,12 @@ class UserSettingsController extends Controller
     public function deleteTrackNickname($id)
     {
         $user = Auth::user();
-        
+
         $trackNickname = UserTrackNickname::where('user_id', $user->id)
             ->where('id', $id)
             ->first();
 
-        if (!$trackNickname) {
+        if (! $trackNickname) {
             return response()->json([
                 'success' => false,
                 'message' => 'Track nickname not found',

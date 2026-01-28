@@ -18,19 +18,19 @@ class SessionAnalyticsController extends Controller
     public function driverActivityOverTime(Request $request)
     {
         $driverId = $request->input('driver_id');
-        
+
         // Get logged-in user's driver IDs (user's own + friends)
         $user = $request->user();
         $allowedDriverIds = $this->getAllowedDriverIds($user);
-        
+
         // Build query for all drivers or specific driver
         $query = Lap::select(
-                'drivers.id as driver_id',
-                'drivers.name as driver_name',
-                'karting_sessions.session_date',
-                DB::raw('COUNT(laps.id) as laps_in_session'),
-                DB::raw('SUM(COUNT(laps.id)) OVER (PARTITION BY drivers.id ORDER BY karting_sessions.session_date) as cumulative_laps')
-            )
+            'drivers.id as driver_id',
+            'drivers.name as driver_name',
+            'karting_sessions.session_date',
+            DB::raw('COUNT(laps.id) as laps_in_session'),
+            DB::raw('SUM(COUNT(laps.id)) OVER (PARTITION BY drivers.id ORDER BY karting_sessions.session_date) as cumulative_laps')
+        )
             ->join('drivers', 'laps.driver_id', '=', 'drivers.id')
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
             ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
@@ -43,7 +43,7 @@ class SessionAnalyticsController extends Controller
             $query->where('laps.driver_id', $driverId);
         }
 
-        $result = $query->get()->map(function($item) {
+        $result = $query->get()->map(function ($item) {
             return [
                 'driver_id' => $item->driver_id,
                 'driver_name' => $item->driver_name,
@@ -65,7 +65,7 @@ class SessionAnalyticsController extends Controller
         // Get logged-in user's driver IDs (user's own + friends)
         $user = $request->user();
         $allowedDriverIds = $this->getAllowedDriverIds($user);
-        
+
         // Get all unique tracks and drivers (filtered by allowed drivers)
         $tracks = DB::table('tracks')
             ->join('karting_sessions', 'tracks.id', '=', 'karting_sessions.track_id')
@@ -86,9 +86,9 @@ class SessionAnalyticsController extends Controller
 
         // Get track records (filtered by allowed drivers)
         $trackRecords = Lap::select(
-                'tracks.id as track_id',
-                DB::raw('MIN(laps.lap_time) as track_record')
-            )
+            'tracks.id as track_id',
+            DB::raw('MIN(laps.lap_time) as track_record')
+        )
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
             ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
             ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
@@ -98,14 +98,14 @@ class SessionAnalyticsController extends Controller
 
         // Get best laps per driver per track with additional stats (filtered by allowed drivers)
         $driverTrackStats = Lap::select(
-                'laps.driver_id',
-                'tracks.id as track_id',
-                DB::raw('MIN(laps.lap_time) as best_lap_time'),
-                DB::raw('AVG(laps.lap_time) as avg_lap_time'),
-                DB::raw('MAX(laps.lap_time) as worst_lap_time'),
-                DB::raw('COUNT(*) as lap_count'),
-                DB::raw('MAX(laps.lap_time) - MIN(laps.lap_time) as consistency_range')
-            )
+            'laps.driver_id',
+            'tracks.id as track_id',
+            DB::raw('MIN(laps.lap_time) as best_lap_time'),
+            DB::raw('AVG(laps.lap_time) as avg_lap_time'),
+            DB::raw('MAX(laps.lap_time) as worst_lap_time'),
+            DB::raw('COUNT(*) as lap_count'),
+            DB::raw('MAX(laps.lap_time) - MIN(laps.lap_time) as consistency_range')
+        )
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
             ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
             ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
@@ -115,6 +115,7 @@ class SessionAnalyticsController extends Controller
         // Organize by driver and track
         $bestLaps = [];
         $lapStats = [];
+
         foreach ($driverTrackStats as $stat) {
             $bestLaps[$stat->driver_id][$stat->track_id] = $stat->best_lap_time;
             $lapStats[$stat->driver_id][$stat->track_id] = [
@@ -127,18 +128,20 @@ class SessionAnalyticsController extends Controller
 
         // Calculate track average speeds (distance / avg lap time * 3.6 for km/h)
         $trackAvgSpeeds = [];
+
         foreach ($tracks as $track) {
             $avgTime = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
                 ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
                 ->where('tracks.id', $track->id)
                 ->avg('laps.lap_time');
-            
+
             $distance = DB::table('tracks')->where('id', $track->id)->value('distance');
             $trackAvgSpeeds[$track->id] = $avgTime && $distance ? round(($distance / $avgTime) * 3.6, 2) : 0;
         }
 
         // Find the maximum gap for percentage calculations
         $allGaps = [];
+
         foreach ($drivers as $driver) {
             foreach ($tracks as $track) {
                 if (isset($bestLaps[$driver->id][$track->id])) {
@@ -149,18 +152,18 @@ class SessionAnalyticsController extends Controller
                 }
             }
         }
-        $maxGap = !empty($allGaps) ? max($allGaps) : 1;
+        $maxGap = ! empty($allGaps) ? max($allGaps) : 1;
 
         // Build response
         $result = [
-            'tracks' => $tracks->map(function($track) use ($trackAvgSpeeds) {
+            'tracks' => $tracks->map(function ($track) use ($trackAvgSpeeds) {
                 return [
                     'id' => $track->id,
                     'name' => $track->name,
                     'avg_speed_kmh' => $trackAvgSpeeds[$track->id] ?? 0,
                 ];
             })->values(),
-            'drivers' => $drivers->map(function($driver) {
+            'drivers' => $drivers->map(function ($driver) {
                 return [
                     'id' => $driver->id,
                     'name' => $driver->name,
@@ -173,6 +176,7 @@ class SessionAnalyticsController extends Controller
         // Build heatmap matrix
         foreach ($drivers as $driver) {
             $row = [];
+
             foreach ($tracks as $track) {
                 if (isset($bestLaps[$driver->id][$track->id])) {
                     $bestLap = $bestLaps[$driver->id][$track->id];
@@ -182,15 +186,15 @@ class SessionAnalyticsController extends Controller
                     $stats = $lapStats[$driver->id][$track->id] ?? [];
 
                     $row[] = [
-                        'best_lap_time' => (float)$bestLap,
-                        'gap' => (float)$gap,
+                        'best_lap_time' => (float) $bestLap,
+                        'gap' => (float) $gap,
                         'gap_percentage' => round($gapPercentage, 2),
                         'has_data' => true,
                         'lap_count' => $stats['lap_count'] ?? 0,
-                        'avg_lap_time' => isset($stats['avg_lap_time']) ? (float)$stats['avg_lap_time'] : null,
-                        'worst_lap_time' => isset($stats['worst_lap_time']) ? (float)$stats['worst_lap_time'] : null,
-                        'consistency_range' => isset($stats['consistency_range']) ? (float)$stats['consistency_range'] : null,
-                        'track_record' => (float)$trackRecord,
+                        'avg_lap_time' => isset($stats['avg_lap_time']) ? (float) $stats['avg_lap_time'] : null,
+                        'worst_lap_time' => isset($stats['worst_lap_time']) ? (float) $stats['worst_lap_time'] : null,
+                        'consistency_range' => isset($stats['consistency_range']) ? (float) $stats['consistency_range'] : null,
+                        'track_record' => (float) $trackRecord,
                     ];
                 } else {
                     $row[] = [
@@ -214,7 +218,8 @@ class SessionAnalyticsController extends Controller
     public function trophyCase(Request $request)
     {
         $driverId = $request->input('driver_id');
-        if (!$driverId) {
+
+        if (! $driverId) {
             return response()->json(['error' => 'driver_id is required'], 400);
         }
 
@@ -229,7 +234,7 @@ class SessionAnalyticsController extends Controller
         ];
 
         // Get all sessions this driver participated in
-        $sessions = KartingSession::whereHas('laps', function($q) use ($driverId) {
+        $sessions = KartingSession::whereHas('laps', function ($q) use ($driverId) {
             $q->where('driver_id', $driverId);
         })->get();
 
@@ -246,7 +251,7 @@ class SessionAnalyticsController extends Controller
             Log::info("Session {$session->id}: {$sessionLaps->count()} drivers");
 
             // Find this driver's position
-            $position = $sessionLaps->search(function($item) use ($driverId) {
+            $position = $sessionLaps->search(function ($item) use ($driverId) {
                 return $item->driver_id == $driverId;
             });
 
@@ -259,12 +264,15 @@ class SessionAnalyticsController extends Controller
                 if ($position === 1) {
                     $trophies['gold']++;
                 }
+
                 if ($position === 2 && $totalDrivers >= 2) {
                     $trophies['silver']++;
                 }
+
                 if ($position === 3 && $totalDrivers >= 3) {
                     $trophies['bronze']++;
                 }
+
                 if ($position === $totalDrivers && $totalDrivers > 1) {
                     $trophies['coal']++;
                 }
@@ -297,7 +305,7 @@ class SessionAnalyticsController extends Controller
             }
         }
 
-        Log::info("🏆 Final trophies:", $trophies);
+        Log::info('🏆 Final trophies:', $trophies);
 
         return response()->json($trophies);
     }
@@ -307,7 +315,7 @@ class SessionAnalyticsController extends Controller
         $driverId = $request->input('driver_id');
         $type = $request->input('type');
 
-        if (!$driverId || !$type) {
+        if (! $driverId || ! $type) {
             return response()->json([]);
         }
 
@@ -355,12 +363,13 @@ class SessionAnalyticsController extends Controller
                             ->get();
 
                         $allDriversWithPositions = [];
+
                         foreach ($allDriversOnTrack as $index => $driver) {
                             $allDriversWithPositions[] = [
                                 'name' => $driver->driver_name,
                                 'position' => $index + 1,
                                 'time' => $driver->best_time,
-                                'is_current_driver' => $driver->driver_name === \DB::table('drivers')->where('id', $driverId)->value('name')
+                                'is_current_driver' => $driver->driver_name === \DB::table('drivers')->where('id', $driverId)->value('name'),
                             ];
                         }
 
@@ -379,11 +388,10 @@ class SessionAnalyticsController extends Controller
                     }
                 }
             }
-        }
-        else if ($type === 'gold' || $type === 'silver' || $type === 'bronze' || $type === 'coal') {
+        } elseif ($type === 'gold' || $type === 'silver' || $type === 'bronze' || $type === 'coal') {
             $sessions = \DB::table('karting_sessions')
                 ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
-                ->whereIn('karting_sessions.id', function($query) use ($driverId) {
+                ->whereIn('karting_sessions.id', function ($query) use ($driverId) {
                     $query->select('karting_session_id')
                         ->from('laps')
                         ->where('driver_id', $driverId);
@@ -404,7 +412,7 @@ class SessionAnalyticsController extends Controller
                 // Find the driver's position
                 $position = null;
                 $driverBestTime = null;
-                
+
                 foreach ($sessionLaps as $index => $lap) {
                     if ($lap->driver_id == $driverId) {
                         $position = $index + 1; // 1-based position
@@ -421,10 +429,22 @@ class SessionAnalyticsController extends Controller
 
                 // Check if this session matches the trophy type
                 $matchesPosition = false;
-                if ($type === 'gold' && $position === 1) $matchesPosition = true;
-                if ($type === 'silver' && $position === 2) $matchesPosition = true;
-                if ($type === 'bronze' && $position === 3) $matchesPosition = true;
-                if ($type === 'coal' && $position === $totalDrivers && $totalDrivers > 1) $matchesPosition = true;
+
+                if ($type === 'gold' && $position === 1) {
+                    $matchesPosition = true;
+                }
+
+                if ($type === 'silver' && $position === 2) {
+                    $matchesPosition = true;
+                }
+
+                if ($type === 'bronze' && $position === 3) {
+                    $matchesPosition = true;
+                }
+
+                if ($type === 'coal' && $position === $totalDrivers && $totalDrivers > 1) {
+                    $matchesPosition = true;
+                }
 
                 if ($matchesPosition) {
                     // Build gaps and opponent information
@@ -441,7 +461,7 @@ class SessionAnalyticsController extends Controller
                         $driverBehind = $secondPlace->driver_name;
                     }
                     // For other positions: show gap ahead (red) and behind (green)
-                    else if ($position > 1) {
+                    elseif ($position > 1) {
                         // Gap to driver ahead (red - losing)
                         $aheadDriver = $sessionLaps[$position - 2]; // -2 because 0-indexed and we want previous
                         $gapSeconds = $driverBestTime - $aheadDriver->best_time;
@@ -460,16 +480,16 @@ class SessionAnalyticsController extends Controller
                     // Get list of all drivers in the session with their positions
                     $allDriversWithPositions = [];
                     $driversList = [];
-                    
+
                     foreach ($sessionLaps as $index => $lap) {
                         $driverPosition = $index + 1;
                         $allDriversWithPositions[] = [
                             'name' => $lap->driver_name,
                             'position' => $driverPosition,
                             'time' => $lap->best_time,
-                            'is_current_driver' => $lap->driver_id == $driverId
+                            'is_current_driver' => $lap->driver_id == $driverId,
                         ];
-                        
+
                         // Also build simple list for backward compatibility
                         if ($lap->driver_id != $driverId) {
                             $driversList[] = $lap->driver_name;
@@ -479,7 +499,7 @@ class SessionAnalyticsController extends Controller
                     $details[] = [
                         'track_name' => $session->track_name,
                         'session_date' => $session->session_date,
-                        'opponents' => !empty($driversList) ? implode(', ', $driversList) : 'Solo',
+                        'opponents' => ! empty($driversList) ? implode(', ', $driversList) : 'Solo',
                         'all_drivers' => $allDriversWithPositions,
                         'time' => $driverBestTime,
                         'gap_ahead' => $gapAhead,
@@ -487,7 +507,7 @@ class SessionAnalyticsController extends Controller
                         'driver_ahead' => $driverAhead,
                         'driver_behind' => $driverBehind,
                         'position' => $position,
-                        'total_drivers' => $totalDrivers
+                        'total_drivers' => $totalDrivers,
                     ];
                 }
             }
@@ -502,25 +522,25 @@ class SessionAnalyticsController extends Controller
     private function getAllowedDriverIds($user)
     {
         $driverIds = [];
-        
+
         // Add user's own driver_id if exists (legacy single driver)
         if ($user->driver_id) {
             $driverIds[] = $user->driver_id;
         }
-        
+
         // Add all drivers connected to user (many-to-many)
         $connectedDriverIds = DB::table('driver_user')
             ->where('user_id', $user->id)
             ->pluck('driver_id')
             ->toArray();
         $driverIds = array_merge($driverIds, $connectedDriverIds);
-        
+
         // Add friend driver IDs
         $friendIds = DB::table('friends')
             ->where('user_id', $user->id)
             ->pluck('friend_driver_id')
             ->toArray();
-        
+
         return array_unique(array_merge($driverIds, $friendIds));
     }
 }

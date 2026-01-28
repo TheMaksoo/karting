@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Driver;
-use App\Models\Lap;
 use App\Models\KartingSession;
+use App\Models\Lap;
 use App\Models\Track;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

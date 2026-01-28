@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Driver;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 class UserManagementController extends Controller
@@ -20,29 +20,29 @@ class UserManagementController extends Controller
         $users = User::with(['drivers' => function ($query) {
             $query->withCount('laps');
         }])
-        ->withCount('drivers')
-        ->get()
-        ->map(function ($user) {
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-                'driver_id' => $user->driver_id,
-                'drivers_count' => $user->drivers_count,
-                'drivers' => $user->drivers->map(function ($driver) {
-                    return [
-                        'id' => $driver->id,
-                        'name' => $driver->name,
-                        'nickname' => $driver->nickname,
-                        'color' => $driver->color,
-                        'laps_count' => $driver->laps_count,
-                        'is_primary' => $driver->pivot->is_primary ?? false,
-                    ];
-                }),
-                'created_at' => $user->created_at,
-            ];
-        });
+            ->withCount('drivers')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'driver_id' => $user->driver_id,
+                    'drivers_count' => $user->drivers_count,
+                    'drivers' => $user->drivers->map(function ($driver) {
+                        return [
+                            'id' => $driver->id,
+                            'name' => $driver->name,
+                            'nickname' => $driver->nickname,
+                            'color' => $driver->color,
+                            'laps_count' => $driver->laps_count,
+                            'is_primary' => $driver->pivot->is_primary ?? false,
+                        ];
+                    }),
+                    'created_at' => $user->created_at,
+                ];
+            });
 
         return response()->json($users);
     }
@@ -70,7 +70,7 @@ class UserManagementController extends Controller
         ]);
 
         // Connect drivers if provided
-        if ($request->has('driver_ids') && !empty($request->driver_ids)) {
+        if ($request->has('driver_ids') && ! empty($request->driver_ids)) {
             foreach ($request->driver_ids as $index => $driverId) {
                 $user->drivers()->attach($driverId, [
                     'is_primary' => $index === 0, // First driver is primary
@@ -105,7 +105,7 @@ class UserManagementController extends Controller
         ]);
 
         $data = $request->only(['name', 'email', 'role']);
-        
+
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
@@ -124,7 +124,7 @@ class UserManagementController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        
+
         // Don't allow deleting yourself
         if ($user->id === auth()->id()) {
             return response()->json([
@@ -181,7 +181,7 @@ class UserManagementController extends Controller
     {
         $user = User::findOrFail($userId);
 
-        if (!$user->drivers()->where('driver_id', $driverId)->exists()) {
+        if (! $user->drivers()->where('driver_id', $driverId)->exists()) {
             return response()->json([
                 'message' => 'Driver not connected to this user',
             ], 404);
@@ -193,12 +193,13 @@ class UserManagementController extends Controller
         if ($user->driver_id == $driverId) {
             // Set another driver as primary if available
             $nextDriver = $user->drivers()->first();
+
             if ($nextDriver) {
                 DB::table('driver_user')
                     ->where('user_id', $user->id)
                     ->where('driver_id', $nextDriver->id)
                     ->update(['is_primary' => true]);
-                
+
                 $user->driver_id = $nextDriver->id;
             } else {
                 $user->driver_id = null;
@@ -217,9 +218,9 @@ class UserManagementController extends Controller
     public function availableDrivers($userId)
     {
         $user = User::findOrFail($userId);
-        
+
         $connectedDriverIds = $user->drivers()->pluck('drivers.id')->toArray();
-        
+
         $drivers = Driver::whereNotIn('id', $connectedDriverIds)
             ->with(['laps.kartingSession.track'])
             ->withCount('laps')
@@ -236,7 +237,7 @@ class UserManagementController extends Controller
                     })
                     ->values()
                     ->toArray();
-                
+
                 return [
                     'id' => $driver->id,
                     'name' => $driver->name,
