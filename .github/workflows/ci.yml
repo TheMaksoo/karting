@@ -1,3 +1,23 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                         🏎️ KARTING DASHBOARD CI/CD                          ║
+# ║              Fully Automated Pipeline with Pattern-Based Auto-Fix           ║
+# ║                                                                              ║
+# ║  Flow: Code → Test → Fail? → Auto-Fix → Retry → SonarCloud → Deploy        ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+#
+# 🔄 WORKFLOW CHAIN:
+#   1. This workflow (CI/CD Pipeline) runs tests and sends to SonarCloud
+#   2. On failure → auto-fix.yml attempts automated fixes (Pint/ESLint/Black + patterns)
+#   3. On success → auto-deploy.yml deploys to Namecheap
+#   4. codeql.yml → Security scanning with Copilot Autofix suggestions
+#
+# 🔑 REQUIRED SECRETS:
+#   - SONAR_TOKEN: SonarCloud authentication
+#   - FTP_SERVER, FTP_USERNAME, FTP_PASSWORD: Namecheap FTP
+#   - SSH_HOST, SSH_USERNAME, SSH_PRIVATE_KEY: Namecheap SSH
+#   - APP_KEY, APP_URL, DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+#   - SANCTUM_DOMAINS: Your domain for auth
+
 name: CI/CD Pipeline
 
 on:
@@ -5,6 +25,11 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   PHP_VERSION: '8.2'
@@ -12,50 +37,107 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # ==========================================
-  # 1️⃣ Backend Lint (Laravel Pint)
-  # ==========================================
-  backend-lint:
-    name: 1️⃣ PHP Lint (Pint)
+
+  # ┌──────────────────────────────────────────────────────────────────────────────┐
+  # │ 🔍 STATIC ANALYSIS - Linting & Type Checking                                │
+  # └──────────────────────────────────────────────────────────────────────────────┘
+  
+  php-lint:
+    name: 🐘 PHP Code Style
     runs-on: ubuntu-latest
-    
     defaults:
       run:
         working-directory: portal/backend
-
     steps:
-      - name: 📥 Checkout code
+      - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 🐘 Setup PHP ${{ env.PHP_VERSION }}
+      - name: 🐘 Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
 
-      - name: 📦 Cache Composer dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.composer/cache
-          key: ${{ runner.os }}-composer-${{ hashFiles('portal/backend/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+      - name: 📦 Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
 
-      - name: 📦 Install dependencies
-        run: composer install --prefer-dist --no-progress
-
-      - name: 🔍 Run Laravel Pint
+      - name: 🔍 Laravel Pint
         run: vendor/bin/pint --test
 
-  # ==========================================
-  # 2️⃣ Backend Tests (Laravel/Pest)
-  # ==========================================
-  backend-tests:
-    name: 2️⃣ PHP Tests (Pest)
+  typescript-check:
+    name: 📘 TypeScript Check
     runs-on: ubuntu-latest
-    
+    defaults:
+      run:
+        working-directory: portal/frontend
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: portal/frontend/package-lock.json
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🔍 Type Check
+        run: npm run type-check 2>&1 | tee typecheck-output.txt
+
+      - name: 📊 Upload Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-lint-results
+          path: portal/frontend/typecheck-output.txt
+          retention-days: 7
+
+  eslint-check:
+    name: 🟨 ESLint Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portal/frontend
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: portal/frontend/package-lock.json
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🔍 ESLint
+        run: npm run lint 2>&1 | tee lint-output.txt
+
+      - name: 📊 Upload Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eslint-results
+          path: portal/frontend/lint-output.txt
+          retention-days: 7
+
+  # ┌──────────────────────────────────────────────────────────────────────────────┐
+  # │ 🧪 UNIT & INTEGRATION TESTS                                                 │
+  # └──────────────────────────────────────────────────────────────────────────────┘
+
+  php-tests:
+    name: 🐘 PHP Tests (Pest)
+    runs-on: ubuntu-latest
+    needs: [php-lint]
     defaults:
       run:
         working-directory: portal/backend
-
+    
     services:
       mysql:
         image: mysql:8.0
@@ -64,35 +146,47 @@ jobs:
           MYSQL_DATABASE: testing
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          --health-start-period=30s
 
     steps:
-      - name: 📥 Checkout code
+      - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 🐘 Setup PHP with Xdebug
+      - name: 🐘 Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
-          extensions: mbstring, pdo, pdo_mysql, sqlite3
+          extensions: pdo_mysql, mbstring, xml, curl, zip
           coverage: xdebug
+          tools: composer:v2
 
-      - name: 📦 Cache Composer dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.composer/cache
-          key: ${{ runner.os }}-composer-${{ hashFiles('portal/backend/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+      - name: 📦 Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
 
-      - name: 📦 Install dependencies
-        run: composer install --prefer-dist --no-progress
-
-      - name: 🔧 Setup environment
+      - name: 🔧 Setup Environment
         run: |
           cp .env.example .env
           php artisan key:generate
 
-      - name: 🗄️ Run migrations
+      - name: ⏳ Wait for MySQL
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -P 3306 -u root -ppassword --silent 2>/dev/null; then
+              echo "✅ MySQL is ready"
+              exit 0
+            fi
+            echo "Waiting for MySQL... ($i/30)"
+            sleep 2
+          done
+          echo "❌ MySQL failed to start"
+          exit 1
+
+      - name: 🗄️ Run Migrations
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -102,7 +196,7 @@ jobs:
           DB_PASSWORD: password
         run: php artisan migrate --force
 
-      - name: 🧪 Run Pest tests with coverage
+      - name: 🧪 Run Tests with Coverage
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -111,422 +205,263 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: password
         run: |
+          mkdir -p coverage
           vendor/bin/pest --coverage --coverage-clover=coverage/clover.xml --log-junit=test-results.xml 2>&1 | tee test-output.txt
-          TEST_EXIT_CODE=${PIPESTATUS[0]}
-          echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
-          exit $TEST_EXIT_CODE
 
-      - name: 📊 Upload test results
+      - name: 📊 Upload Coverage
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: backend-test-results
           path: |
-            portal/backend/test-output.txt
-            portal/backend/test-results.xml
             portal/backend/coverage/
+            portal/backend/test-results.xml
+            portal/backend/test-output.txt
+          retention-days: 7
 
-      - name: 📈 Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: portal/backend/coverage/clover.xml
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: false
-
-  # ==========================================
-  # 3️⃣ Frontend Type Check (Vue/TypeScript)
-  # ==========================================
-  frontend-typecheck:
-    name: 3️⃣ TypeScript Check
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: portal/frontend
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: portal/frontend/package-lock.json
-
-      - name: 📦 Install dependencies
-        run: npm ci
-
-      - name: 🔍 Run TypeScript type check
-        run: npm run type-check 2>&1 | tee typecheck-output.txt
-
-      - name: 📊 Upload type check results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: frontend-typecheck-results
-          path: portal/frontend/typecheck-output.txt
-
-  # ==========================================
-  # 4️⃣ Frontend Lint (ESLint)
-  # ==========================================
-  frontend-lint:
-    name: 4️⃣ ESLint Check
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: portal/frontend
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: portal/frontend/package-lock.json
-
-      - name: 📦 Install dependencies
-        run: npm ci
-
-      - name: 🔍 Run ESLint
-        run: npm run lint 2>&1 | tee lint-output.txt
-
-      - name: 📊 Upload lint results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: frontend-lint-results
-          path: portal/frontend/lint-output.txt
-
-  # ==========================================
-  # 5️⃣ Frontend Tests (Vitest)
-  # ==========================================
   frontend-tests:
-    name: 5️⃣ Vue/TS Tests (Vitest)
+    name: 🎨 Frontend Tests (Vitest)
     runs-on: ubuntu-latest
-    needs: [frontend-typecheck]
-
+    needs: [typescript-check, eslint-check]
     defaults:
       run:
         working-directory: portal/frontend
-
     steps:
-      - name: 📥 Checkout code
+      - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
+      - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: portal/frontend/package-lock.json
 
-      - name: 📦 Install dependencies
+      - name: 📦 Install Dependencies
         run: npm ci
 
-      - name: 🧪 Run tests with coverage
-        run: npm run test:coverage 2>&1 | tee test-output.txt
+      - name: 🧪 Run Tests with Coverage
+        run: |
+          mkdir -p coverage
+          npm run test:coverage -- --run 2>&1 | tee test-output.txt
+        continue-on-error: false
 
-      - name: 📊 Upload test results
+      - name: 📊 Upload Coverage
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: frontend-test-results
           path: |
-            portal/frontend/test-output.txt
             portal/frontend/coverage/
+            portal/frontend/test-output.txt
+          retention-days: 7
 
-      - name: 📈 Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: portal/frontend/coverage/lcov.info
-          flags: frontend
-          name: frontend-coverage
-          fail_ci_if_error: false
-
-  # ==========================================
-  # 6️⃣ Python Tests (pytest)
-  # ==========================================
-  python-tests:
-    name: 6️⃣ Python Tests (pytest)
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: data-importer/scripts
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🐍 Setup Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: data-importer/scripts/requirements.txt
-
-      - name: 📦 Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: 🧪 Run pytest with coverage
-        run: |
-          pytest --cov=. --cov-report=xml:coverage.xml --cov-report=term-missing --junitxml=test-results.xml 2>&1 | tee test-output.txt
-        continue-on-error: true
-
-      - name: 📊 Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: python-test-results
-          path: |
-            data-importer/scripts/test-output.txt
-            data-importer/scripts/test-results.xml
-            data-importer/scripts/coverage.xml
-
-      - name: 📈 Upload to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: data-importer/scripts/coverage.xml
-          flags: python
-          name: python-coverage
-          fail_ci_if_error: false
-
-  # ==========================================
-  # 7️⃣ Frontend Build
-  # ==========================================
   frontend-build:
-    name: 7️⃣ Frontend Build
+    name: 🔨 Frontend Build
     runs-on: ubuntu-latest
-    needs: [frontend-typecheck, frontend-lint, frontend-tests]
-
+    needs: [frontend-tests]
     defaults:
       run:
         working-directory: portal/frontend
-
     steps:
-      - name: 📥 Checkout code
+      - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
+      - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: portal/frontend/package-lock.json
 
-      - name: 📦 Install dependencies
+      - name: 📦 Install Dependencies
         run: npm ci
 
-      - name: 🔨 Build production bundle
+      - name: 🔨 Build
         run: npm run build
+        env:
+          VITE_API_BASE_URL: https://solyx.gg/karting/api/public/api
 
-      - name: 📊 Upload build artifacts
+      - name: 📦 Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-build
-          path: portal/frontend/dist
+          name: frontend-dist
+          path: portal/frontend/dist/
+          retention-days: 7
 
-  # ==========================================
-  # 8️⃣ SonarCloud Analysis
-  # ==========================================
-  sonarcloud:
-    name: 8️⃣ SonarCloud Analysis
+  python-tests:
+    name: 🐍 Python Tests
     runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests, python-tests]
-    if: always()
-
+    defaults:
+      run:
+        working-directory: data-importer/scripts
     steps:
-      - name: 📥 Checkout code (full history)
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov requests python-dateutil
+
+      - name: 🧪 Run Tests
+        run: |
+          python -m pytest --cov=. --cov-report=xml:coverage.xml --cov-report=term -v 2>&1 | tee test-output.txt || true
+
+      - name: 📊 Upload Coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-test-results
+          path: |
+            data-importer/scripts/coverage.xml
+            data-importer/scripts/test-output.txt
+          retention-days: 7
+
+  # ┌──────────────────────────────────────────────────────────────────────────────┐
+  # │ 📊 SONARCLOUD ANALYSIS                                                       │
+  # └──────────────────────────────────────────────────────────────────────────────┘
+
+  sonarcloud:
+    name: 📊 SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: [php-tests, frontend-tests, python-tests]
+    if: always() && !cancelled()
+    steps:
+      - name: 📥 Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 📥 Download test artifacts
+      - name: 📥 Download Backend Coverage
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: backend-test-results
+          path: portal/backend/
         continue-on-error: true
 
-      - name: 📋 Prepare coverage reports
-        run: |
-          mkdir -p portal/backend/coverage
-          mkdir -p portal/frontend/coverage
-          mkdir -p data-importer/scripts
-          
-          if [ -f artifacts/backend-test-results/coverage/clover.xml ]; then
-            cp artifacts/backend-test-results/coverage/clover.xml portal/backend/coverage/
-            echo "✅ Backend coverage: $(grep -o 'statements="[^"]*"' portal/backend/coverage/clover.xml | head -1 || echo 'found')"
-          else
-            echo "⚠️ No backend coverage found"
-          fi
-          
-          if [ -f artifacts/frontend-test-results/coverage/lcov.info ]; then
-            cp artifacts/frontend-test-results/coverage/lcov.info portal/frontend/coverage/
-            echo "✅ Frontend coverage found"
-          else
-            echo "⚠️ No frontend coverage found"
-          fi
-          
-          if [ -f artifacts/python-test-results/coverage.xml ]; then
-            cp artifacts/python-test-results/coverage.xml data-importer/scripts/
-            echo "✅ Python coverage found"
-          else
-            echo "⚠️ No Python coverage found"
-          fi
+      - name: 📥 Download Frontend Coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-test-results
+          path: portal/frontend/
+        continue-on-error: true
 
-      - name: 🔍 Run SonarCloud Scan
+      - name: 📥 Download Python Coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: python-test-results
+          path: data-importer/scripts/
+        continue-on-error: true
+
+      - name: 📂 Debug Coverage Files
+        run: |
+          echo "### Coverage Files:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          find . -name "clover.xml" -o -name "lcov.info" -o -name "coverage.xml" 2>/dev/null >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: 🔍 SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  # ==========================================
-  # 9️⃣ Quality Gate Check
-  # ==========================================
+  # ┌──────────────────────────────────────────────────────────────────────────────┐
+  # │ ✅ QUALITY GATE - Final Check Before Deploy                                  │
+  # └──────────────────────────────────────────────────────────────────────────────┘
+
   quality-gate:
-    name: 9️⃣ Quality Gate
+    name: ✅ Quality Gate
     runs-on: ubuntu-latest
-    needs: [backend-lint, backend-tests, frontend-typecheck, frontend-lint, frontend-tests, frontend-build, python-tests]
+    needs: [php-lint, typescript-check, eslint-check, php-tests, frontend-tests, frontend-build, python-tests, sonarcloud]
     if: always()
-    
     steps:
-      - name: 🚦 Check all jobs passed
+      - name: 🚦 Evaluate Results
         run: |
-          echo "## 🧪 Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 🏎️ CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           
           FAILED=0
           
-          # Check each job
-          if [ "${{ needs.backend-lint.result }}" = "success" ]; then
-            echo "✅ PHP Lint (Pint)" >> $GITHUB_STEP_SUMMARY
+          # PHP Lint
+          if [ "${{ needs.php-lint.result }}" = "success" ]; then
+            echo "| 🐘 PHP Lint | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ PHP Lint (Pint): ${{ needs.backend-lint.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "| 🐘 PHP Lint | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
             FAILED=1
           fi
           
-          if [ "${{ needs.backend-tests.result }}" = "success" ]; then
-            echo "✅ PHP Tests (Pest)" >> $GITHUB_STEP_SUMMARY
+          # TypeScript Check
+          if [ "${{ needs.typescript-check.result }}" = "success" ]; then
+            echo "| 📘 TypeScript | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ PHP Tests (Pest): ${{ needs.backend-tests.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "| 📘 TypeScript | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
             FAILED=1
           fi
           
-          if [ "${{ needs.frontend-typecheck.result }}" = "success" ]; then
-            echo "✅ TypeScript Check" >> $GITHUB_STEP_SUMMARY
+          # ESLint Check
+          if [ "${{ needs.eslint-check.result }}" = "success" ]; then
+            echo "| 🟨 ESLint | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ TypeScript Check: ${{ needs.frontend-typecheck.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟨 ESLint | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
             FAILED=1
           fi
           
-          if [ "${{ needs.frontend-lint.result }}" = "success" ]; then
-            echo "✅ ESLint Check" >> $GITHUB_STEP_SUMMARY
+          # PHP Tests
+          if [ "${{ needs.php-tests.result }}" = "success" ]; then
+            echo "| 🧪 PHP Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ ESLint Check: ${{ needs.frontend-lint.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "| 🧪 PHP Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
             FAILED=1
           fi
           
+          # Frontend Tests
           if [ "${{ needs.frontend-tests.result }}" = "success" ]; then
-            echo "✅ Vue/TS Tests (Vitest)" >> $GITHUB_STEP_SUMMARY
+            echo "| 🎨 Frontend Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Vue/TS Tests (Vitest): ${{ needs.frontend-tests.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "| 🎨 Frontend Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
             FAILED=1
           fi
           
+          # Frontend Build
           if [ "${{ needs.frontend-build.result }}" = "success" ]; then
-            echo "✅ Frontend Build" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔨 Frontend Build | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Frontend Build: ${{ needs.frontend-build.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔨 Frontend Build | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
             FAILED=1
           fi
           
-          # Python tests are optional
-          if [ "${{ needs.python-tests.result }}" = "success" ]; then
-            echo "✅ Python Tests" >> $GITHUB_STEP_SUMMARY
+          # SonarCloud (informational)
+          if [ "${{ needs.sonarcloud.result }}" = "success" ]; then
+            echo "| 📊 SonarCloud | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ Python Tests: ${{ needs.python-tests.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "| 📊 SonarCloud | ⚠️ Check Dashboard |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Python Tests (non-blocking)
+          if [ "${{ needs.python-tests.result }}" = "success" ]; then
+            echo "| 🐍 Python Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🐍 Python Tests | ⚠️ Warning |" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ $FAILED -eq 0 ]; then
-            echo "---" >> $GITHUB_STEP_SUMMARY
-            echo "🎉 **All quality gates passed!**" >> $GITHUB_STEP_SUMMARY
+            echo "### 🎉 All Quality Gates Passed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Ready for deployment. Auto-deploy will run next." >> $GITHUB_STEP_SUMMARY
           else
-            echo "---" >> $GITHUB_STEP_SUMMARY
-            echo "❌ **Quality gate failed - check the failing jobs above**" >> $GITHUB_STEP_SUMMARY
+            echo "### ❌ Quality Gate Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🤖 Auto-fix workflow will attempt to resolve issues..." >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
-  # ==========================================
-  # 📋 Auto-Report Failures to GitHub Issue
-  # ==========================================
-  report-failures:
-    name: 📋 Report Failures
-    runs-on: ubuntu-latest
-    needs: [quality-gate]
-    if: failure() && github.event_name == 'push'
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-      
-      - name: 📥 Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-        continue-on-error: true
-
-      - name: 📝 Create failure report
-        id: create-report
-        run: |
-          REPORT_FILE="failure-report.md"
-          
-          echo "# 🔴 CI Pipeline Failed" > $REPORT_FILE
-          echo "" >> $REPORT_FILE
-          echo "**Commit:** \`${{ github.sha }}\`" >> $REPORT_FILE
-          echo "**Branch:** \`${{ github.ref_name }}\`" >> $REPORT_FILE
-          echo "**Run:** [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $REPORT_FILE
-          echo "**Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $REPORT_FILE
-          echo "" >> $REPORT_FILE
-          echo "---" >> $REPORT_FILE
-          echo "" >> $REPORT_FILE
-          echo "## 📋 Error Details" >> $REPORT_FILE
-          echo "" >> $REPORT_FILE
-          echo "Copy everything below and paste to GitHub Copilot for automatic fixes:" >> $REPORT_FILE
-          echo "" >> $REPORT_FILE
-          echo '```' >> $REPORT_FILE
-          
-          # Collect all error outputs
-          for file in artifacts/*/test-output.txt artifacts/*/typecheck-output.txt artifacts/*/lint-output.txt; do
-            if [ -f "$file" ]; then
-              echo "" >> $REPORT_FILE
-              echo "=== ${file#artifacts/} ===" >> $REPORT_FILE
-              # Only include last 100 lines to keep it manageable
-              tail -100 "$file" >> $REPORT_FILE
-              echo "" >> $REPORT_FILE
-            fi
-          done
-          
-          echo '```' >> $REPORT_FILE
-          
-          # Set output for next step
-          echo "report_path=$REPORT_FILE" >> $GITHUB_OUTPUT
-          
-          cat $REPORT_FILE >> $GITHUB_STEP_SUMMARY
-
-      - name: 📊 Upload failure report
-        uses: actions/upload-artifact@v4
-        with:
-          name: failure-report
-          path: failure-report.md

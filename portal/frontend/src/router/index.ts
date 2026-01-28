@@ -124,25 +124,31 @@ const router = createRouter({
 })
 
 // Navigation guards
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
+  const hasToken = apiService.isAuthenticated()
 
   // Only fetch user if we have a token but no user data
-  if (!authStore.user && apiService.isAuthenticated()) {
+  if (!authStore.user && hasToken) {
     try {
       await authStore.fetchCurrentUser()
     } catch (error) {
-      console.error('Failed to fetch user in router guard:', error)
+      console.warn('Failed to fetch user in router guard:', error)
+      // Token might be expired, clear it
+      apiService.clearAuth()
     }
   }
 
+  // Re-check authentication status after potential user fetch
+  const isAuthenticated = authStore.isAuthenticated
+
   // Redirect authenticated users away from login
-  if (to.meta.requiresGuest && authStore.isAuthenticated) {
+  if (to.meta.requiresGuest && isAuthenticated) {
     return next({ name: 'dashboard' })
   }
 
   // Require authentication
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  if (to.meta.requiresAuth && !isAuthenticated) {
     return next({ name: 'login' })
   }
 

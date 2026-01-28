@@ -4,9 +4,19 @@ Full-stack karting lap time tracking and analytics platform with automated EML p
 
 [![CI/CD Pipeline](https://github.com/TheMaksoo/karting/actions/workflows/ci.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/TheMaksoo/karting/branch/main/graph/badge.svg)](https://codecov.io/gh/TheMaksoo/karting)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting-dashboard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting-dashboard)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting-dashboard&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting-dashboard)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting-dashboard&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting-dashboard)
+
+### SonarCloud Quality Metrics
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=bugs)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 
 ## 🚀 Quick Start
 
