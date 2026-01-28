@@ -44,8 +44,9 @@ export function useStyleVariables() {
       const data = await response.json()
       variables.value = data.variables || {}
       applyStyles()
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch style variables'
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string }
+      error.value = errorObj.message || 'Failed to fetch style variables'
       console.error('Error fetching style variables:', err)
     } finally {
       loading.value = false
@@ -72,8 +73,9 @@ export function useStyleVariables() {
       
       await fetchVariables()
       return true
-    } catch (err: any) {
-      error.value = err.message || 'Failed to update variable'
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string }
+      error.value = errorObj.message || 'Failed to update variable'
       console.error('Error updating variable:', err)
       return false
     }
@@ -99,8 +101,9 @@ export function useStyleVariables() {
       
       await fetchVariables()
       return true
-    } catch (err: any) {
-      error.value = err.message || 'Failed to bulk update variables'
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string }
+      error.value = errorObj.message || 'Failed to bulk update variables'
       console.error('Error bulk updating variables:', err)
       return false
     }
@@ -125,8 +128,9 @@ export function useStyleVariables() {
       
       await fetchVariables()
       return true
-    } catch (err: any) {
-      error.value = err.message || 'Failed to reset variables'
+    } catch (err: unknown) {
+      const errorObj = err as { message?: string }
+      error.value = errorObj.message || 'Failed to reset variables'
       console.error('Error resetting variables:', err)
       return false
     }

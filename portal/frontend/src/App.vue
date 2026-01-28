@@ -3,7 +3,7 @@ import { RouterView } from 'vue-router'
 import { useStyleVariables } from '@/composables/useStyleVariables'
 
 // Load dynamic styles from database
-const { applyStyles } = useStyleVariables()
+useStyleVariables()
 </script>
 
 <template>

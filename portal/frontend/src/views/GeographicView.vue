@@ -124,11 +124,9 @@ const resolvedDriverId = ref<number | null>(null) // Store the actual driver ID 
 const { getTrackStats, getDriverStats, loading, error } = useKartingAPI()
 
 // State
-const trackStats = ref<any[]>([])
+const trackStats = ref<unknown[]>([])
 const selectedRegion = ref('')
 const selectedCountry = ref('')
-let map: L.Map | null = null
-let markers: L.Marker[] = []
 
 // Computed
 const regions = computed(() => {

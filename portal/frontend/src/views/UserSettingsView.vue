@@ -209,7 +209,6 @@ const loadTracks = async () => {
     
     // Only show tracks where user has connected drivers with sessions
     if (myDrivers.value.length > 0) {
-      const driverIds = myDrivers.value.map(d => d.id)
       const trackStats = await apiService.tracks.stats()
       
       // Filter tracks that have data for any of the user's connected drivers
@@ -278,7 +277,7 @@ const deleteTrackNickname = async (trackId: number) => {
     delete trackNicknames.value[trackId]
     delete existingNicknames.value[trackId]
     alert('Track nickname deleted!')
-  } catch (error) {
+  } catch {
     alert('Failed to delete track nickname')
   } finally {
     saving.value = false

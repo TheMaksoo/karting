@@ -161,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
 import { useKartingAPI } from '@/composables/useKartingAPI'
@@ -214,7 +214,7 @@ const loadFinancialData = async () => {
     error.value = ''
 
     // Get session and lap data to calculate costs
-    const [laps, driverStats] = await Promise.all([
+    const [laps] = await Promise.all([
       getAllLaps(),
       getDriverStats()
     ])
@@ -506,8 +506,8 @@ const createCharts = (laps: any[]) => {
     )
 
     let cumulativeCost = 0
-    const dataPoints = sessionEntries.map(([sessionId, sessionLaps]) => {
-      const laps = sessionLaps as any[]
+    const dataPoints = sessionEntries.map(([_sessionId, sessionLaps]) => {
+      const laps = sessionLaps as unknown[]
       const cost = 15 + (calculateSessionDuration(laps) / 60) * 10
       cumulativeCost += cost
 

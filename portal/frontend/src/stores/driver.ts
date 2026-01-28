@@ -2,6 +2,22 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import apiService, { type Driver, type DriverStats } from '@/services/api'
 
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err && typeof err === 'object' && 'response' in err) {
+    const apiErr = err as ApiError
+    return apiErr.response?.data?.message || fallback
+  }
+  return fallback
+}
+
 export const useDriverStore = defineStore('driver', () => {
   const drivers = ref<Driver[]>([])
   const currentDriver = ref<Driver | null>(null)
@@ -14,8 +30,8 @@ export const useDriverStore = defineStore('driver', () => {
     error.value = null
     try {
       drivers.value = await apiService.getDrivers()
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch drivers'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to fetch drivers')
       throw err
     } finally {
       loading.value = false
@@ -28,8 +44,8 @@ export const useDriverStore = defineStore('driver', () => {
     try {
       currentDriver.value = await apiService.getDriver(id)
       return currentDriver.value
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch driver'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to fetch driver')
       throw err
     } finally {
       loading.value = false
@@ -42,8 +58,8 @@ export const useDriverStore = defineStore('driver', () => {
     try {
       driverStats.value = await apiService.getDriverStats(friendsOnly)
       return driverStats.value
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch driver stats'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to fetch driver stats')
       throw err
     } finally {
       loading.value = false
@@ -57,8 +73,8 @@ export const useDriverStore = defineStore('driver', () => {
       const newDriver = await apiService.createDriver(data)
       drivers.value.push(newDriver)
       return newDriver
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to create driver'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to create driver')
       throw err
     } finally {
       loading.value = false
@@ -78,8 +94,8 @@ export const useDriverStore = defineStore('driver', () => {
         currentDriver.value = updatedDriver
       }
       return updatedDriver
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to update driver'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to update driver')
       throw err
     } finally {
       loading.value = false
@@ -95,8 +111,8 @@ export const useDriverStore = defineStore('driver', () => {
       if (currentDriver.value?.id === id) {
         currentDriver.value = null
       }
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to delete driver'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to delete driver')
       throw err
     } finally {
       loading.value = false

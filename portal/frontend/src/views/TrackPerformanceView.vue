@@ -184,7 +184,7 @@ const sortedTracks = computed(() => {
 })
 
 async function loadTrackStats() {
-  const params = selectedDriver.value ? { driver_id: parseInt(selectedDriver.value) } : undefined
+  // selectedDriver is used for filtering but API call doesn't use params yet
   const data = await getTrackStats()
   trackStats.value = data || []
 

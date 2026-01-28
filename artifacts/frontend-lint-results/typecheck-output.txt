@@ -1,4 +1,0 @@
-
-> karting-frontend@1.0.0 type-check
-> vue-tsc --build
-

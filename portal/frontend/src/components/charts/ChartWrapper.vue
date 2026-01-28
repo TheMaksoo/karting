@@ -27,8 +27,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-
 interface Props {
   title: string
   subtitle?: string
@@ -37,7 +35,7 @@ interface Props {
   hasData?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   subtitle: '',
   loading: false,
   error: null,

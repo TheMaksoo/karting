@@ -13,9 +13,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useKartingAPI, type TrackStat } from '@/composables/useKartingAPI'
-import axios from 'axios'
 
-const props = defineProps<{
+defineProps<{
   driverId?: number
 }>()
 
@@ -91,15 +90,6 @@ const initializeMap = () => {
     if (!track.latitude || !track.longitude) return
 
     const marker = L.marker([track.latitude, track.longitude], { icon: customIcon }).addTo(map!)
-
-    // Calculate additional interesting statistics
-    const avgGapToRecord = track.avg_lap_time && track.track_record 
-      ? ((track.avg_lap_time - track.track_record) / track.track_record * 100).toFixed(1)
-      : null
-    
-    const lapsPerSession = track.total_sessions > 0 
-      ? (track.total_laps / track.total_sessions).toFixed(1)
-      : 0
 
     const trackInfo = []
     if (track.distance) trackInfo.push(`${track.distance}m`)

@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import type { ChartOptions } from 'chart.js'
+import type { ChartOptions, ChartType } from 'chart.js'
 import { getColorPalette, getDriverColor, getDriverColors } from '@/utils/driverColors'
 
 export function useChartConfig() {
@@ -25,7 +25,7 @@ export function useChartConfig() {
   }
 
   // Base chart options
-  const baseOptions: ChartOptions<any> = {
+  const baseOptions: ChartOptions<ChartType> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {

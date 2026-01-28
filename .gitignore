@@ -135,3 +135,16 @@ Thumbs.db
 secrets.json
 !secrets.example.json
 Karten.xlsx
+
+# CI/CD artifacts (downloaded during CI runs)
+artifacts/
+errors.txt
+test-output.txt
+*.log
+
+# Coverage reports (generated during testing)
+coverage/
+lcov.info
+clover.xml
+test-results.xml
+tests-report.xml

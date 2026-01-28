@@ -519,7 +519,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import TrackMap from '@/components/TrackMap.vue'
 import FriendsSection from '@/components/home/FriendsSection.vue'
 import LatestActivity from '@/components/home/LatestActivity.vue'
@@ -527,7 +527,7 @@ import QuickStats from '@/components/home/QuickStats.vue'
 import ToastContainer from '@/components/ToastContainer.vue'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
-import { useKartingAPI, type OverviewStats, type DriverStat, type TrackStat } from '@/composables/useKartingAPI'
+import { useKartingAPI } from '@/composables/useKartingAPI'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import apiService from '@/services/api'
@@ -539,7 +539,7 @@ const toast = useToast()
 const loggedInDriverId = computed(() => authStore.user?.driver_id)
 const resolvedDriverId = ref<number | null>(null) // Store the actual driver ID after resolution
 
-const { getOverviewStats, getDriverStats, getTrackStats, getAllLaps, getDriverActivityOverTime, getDriverTrackHeatmap, getTrophyCase } = useKartingAPI()
+const { getOverviewStats, getDriverStats, getTrackStats, getDriverActivityOverTime, getDriverTrackHeatmap, getTrophyCase } = useKartingAPI()
 
 const dataLoading = ref(true)
 const dataError = ref<string | null>(null)
@@ -613,10 +613,8 @@ const heatmapData = ref<Array<Array<{
   trackRecord?: string;
   consistency?: string;
 }>>>([])
-const heatmapApiData = ref<any>(null)
 const maxGapSeconds = ref<number>(0) // Maximum gap in seconds across all drivers/tracks
 const avgConsistency = ref<number>(0)
-const consistencyChange = ref<{ value: number; isIncrease: boolean } | null>(null)
 
 // Activity chart driver selection
 const allActivityDrivers = ref<string[]>([])
@@ -642,11 +640,6 @@ const selectAllActivityDrivers = () => {
   refreshActivityChart()
 }
 
-const deselectAllActivityDrivers = () => {
-  selectedActivityDrivers.value = []
-  refreshActivityChart()
-}
-
 const showOnlyMe = () => {
   const myName = authStore.user?.name || ''
   if (myName && allActivityDrivers.value.includes(myName)) {
@@ -656,9 +649,7 @@ const showOnlyMe = () => {
 }
 
 // Store activity data for re-rendering
-let cachedActivityData: any[] = []
-
-let chartCreationCount = 0
+let cachedActivityData: unknown[] = []
 
 const refreshActivityChart = () => {
   if (cachedActivityData.length > 0) {
@@ -670,19 +661,8 @@ const refreshActivityChart = () => {
 const showTrophyModal = ref(false)
 const selectedTrophyType = ref<string>('')
 const trophyModalTitle = ref('')
-const trophyDetails = ref<any[]>([])
+const trophyDetails = ref<unknown[]>([])
 const trophyDetailsLoading = ref(false)
-
-const getTrophyIcon = (type: string) => {
-  const icons: Record<string, string> = {
-    emblems: '🏅',
-    gold: '🥇',
-    silver: '🥈',
-    bronze: '🥉',
-    coal: '🪨'
-  }
-  return icons[type] || '🏆'
-}
 
 const showTrophyDetails = async (type: string) => {
   if (type === 'emblems' && trophyCase.value.emblems === 0) return
@@ -806,7 +786,7 @@ const loadRealData = async () => {
     resolvedDriverId.value = driverId // Store resolved ID
 
     // Fetch all data from API including new analytics endpoints - filtered by logged-in driver
-    const [overviewData, driversData, tracksData, activityData, heatmapApiData, trophyData] = await Promise.all([
+    const [overviewData, , , activityData, heatmapApiResponse, trophyData] = await Promise.all([
       getOverviewStats(driverId),
       getDriverStats(), 
       getTrackStats(),
@@ -871,20 +851,20 @@ const loadRealData = async () => {
     ]
 
     // Build heatmap from NEW API endpoint with professional data structure
-    if (heatmapApiData) {
-      // Store the full API data for reference
-      heatmapApiData.value = heatmapApiData
+    if (heatmapApiResponse) {
+      const heatmapData_api = heatmapApiResponse as { tracks?: { name: string }[]; drivers?: { name: string }[]; heatmap_data?: unknown[][] }
       
-      if (heatmapApiData.tracks && heatmapApiData.drivers && heatmapApiData.heatmap_data) {
-        heatmapDrivers.value = heatmapApiData.drivers.map((d: any) => d.name)
-        heatmapTracks.value = heatmapApiData.tracks.map((t: any) => t.name)
+      if (heatmapData_api.tracks && heatmapData_api.drivers && heatmapData_api.heatmap_data) {
+        heatmapDrivers.value = heatmapData_api.drivers.map((d) => d.name)
+        heatmapTracks.value = heatmapData_api.tracks.map((t) => t.name)
         
         // Use pre-built matrix from API
         let calculatedMaxGap = 0
         
-        heatmapData.value = heatmapApiData.heatmap_data.map((row: any[]) => {
-          return row.map((cell: any) => {
-            if (!cell.has_data) {
+        heatmapData.value = heatmapData_api.heatmap_data.map((row: unknown[]) => {
+          return row.map((cell: unknown) => {
+            const cellData = cell as { has_data?: boolean; best_lap_time?: number; gap?: number; gap_percentage?: number; is_record?: boolean; lap_count?: number; gap_seconds?: number; avg_lap_time?: number; worst_lap_time?: number; track_record?: number; consistency_range?: number }
+            if (!cellData.has_data) {
               return { 
                 time: 'N/A', 
                 gap: 'N/A', 
@@ -897,8 +877,8 @@ const loadRealData = async () => {
               }
             }
 
-            const isRecord = cell.gap === 0 || Math.abs(cell.gap) < 0.01
-            const gapInSeconds = Math.abs(cell.gap)
+            const isRecord = cellData.gap === 0 || Math.abs(cellData.gap || 0) < 0.01
+            const gapInSeconds = Math.abs(cellData.gap || 0)
             
             // Track maximum gap
             if (gapInSeconds > calculatedMaxGap) {
@@ -906,18 +886,18 @@ const loadRealData = async () => {
             }
             
             return {
-              time: formatTime(cell.best_lap_time),
-              gap: isRecord ? cell.best_lap_time : (cell.gap >= 0 ? `+${cell.gap.toFixed(2)}s` : `${cell.gap.toFixed(2)}s`),
-              gapPercentage: cell.gap_percentage,
-              performance: 100 - cell.gap_percentage,
+              time: formatTime(cellData.best_lap_time),
+              gap: isRecord ? cellData.best_lap_time : ((cellData.gap || 0) >= 0 ? `+${(cellData.gap || 0).toFixed(2)}s` : `${(cellData.gap || 0).toFixed(2)}s`),
+              gapPercentage: cellData.gap_percentage,
+              performance: 100 - (cellData.gap_percentage || 0),
               has_data: true,
               isRecord: isRecord,
-              lapCount: cell.lap_count,
+              lapCount: cellData.lap_count,
               gapSeconds: gapInSeconds,
-              avgLap: cell.avg_lap_time ? formatTime(cell.avg_lap_time) : 'N/A',
-              worstLap: cell.worst_lap_time ? formatTime(cell.worst_lap_time) : 'N/A',
-              trackRecord: cell.track_record ? formatTime(cell.track_record) : 'N/A',
-              consistency: cell.consistency_range ? `${cell.consistency_range.toFixed(2)}s` : 'N/A'
+              avgLap: cellData.avg_lap_time ? formatTime(cellData.avg_lap_time) : 'N/A',
+              worstLap: cellData.worst_lap_time ? formatTime(cellData.worst_lap_time) : 'N/A',
+              trackRecord: cellData.track_record ? formatTime(cellData.track_record) : 'N/A',
+              consistency: cellData.consistency_range ? `${cellData.consistency_range.toFixed(2)}s` : 'N/A'
             }
           })
         })
@@ -1010,16 +990,6 @@ const getHeatmapCellStyle = (driverIndex: number, trackIndex: number) => {
     background: `linear-gradient(135deg, ${color1}, ${color2})`,
     boxShadow: `0 2px 6px ${color1}40`
   }
-}
-
-const getCellTooltip = (driverIndex: number, trackIndex: number) => {
-  const cell = heatmapData.value[driverIndex]?.[trackIndex]
-  if (!cell || !cell.has_data) {
-    return 'No data - Driver has not raced at this track'
-  }
-  const driver = heatmapDrivers.value[driverIndex]
-  const track = heatmapTracks.value[trackIndex]
-  return `${driver} @ ${track}\nBest: ${cell.time}\nGap: ${cell.gap}\nPerformance: ${cell.performance.toFixed(1)}%`
 }
 
 const showHeatmapStats = (driverIndex: number, trackIndex: number) => {
@@ -1169,7 +1139,7 @@ const createActivityChart = (activityData: any[]) => {
       const isSelected = selectedActivityDrivers.value.includes(driverName)
       return isSelected
     })
-    .map(([driverName, dateMap], index) => {
+    .map(([driverName, dateMap], _index) => {
       // Create data array - for cumulative data, maintain last value when driver doesn't race
       let lastCumulative = 0
       const chartData = allSessionDates.map((date, dateIndex) => {
@@ -1194,10 +1164,7 @@ const createActivityChart = (activityData: any[]) => {
       })
       
       
-      // Log actual data for debugging
-      if (chartData.filter(d => d !== null).length < 13) {
-        const nonNullPoints = chartData.map((d, i) => d !== null ? `[${i}:${d?.y}]` : 'null').join(' ')
-      }
+      // Log actual data for debugging (removed unused nonNullPoints)
       
       // Find the original index for consistent colors
       const originalIndex = allDriverNames.indexOf(driverName)
@@ -1218,10 +1185,6 @@ const createActivityChart = (activityData: any[]) => {
         pointBorderWidth: 2,
         spanGaps: true  // Connect lines across missing data points
     }
-  })
-
-  datasets.forEach((ds, idx) => {
-    const validPoints = ds.data.filter((d: any) => d !== null).length
   })
   
   // Format dates as "Mon 25" for x-axis
@@ -1352,9 +1315,7 @@ const createActivityChart = (activityData: any[]) => {
   })
   
   
-  // Log each dataset's visibility
-  chartInstances.activity.data.datasets.forEach((ds: any, idx: number) => {
-  })
+  // Log each dataset's visibility (removed empty forEach)
   
   // Force update to ensure chart renders
   chartInstances.activity.update('none')
@@ -1458,7 +1419,7 @@ const loadAllDrivers = async () => {
   try {
     const response = await apiService.drivers.getAll()
     allDrivers.value = response
-  } catch (error) {
+  } catch {
     toast.error('Failed to load drivers. Please try again.')
   } finally {
     driversLoading.value = false
@@ -1468,7 +1429,7 @@ const loadAllDrivers = async () => {
 const loadExcludedDriverIds = async () => {
   try {
     excludedDriverIds.value = await apiService.friends.getDriverIds()
-  } catch (error) {
+  } catch {
     // Fallback: only use loaded friends if they're available and not in error state
     if (!friendsLoading.value && !friendsError.value && friends.value.length > 0) {
       excludedDriverIds.value = friends.value.map(f => f.driver_id)

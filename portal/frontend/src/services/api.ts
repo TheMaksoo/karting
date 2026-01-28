@@ -119,7 +119,7 @@ export interface Lap {
 export interface Setting {
   id: number
   key: string
-  value: any
+  value: unknown
   description?: string
 }
 
@@ -209,7 +209,7 @@ class ApiService {
           const url = error.config?.url || ''
           // Never clear auth on /auth/me or /auth/login requests
           if (!url.includes('/auth/me') && !url.includes('/auth/login')) {
-            console.log('401 unauthorized on:', url)
+            console.warn('401 unauthorized on:', url)
             this.clearAuth()
             // Only redirect if we're not already on login page
             if (!window.location.pathname.includes('/login')) {
@@ -276,8 +276,8 @@ class ApiService {
     return response.data
   }
 
-  async getDatabaseMetrics(): Promise<{ total_data_points: number, breakdown: any }> {
-    const response = await this.api.get<{ total_data_points: number, breakdown: any }>('/stats/database-metrics')
+  async getDatabaseMetrics(): Promise<{ total_data_points: number, breakdown: Record<string, number> }> {
+    const response = await this.api.get<{ total_data_points: number, breakdown: Record<string, number> }>('/stats/database-metrics')
     return response.data
   }
 
@@ -351,7 +351,7 @@ class ApiService {
   }
 
   // Session endpoints
-  async getSessions(params?: any): Promise<PaginatedResponse<KartingSession>> {
+  async getSessions(params?: Record<string, unknown>): Promise<PaginatedResponse<KartingSession>> {
     const queryParams = { per_page: 25, ...params }
     const response = await this.api.get<PaginatedResponse<KartingSession>>('/sessions', { params: queryParams })
     return response.data
@@ -382,7 +382,7 @@ class ApiService {
   }
 
   // Lap endpoints
-  async getLaps(params?: any): Promise<PaginatedResponse<Lap>> {
+  async getLaps(params?: Record<string, unknown>): Promise<PaginatedResponse<Lap>> {
     const response = await this.api.get<PaginatedResponse<Lap>>('/laps', { params: params || {} })
     return response.data
   }
@@ -417,12 +417,12 @@ class ApiService {
   }
 
   // Settings endpoints
-  async getSettings(): Promise<Record<string, any>> {
-    const response = await this.api.get<Record<string, any>>('/settings')
+  async getSettings(): Promise<Record<string, unknown>> {
+    const response = await this.api.get<Record<string, unknown>>('/settings')
     return response.data
   }
 
-  async updateSetting(key: string, value: any, description?: string): Promise<Setting> {
+  async updateSetting(key: string, value: unknown, description?: string): Promise<Setting> {
     const response = await this.api.put<Setting>(`/settings/${key}`, { value, description })
     return response.data
   }
@@ -447,7 +447,7 @@ class ApiService {
   }
 
   sessions = {
-    getAll: (params?: any) => this.getSessions(params),
+    getAll: (params?: Record<string, unknown>) => this.getSessions(params),
     get: (id: number) => this.getSession(id),
     create: (data: Partial<KartingSession>) => this.createSession(data),
     update: (id: number, data: Partial<KartingSession>) => this.updateSession(id, data),
@@ -456,7 +456,7 @@ class ApiService {
   }
 
   laps = {
-    getAll: (params?: any) => this.getLaps(params),
+    getAll: (params?: Record<string, unknown>) => this.getLaps(params),
     get: (id: number) => this.getLap(id),
     create: (data: Partial<Lap>) => this.createLap(data),
     update: (id: number, data: Partial<Lap>) => this.updateLap(id, data),
@@ -466,7 +466,7 @@ class ApiService {
 
   settings = {
     getAll: () => this.getSettings(),
-    update: (key: string, value: any, description?: string) => this.updateSetting(key, value, description),
+    update: (key: string, value: unknown, description?: string) => this.updateSetting(key, value, description),
   }
 
   stats = {
@@ -546,7 +546,7 @@ class ApiService {
       track_id: string
       session_date: string
       session_type: string
-      laps: any[]
+      laps: Partial<Lap>[]
       temp_path?: string
     }) => {
       const response = await this.api.post('/upload/import', data)
@@ -615,7 +615,7 @@ class ApiService {
       const response = await this.api.post('/admin/users', data)
       return response.data
     },
-    update: async (id: number, data: any) => {
+    update: async (id: number, data: { name?: string; email?: string; role?: string; password?: string }) => {
       const response = await this.api.put(`/admin/users/${id}`, data)
       return response.data
     },
@@ -638,7 +638,7 @@ class ApiService {
   }
 
   // Generic post method for backward compatibility
-  async post(url: string, data?: any, config?: any) {
+  async post(url: string, data?: unknown, config?: Record<string, unknown>) {
     const response = await this.api.post(url, data, config)
     return response
   }

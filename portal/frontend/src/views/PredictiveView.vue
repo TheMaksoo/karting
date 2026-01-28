@@ -170,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
 import { useKartingAPI } from '@/composables/useKartingAPI'
@@ -398,8 +398,6 @@ const generateRecommendations = (laps: any[]) => {
 
   // Analyze lap time distribution
   const lapTimes = laps.map(lap => lap.lap_time)
-  const avgTime = lapTimes.reduce((sum, time) => sum + time, 0) / lapTimes.length
-  const bestTime = Math.min(...lapTimes)
   const consistency = calculateConsistency(lapTimes)
 
   // Time-based analysis

@@ -159,8 +159,12 @@ const props = defineProps<{
   currentPage: number
   totalPages: number
   total: number
-  tracks: any[]
+  tracks: unknown[]
 }>()
+
+// Expose props for template usage
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _props = props
 
 const emit = defineEmits<{
   (e: 'refresh'): void

@@ -1076,7 +1076,7 @@ const startEdit = (index: number) => {
   editBackup.value = { ...lapsData.value[index] }
 }
 
-const saveEdit = (index: number) => {
+const saveEdit = (_index: number) => {
   editingIndex.value = null
   editBackup.value = null
 }
@@ -1172,14 +1172,6 @@ const resetForm = () => {
   batchProgress.value = { current: 0, total: 0, currentFile: '', fileLog: [] }
   batchResults.value = { success: 0, failed: 0, errors: [], duplicates: [], incompleteData: [], savedSessionIds: [], failedAutoDetection: [] }
   batchLaps.value = []
-}
-
-const viewUploadedLaps = () => {
-  // Redirect to sessions view where user can see and edit the uploaded sessions
-  router.push({
-    path: '/sessions',
-    query: { recent: 'true', ids: batchResults.value.savedSessionIds.join(',') }
-  })
 }
 
 // Helper to check if a lap has missing critical data

@@ -121,8 +121,9 @@ export function useKartingAPI() {
         params
       })
       return response.data.data || response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch overview stats'
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      error.value = axiosError.response?.data?.message || 'Failed to fetch overview stats'
       console.error('Error fetching overview stats:', err)
       return null
     } finally {
@@ -138,8 +139,9 @@ export function useKartingAPI() {
         headers: getAuthHeaders()
       })
       return response.data.data || response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch driver stats'
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      error.value = axiosError.response?.data?.message || 'Failed to fetch driver stats'
       console.error('Error fetching driver stats:', err)
       return null
     } finally {
@@ -155,8 +157,9 @@ export function useKartingAPI() {
         headers: getAuthHeaders()
       })
       return response.data.data || response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch track stats'
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      error.value = axiosError.response?.data?.message || 'Failed to fetch track stats'
       console.error('Error fetching track stats:', err)
       return null
     } finally {
@@ -168,7 +171,7 @@ export function useKartingAPI() {
     try {
       loading.value = true
       error.value = null
-      const params: any = {}
+      const params: Record<string, number> = {}
       if (driverId) params.driver_id = driverId
       if (trackId) params.track_id = trackId
       
@@ -177,8 +180,9 @@ export function useKartingAPI() {
         params
       })
       return response.data.data || response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch laps'
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      error.value = axiosError.response?.data?.message || 'Failed to fetch laps'
       console.error('Error fetching laps:', err)
       return null
     } finally {
@@ -194,8 +198,9 @@ export function useKartingAPI() {
         headers: getAuthHeaders()
       })
       return response.data.data || response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch driver laps'
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      error.value = axiosError.response?.data?.message || 'Failed to fetch driver laps'
       console.error('Error fetching driver laps:', err)
       return null
     } finally {
@@ -211,8 +216,9 @@ export function useKartingAPI() {
         headers: getAuthHeaders()
       })
       return response.data.data || response.data
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch sessions'
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      error.value = axiosError.response?.data?.message || 'Failed to fetch sessions'
       console.error('Error fetching sessions:', err)
       return null
     } finally {
@@ -220,7 +226,7 @@ export function useKartingAPI() {
     }
   }
 
-  const getDriverActivityOverTime = async (driverId?: number): Promise<any[] | null> => {
+  const getDriverActivityOverTime = async (driverId?: number): Promise<unknown[] | null> => {
     try {
       const params = driverId ? { driver_id: driverId } : {}
       const response = await axios.get(`${API_BASE_URL}/stats/driver-activity-over-time`, {
@@ -228,25 +234,25 @@ export function useKartingAPI() {
         params
       })
       return response.data
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching driver activity over time:', err)
       return null
     }
   }
 
-  const getDriverTrackHeatmap = async (): Promise<any | null> => {
+  const getDriverTrackHeatmap = async (): Promise<unknown | null> => {
     try {
       const response = await axios.get(`${API_BASE_URL}/stats/driver-track-heatmap`, {
         headers: getAuthHeaders()
       })
       return response.data
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching driver track heatmap:', err)
       return null
     }
   }
 
-  const getTrophyCase = async (driverId: number): Promise<any | null> => {
+  const getTrophyCase = async (driverId: number): Promise<unknown | null> => {
     try {
       const params = { driver_id: driverId }
       const response = await axios.get(`${API_BASE_URL}/stats/trophy-case`, {
@@ -254,20 +260,20 @@ export function useKartingAPI() {
         params
       })
       return response.data
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching trophy case:', err)
       return null
     }
   }
 
-  const fetchTrophyDetails = async (driverId: number, type: string): Promise<any[]> => {
+  const fetchTrophyDetails = async (driverId: number, type: string): Promise<unknown[]> => {
     try {
       const response = await axios.get(`${API_BASE_URL}/stats/trophy-details`, {
         headers: getAuthHeaders(),
         params: { driver_id: driverId, type }
       })
       return response.data || []
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching trophy details:', err)
       return []
     }

@@ -20,8 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-
 interface Stat {
   icon: string
   label: string
@@ -35,7 +33,7 @@ interface StatCategory {
   stats: Stat[]
 }
 
-const props = defineProps<{
+defineProps<{
   statCategories: StatCategory[]
 }>()
 </script>

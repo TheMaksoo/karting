@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
 import { useKartingAPI } from '@/composables/useKartingAPI'
@@ -382,7 +382,7 @@ const findSessionMilestones = (laps: any[]) => {
   const milestones: Array<{ date: string, title: string, description: string }> = []
   const sessions = groupBySession(laps)
 
-  Object.entries(sessions).forEach(([sessionId, sessionLaps]) => {
+  Object.entries(sessions).forEach(([_sessionId, sessionLaps]) => {
     if (!sessionLaps || !Array.isArray(sessionLaps)) return
     const lapsCount = sessionLaps.length
     const firstLap = sessionLaps[0]

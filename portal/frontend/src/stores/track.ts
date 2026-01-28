@@ -2,6 +2,22 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import apiService, { type Track, type TrackStats } from '@/services/api'
 
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err && typeof err === 'object' && 'response' in err) {
+    const apiErr = err as ApiError
+    return apiErr.response?.data?.message || fallback
+  }
+  return fallback
+}
+
 export const useTrackStore = defineStore('track', () => {
   const tracks = ref<Track[]>([])
   const currentTrack = ref<Track | null>(null)
@@ -14,8 +30,8 @@ export const useTrackStore = defineStore('track', () => {
     error.value = null
     try {
       tracks.value = await apiService.getTracks()
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch tracks'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to fetch tracks')
       throw err
     } finally {
       loading.value = false
@@ -28,8 +44,8 @@ export const useTrackStore = defineStore('track', () => {
     try {
       currentTrack.value = await apiService.getTrack(id)
       return currentTrack.value
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch track'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to fetch track')
       throw err
     } finally {
       loading.value = false
@@ -42,8 +58,8 @@ export const useTrackStore = defineStore('track', () => {
     try {
       trackStats.value = await apiService.getTrackStats()
       return trackStats.value
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch track stats'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to fetch track stats')
       throw err
     } finally {
       loading.value = false
@@ -57,8 +73,8 @@ export const useTrackStore = defineStore('track', () => {
       const newTrack = await apiService.createTrack(data)
       tracks.value.push(newTrack)
       return newTrack
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to create track'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to create track')
       throw err
     } finally {
       loading.value = false
@@ -78,8 +94,8 @@ export const useTrackStore = defineStore('track', () => {
         currentTrack.value = updatedTrack
       }
       return updatedTrack
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to update track'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to update track')
       throw err
     } finally {
       loading.value = false
@@ -95,8 +111,8 @@ export const useTrackStore = defineStore('track', () => {
       if (currentTrack.value?.id === id) {
         currentTrack.value = null
       }
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to delete track'
+    } catch (err: unknown) {
+      error.value = getErrorMessage(err, 'Failed to delete track')
       throw err
     } finally {
       loading.value = false
