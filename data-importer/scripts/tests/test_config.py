@@ -10,31 +10,36 @@ from unittest.mock import patch, MagicMock
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config import load_secrets, get_heat_price, get_cost_per_lap
+from config import load_config, get_heat_price, get_cost_per_lap
 
 
-class TestLoadSecrets:
-    """Tests for load_secrets function."""
+class TestLoadConfig:
+    """Tests for load_config function."""
 
-    def test_load_secrets_from_file(self, mock_secrets):
-        """Test loading secrets from a JSON file."""
+    def test_load_config_from_file(self, mock_secrets):
+        """Test loading config from a JSON file."""
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump(mock_secrets, f)
             temp_path = f.name
 
         try:
-            with patch('config.os.path.exists', return_value=True):
+            with patch('config.Path') as mock_path:
+                mock_path.return_value.parent.__truediv__.return_value.exists.return_value = True
                 with patch('builtins.open', MagicMock(return_value=open(temp_path))):
-                    secrets = load_secrets()
-                    assert secrets is not None
+                    config = load_config()
+                    assert config is not None
+                    assert isinstance(config, dict)
         finally:
             os.unlink(temp_path)
 
-    def test_load_secrets_missing_file_returns_empty(self):
-        """Test that missing secrets file returns empty dict."""
-        with patch('config.os.path.exists', return_value=False):
-            secrets = load_secrets()
-            assert secrets == {} or secrets is not None
+    def test_load_config_returns_defaults(self):
+        """Test that load_config returns default configuration."""
+        config = load_config()
+        assert config is not None
+        assert isinstance(config, dict)
+        assert 'openweather_api_key' in config
+        assert 'default_drivers' in config
+        assert 'track_configs' in config
 
 
 class TestGetHeatPrice:
@@ -42,13 +47,13 @@ class TestGetHeatPrice:
 
     def test_get_heat_price_known_track(self):
         """Test getting price for a known track."""
-        price = get_heat_price("De Voltage")
+        price = get_heat_price("Default Track", 1)
         assert isinstance(price, (int, float))
         assert price >= 0
 
     def test_get_heat_price_unknown_track(self):
         """Test getting price for unknown track returns default."""
-        price = get_heat_price("Unknown Track XYZ")
+        price = get_heat_price("Unknown Track XYZ", 2)
         assert isinstance(price, (int, float))
         assert price >= 0
 
