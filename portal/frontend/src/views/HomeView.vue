@@ -1419,7 +1419,7 @@ const handleRetry = async () => {
 
 const handleLogout = async () => {
   localStorage.removeItem('api_token')
-  window.location.href = '/login'
+  window.location.href = '/karting/login'
 }
 
 // Friends and Activity Methods

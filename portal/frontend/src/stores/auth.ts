@@ -50,8 +50,10 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = await apiService.getCurrentUser()
     } catch (err: any) {
       console.error('Failed to fetch user:', err)
-      // Don't clear auth here - the interceptor already handles it
-      // Just set user to null to show logged out state
+      // If we get 401, clear auth and let user re-login
+      if (err.response?.status === 401) {
+        apiService.clearAuth()
+      }
       user.value = null
     } finally {
       loading.value = false
