@@ -190,43 +190,42 @@ class EmlUploadController extends Controller
         // Search a larger slice of the raw content (some EMLs embed useful text later)
         $searchText = strtolower($fileName . ' ' . substr($content, 0, 20000));
 
-        // Track detection patterns (simple filename/content heuristics)
+        // Track detection patterns - now using NAME-BASED lookup instead of hardcoded IDs
         $trackPatterns = [
-            2 => ['devoltage', 'de voltage', 'karten sessie'], // De Voltage
-            3 => ['experience factory', 'experiencefactory', 'antwerp'], // Experience Factory
-            5 => ['goodwill', 'goodwillkarting'], // Goodwill Karting
-            4 => ['berghem', 'circuit park', 'circuitpark', 'circuitpark berghem', 'circuit park berghem'], // Circuit Park Berghem
-            1 => ['fastkart', 'elche', 'resumen de tu carrera'], // Fastkart Elche
-            6 => ['lot66', 'lot 66'], // Lot66
-            7 => ['gilesias', 'racing center'], // Racing Center Gilesias
+            'De Voltage' => ['devoltage', 'de voltage', 'karten sessie'],
+            'Experience Factory' => ['experience factory', 'experiencefactory', 'antwerp'],
+            'Goodwill Karting' => ['goodwill', 'goodwillkarting'],
+            'Circuit Park Berghem' => ['berghem', 'circuit park', 'circuitpark', 'circuitpark berghem', 'circuit park berghem'],
+            'Fastkart Elche' => ['fastkart', 'elche', 'resumen de tu carrera'],
+            'Lot66' => ['lot66', 'lot 66'],
+            'Racing Center Gilesias' => ['gilesias', 'racing center'],
         ];
 
-        foreach ($trackPatterns as $trackId => $patterns) {
+        foreach ($trackPatterns as $trackName => $patterns) {
             foreach ($patterns as $pattern) {
                 if (stripos($searchText, $pattern) !== false) {
-                    // Try to return real Track model if DB is available; otherwise return a lightweight object
+                    // Find track by name (case-insensitive) - works regardless of database ID
                     try {
-                        $t = Track::find($trackId);
+                        $track = Track::whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($trackName) . '%'])->first();
 
-                        if ($t) {
-                            return $t;
+                        if ($track) {
+                            return $track;
                         }
+
+                        // If track doesn't exist, create it automatically
+                        return Track::create([
+                            'track_id' => 'TRK-' . strtoupper(substr(md5($trackName), 0, 6)),
+                            'name' => $trackName,
+                            'city' => $this->getTrackCity($trackName),
+                            'country' => $this->getTrackCountry($trackName),
+                        ]);
                     } catch (\Throwable $e) {
                         // Return fallback object when DB is not reachable in this environment
                         $obj = new \stdClass();
-                        $obj->id = $trackId;
-                        $nameMap = [
-                            1 => 'Fastkart Elche',
-                            2 => 'De Voltage',
-                            3 => 'Experience Factory',
-                            4 => 'Circuit Park Berghem',
-                            5 => 'Goodwill Karting',
-                            6 => 'Lot66',
-                            7 => 'Racing Center Gilesias',
-                        ];
-                        $obj->name = $nameMap[$trackId] ?? 'Unknown Track';
-                        $obj->city = $this->getTrackCity($obj->name);
-                        $obj->country = 'Netherlands';
+                        $obj->id = 0; // Placeholder - will fail validation intentionally
+                        $obj->name = $trackName;
+                        $obj->city = $this->getTrackCity($trackName);
+                        $obj->country = $this->getTrackCountry($trackName);
 
                         return $obj;
                     }
@@ -554,9 +553,25 @@ class EmlUploadController extends Controller
             'Circuit Park Berghem' => 'Berghem',
             'Fastkart Elche' => 'Elche',
             'Lot66' => 'Oosterhout',
+            'Racing Center Gilesias' => 'Gilesias',
         ];
 
         return $cities[$trackName] ?? null;
+    }
+
+    private function getTrackCountry($trackName)
+    {
+        $countries = [
+            'De Voltage' => 'Netherlands',
+            'Experience Factory' => 'Belgium',
+            'Goodwill Karting' => 'Netherlands',
+            'Circuit Park Berghem' => 'Netherlands',
+            'Fastkart Elche' => 'Spain',
+            'Lot66' => 'Netherlands',
+            'Racing Center Gilesias' => 'Spain',
+        ];
+
+        return $countries[$trackName] ?? 'Netherlands';
     }
 
     private function extractSessionData($emailData, $track)

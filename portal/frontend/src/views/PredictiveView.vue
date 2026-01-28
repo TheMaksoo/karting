@@ -173,13 +173,16 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
-import { useKartingAPI } from '@/composables/useKartingAPI'
+import { useKartingAPI, type LapData } from '@/composables/useKartingAPI'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+import { getErrorMessage } from '@/types'
 
 // Register Chart.js components
 Chart.register(...registerables)
 
 const { getColor } = useChartConfig()
 const { getDriverStats, getAllLaps, loading, error } = useKartingAPI()
+const { handleError } = useErrorHandler()
 
 interface GoalPrediction {
   id: number
@@ -243,15 +246,15 @@ const loadPredictions = async () => {
     await nextTick()
     createCharts(allLaps)
 
-  } catch (err: any) {
-    console.error('Error loading predictions:', err)
-    error.value = err.message || 'Failed to load predictions'
+  } catch (err: unknown) {
+    handleError(err, 'predictions')
+    error.value = getErrorMessage(err)
   } finally {
     loading.value = false
   }
 }
 
-const calculatePredictions = (laps: any[]) => {
+const calculatePredictions = (laps: LapData[]) => {
   if (laps.length === 0) return
 
   // Sort laps by date
@@ -295,7 +298,7 @@ const calculatePredictions = (laps: any[]) => {
   }
 }
 
-const calculateTrend = (laps: any[]) => {
+const calculateTrend = (laps: LapData[]) => {
   const dataPoints = laps.map((lap, index) => ({
     x: index,
     y: lap.lap_time
@@ -324,7 +327,7 @@ const calculateConsistency = (times: number[]): number => {
   return Math.max(0.1, Math.min(1, 1 - (stdDev / mean)))
 }
 
-const findBestDayOfWeek = (laps: any[]) => {
+const findBestDayOfWeek = (laps: LapData[]) => {
   const dayStats: { [key: string]: { times: number[], count: number } } = {}
 
   laps.forEach(lap => {
@@ -354,7 +357,7 @@ const findBestDayOfWeek = (laps: any[]) => {
   return { day: bestDay, avgTime: bestAvg, count: bestCount }
 }
 
-const calculateGoalPredictions = (laps: any[]) => {
+const calculateGoalPredictions = (laps: LapData[]) => {
   if (laps.length === 0) return
 
   const currentBest = Math.min(...laps.map(lap => lap.lap_time))
@@ -391,7 +394,7 @@ const calculateGoalPredictions = (laps: any[]) => {
   goalPredictions.value = goals
 }
 
-const generateRecommendations = (laps: any[]) => {
+const generateRecommendations = (laps: LapData[]) => {
   const recommendationsList: Recommendation[] = []
 
   if (laps.length === 0) return
@@ -447,7 +450,7 @@ const generateRecommendations = (laps: any[]) => {
   recommendations.value = recommendationsList.slice(0, 4) // Limit to top 4
 }
 
-const analyzeByHour = (laps: any[]) => {
+const analyzeByHour = (laps: LapData[]) => {
   const hourStats: { [key: number]: number[] } = {}
 
   laps.forEach(lap => {
@@ -480,7 +483,7 @@ const analyzeByHour = (laps: any[]) => {
   return { bestHour, improvement }
 }
 
-const analyzeByTrack = (laps: any[]) => {
+const analyzeByTrack = (laps: LapData[]) => {
   const trackStats: { [key: string]: number[] } = {}
 
   laps.forEach(lap => {
@@ -511,7 +514,7 @@ const analyzeByTrack = (laps: any[]) => {
   }
 }
 
-const createCharts = (laps: any[]) => {
+const createCharts = (laps: LapData[]) => {
   if (laps.length === 0) return
 
   // Destroy existing charts
@@ -677,7 +680,7 @@ const createCharts = (laps: any[]) => {
   }
 }
 
-const analyzeTracksForProbabilities = (laps: any[]) => {
+const analyzeTracksForProbabilities = (laps: LapData[]) => {
   const trackStats: { [key: string]: { winProb: number, podiumProb: number, top5Prob: number } } = {}
 
   const trackGroups = laps.reduce((groups, lap) => {
@@ -685,13 +688,12 @@ const analyzeTracksForProbabilities = (laps: any[]) => {
     if (!groups[track]) groups[track] = []
     groups[track].push(lap)
     return groups
-  }, {} as { [key: string]: any[] })
+  }, {} as { [key: string]: LapData[] })
 
   Object.entries(trackGroups).forEach(([track, trackLaps]) => {
-    const laps = trackLaps as any[]
-    if (laps.length >= 5) {
-      const bestTime = Math.min(...laps.map((lap: any) => lap.lap_time))
-      const avgTime = laps.reduce((sum: number, lap: any) => sum + lap.lap_time, 0) / laps.length
+    if (trackLaps.length >= 5) {
+      const bestTime = Math.min(...trackLaps.map((lap) => lap.lap_time))
+      const avgTime = trackLaps.reduce((sum: number, lap) => sum + lap.lap_time, 0) / trackLaps.length
 
       // Simplified probability calculation based on performance
       const performanceRatio = (avgTime - bestTime) / avgTime

@@ -124,13 +124,16 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
-import { useKartingAPI } from '@/composables/useKartingAPI'
+import { useKartingAPI, type LapData } from '@/composables/useKartingAPI'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+import { getErrorMessage } from '@/types'
 
 // Register Chart.js components
 Chart.register(...registerables)
 
 const { getColor } = useChartConfig()
 const { getAllLaps, loading, error } = useKartingAPI()
+const { handleError } = useErrorHandler()
 
 const selectedPeriod = ref('month')
 
@@ -187,15 +190,15 @@ const loadData = async () => {
     await nextTick()
     createCharts(laps)
 
-  } catch (err: any) {
-    console.error('Error loading temporal data:', err)
-    error.value = err.message || 'Failed to load temporal data'
+  } catch (err: unknown) {
+    handleError(err, 'temporal data')
+    error.value = getErrorMessage(err)
   } finally {
     loading.value = false
   }
 }
 
-const calculateTimeStats = (laps: any[]) => {
+const calculateTimeStats = (laps: LapData[]) => {
   if (laps.length === 0) return
 
   const now = new Date()
@@ -258,7 +261,7 @@ const getPeriodStart = (date: Date, period: string): Date => {
   return d
 }
 
-const calculateImprovement = (laps: any[]): number => {
+const calculateImprovement = (laps: LapData[]): number => {
   if (laps.length < 10) return 0
 
   const firstHalf = laps.slice(0, Math.floor(laps.length / 2))
@@ -270,7 +273,7 @@ const calculateImprovement = (laps: any[]): number => {
   return Math.max(0, firstAvg - secondAvg)
 }
 
-const calculateStreak = (laps: any[]): number => {
+const calculateStreak = (laps: LapData[]): number => {
   const dates = [...new Set(laps.map(lap => new Date(lap.created_at).toDateString()))]
     .map(dateStr => new Date(dateStr))
     .filter(date => !isNaN(date.getTime()))
@@ -296,7 +299,7 @@ const calculateStreak = (laps: any[]): number => {
   return streak
 }
 
-const findBestMonth = (laps: any[]) => {
+const findBestMonth = (laps: LapData[]) => {
   const monthStats: { [key: string]: number } = {}
 
   laps.forEach(lap => {
@@ -319,7 +322,7 @@ const findBestMonth = (laps: any[]) => {
   return { month: bestMonth, sessions: maxSessions }
 }
 
-const generateMilestones = (laps: any[]) => {
+const generateMilestones = (laps: LapData[]) => {
   const milestonesList: Array<{
     date: string
     title: string
@@ -356,7 +359,7 @@ const generateMilestones = (laps: any[]) => {
     .slice(0, 10)
 }
 
-const findPersonalBests = (laps: any[]) => {
+const findPersonalBests = (laps: LapData[]) => {
   const pbs: Array<{ date: string, time: number, track: string, improvement: number }> = []
   let currentPB = Infinity
 
@@ -378,7 +381,7 @@ const findPersonalBests = (laps: any[]) => {
   return pbs.slice(0, 5) // Top 5 PBs
 }
 
-const findSessionMilestones = (laps: any[]) => {
+const findSessionMilestones = (laps: LapData[]) => {
   const milestones: Array<{ date: string, title: string, description: string }> = []
   const sessions = groupBySession(laps)
 
@@ -399,16 +402,16 @@ const findSessionMilestones = (laps: any[]) => {
   return milestones
 }
 
-const groupBySession = (laps: any[]) => {
+const groupBySession = (laps: LapData[]) => {
   return laps.reduce((groups, lap) => {
     const sessionId = lap.session_id
     if (!groups[sessionId]) groups[sessionId] = []
     groups[sessionId].push(lap)
     return groups
-  }, {} as { [key: string]: any[] })
+  }, {} as { [key: string]: LapData[] })
 }
 
-const createCharts = (laps: any[]) => {
+const createCharts = (laps: LapData[]) => {
   if (laps.length === 0) return
 
   // Destroy existing charts
@@ -566,7 +569,7 @@ const createCharts = (laps: any[]) => {
   }
 }
 
-const analyzeByHour = (laps: any[]) => {
+const analyzeByHour = (laps: LapData[]) => {
   const hourStats: { [key: number]: { times: number[], count: number } } = {}
 
   laps.forEach(lap => {
@@ -586,7 +589,7 @@ const analyzeByHour = (laps: any[]) => {
   return result
 }
 
-const analyzeByDayOfWeek = (laps: any[]) => {
+const analyzeByDayOfWeek = (laps: LapData[]) => {
   const dayStats: { [key: string]: { times: number[], count: number } } = {}
 
   laps.forEach(lap => {
@@ -609,7 +612,7 @@ const analyzeByDayOfWeek = (laps: any[]) => {
   return result
 }
 
-const analyzeBySeason = (laps: any[]) => {
+const analyzeBySeason = (laps: LapData[]) => {
   const seasonStats: { [key: string]: { times: number[], count: number } } = {}
 
   laps.forEach(lap => {
@@ -640,7 +643,7 @@ const analyzeBySeason = (laps: any[]) => {
   return result
 }
 
-const createActivityHeatmap = (laps: any[]) => {
+const createActivityHeatmap = (laps: LapData[]) => {
   if (!activityHeatmap.value) return
 
   // Create a simple calendar heatmap

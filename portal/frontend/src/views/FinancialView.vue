@@ -164,13 +164,16 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
-import { useKartingAPI } from '@/composables/useKartingAPI'
+import { useKartingAPI, type LapData } from '@/composables/useKartingAPI'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+import { getErrorMessage } from '@/types'
 
 // Register Chart.js components
 Chart.register(...registerables)
 
 const { getColor } = useChartConfig()
 const { getAllLaps, getDriverStats, loading, error } = useKartingAPI()
+const { handleError } = useErrorHandler()
 
 interface Expense {
   id: number
@@ -231,15 +234,15 @@ const loadFinancialData = async () => {
     await nextTick()
     createCharts(laps)
 
-  } catch (err: any) {
-    console.error('Error loading financial data:', err)
-    error.value = err.message || 'Failed to load financial data'
+  } catch (err: unknown) {
+    handleError(err, 'financial data')
+    error.value = getErrorMessage(err)
   } finally {
     loading.value = false
   }
 }
 
-const calculateFinancialMetrics = (laps: any[]) => {
+const calculateFinancialMetrics = (laps: LapData[]) => {
   if (laps.length === 0) return
 
   // Group laps by session
@@ -251,7 +254,7 @@ const calculateFinancialMetrics = (laps: any[]) => {
 
   // Calculate costs (estimated based on typical karting costs)
   // €15-25 per session depending on duration and track
-  const sessionCosts = Object.values(sessions).map((sessionLaps: any) => {
+  const sessionCosts = Object.values(sessions).map((sessionLaps: LapData[]) => {
     const duration = calculateSessionDuration(sessionLaps)
     const baseCost = 15 // Base cost per session
     const durationMultiplier = Math.max(1, duration / 30) // 30 min base
@@ -271,7 +274,7 @@ const calculateFinancialMetrics = (laps: any[]) => {
     : 0
 }
 
-const groupBySession = (laps: any[]) => {
+const groupBySession = (laps: LapData[]) => {
   return laps.reduce((groups, lap) => {
     const sessionId = lap.session_id
     if (!groups[sessionId]) {
@@ -279,10 +282,10 @@ const groupBySession = (laps: any[]) => {
     }
     groups[sessionId].push(lap)
     return groups
-  }, {} as { [key: string]: any[] })
+  }, {} as { [key: string]: LapData[] })
 }
 
-const calculateSessionDuration = (sessionLaps: any[]): number => {
+const calculateSessionDuration = (sessionLaps: LapData[]): number => {
   if (sessionLaps.length === 0) return 30 // Default 30 minutes
 
   // Estimate duration based on lap count (rough estimate: 10-15 laps per hour)
@@ -290,7 +293,7 @@ const calculateSessionDuration = (sessionLaps: any[]): number => {
   return Math.max(30, (sessionLaps.length / avgLapsPerHour) * 60)
 }
 
-const calculateMonthlyCosts = (laps: any[]) => {
+const calculateMonthlyCosts = (laps: LapData[]) => {
   const monthlyCosts: { [key: string]: number } = {}
 
   // Group by month
@@ -312,17 +315,16 @@ const calculateMonthlyCosts = (laps: any[]) => {
   return monthlyCosts
 }
 
-const generateExpensesFromSessions = (laps: any[]) => {
+const generateExpensesFromSessions = (laps: LapData[]) => {
   const expensesList: Expense[] = []
   const sessions = groupBySession(laps)
 
   Object.entries(sessions).forEach(([sessionId, sessionLaps]) => {
-    const laps = sessionLaps as any[]
-    if (laps.length === 0) return
+    if (sessionLaps.length === 0) return
 
-    const firstLap = laps[0]
+    const firstLap = sessionLaps[0]
     const sessionDate = new Date(firstLap.created_at)
-    const duration = calculateSessionDuration(laps)
+    const duration = calculateSessionDuration(sessionLaps)
     const cost = 15 + (duration / 60) * 10 // €15 base + €10 per hour
 
     expensesList.push({
@@ -371,7 +373,7 @@ const calculateBudgets = () => {
   yearlySpent.value = yearlyExpenses.reduce((sum, expense) => sum + expense.amount, 0)
 }
 
-const createCharts = (laps: any[]) => {
+const createCharts = (laps: LapData[]) => {
   if (laps.length === 0) return
 
   // Destroy existing charts
@@ -507,11 +509,10 @@ const createCharts = (laps: any[]) => {
 
     let cumulativeCost = 0
     const dataPoints = sessionEntries.map(([_sessionId, sessionLaps]) => {
-      const laps = sessionLaps as unknown[]
-      const cost = 15 + (calculateSessionDuration(laps) / 60) * 10
+      const cost = 15 + (calculateSessionDuration(sessionLaps) / 60) * 10
       cumulativeCost += cost
 
-      const bestTime = Math.min(...laps.map((lap: any) => lap.lap_time))
+      const bestTime = Math.min(...sessionLaps.map((lap) => lap.lap_time))
       return {
         x: cumulativeCost,
         y: bestTime
