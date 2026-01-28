@@ -3,35 +3,95 @@
 > vitest run --coverage
 
 
-[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Startup Error [27m[22m⎯⎯⎯⎯⎯⎯⎯⎯[39m
-Error: Cannot find module @rollup/rollup-linux-x64-gnu. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.
-    at requireWithFriendlyError (/home/runner/work/karting/karting/portal/frontend/node_modules/rollup/dist/native.js:83:9)
-    at Object.<anonymous> (/home/runner/work/karting/karting/portal/frontend/node_modules/rollup/dist/native.js:92:76)
-    ... 3 lines matching cause stack trace ...
-    at Module._load (node:internal/modules/cjs/loader:1091:12)
-    at cjsLoader (node:internal/modules/esm/translators:298:15)
-    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:240:7)
-    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
-    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24) {
-  [cause]: Error: Cannot find module '@rollup/rollup-linux-x64-gnu'
-  Require stack:
-  - /home/runner/work/karting/karting/portal/frontend/node_modules/rollup/dist/native.js
-      at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
-      at Module._load (node:internal/modules/cjs/loader:1038:27)
-      at Module.require (node:internal/modules/cjs/loader:1289:19)
-      at require (node:internal/modules/helpers:182:18)
-      at requireWithFriendlyError (/home/runner/work/karting/karting/portal/frontend/node_modules/rollup/dist/native.js:65:10)
-      at Object.<anonymous> (/home/runner/work/karting/karting/portal/frontend/node_modules/rollup/dist/native.js:92:76)
-      at Module._compile (node:internal/modules/cjs/loader:1521:14)
-      at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
-      at Module.load (node:internal/modules/cjs/loader:1266:32)
-      at Module._load (node:internal/modules/cjs/loader:1091:12) {
-    code: 'MODULE_NOT_FOUND',
-    requireStack: [
-      '/home/runner/work/karting/karting/portal/frontend/node_modules/rollup/dist/native.js'
-    ]
-  }
-}
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/home/runner/work/karting/karting/portal/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
 
+ [32m✓[39m src/stores/__tests__/driver.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 21[2mms[22m[39m
+ [32m✓[39m src/stores/__tests__/track.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 19[2mms[22m[39m
+ [32m✓[39m src/stores/__tests__/auth.spec.ts [2m([22m[2m16 tests[22m[2m)[22m[90m 26[2mms[22m[39m
+ [32m✓[39m src/services/__tests__/api.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 6[2mms[22m[39m
 
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m48 passed[39m[22m[90m (48)[39m
+[2m   Start at [22m 19:09:22
+[2m   Duration [22m 3.49s[2m (transform 274ms, setup 954ms, collect 387ms, tests 73ms, environment 1.55s, prepare 398ms)[22m
 
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |    7.77 |    63.68 |   14.03 |    7.77 |                   
+ src               |       0 |        0 |       0 |       0 |                   
+  App.vue          |       0 |        0 |       0 |       0 | 1-10              
+ src/components    |       0 |        0 |       0 |       0 |                   
+  ...Component.vue |       0 |        0 |       0 |       0 | 1-17              
+  QuickStats.vue   |       0 |        0 |       0 |       0 | 1-38              
+  ...Container.vue |       0 |        0 |       0 |       0 | 1-39              
+  TrackMap.vue     |       0 |        0 |       0 |       0 | 1-182             
+ ...mponents/admin |       0 |        0 |       0 |       0 |                   
+  LapsTable.vue    |       0 |        0 |       0 |       0 | 1-212             
+  ...ionsTable.vue |       0 |        0 |       0 |       0 | 1-249             
+ ...ponents/charts |       0 |        0 |       0 |       0 |                   
+  ChartWrapper.vue |       0 |        0 |       0 |       0 | 1-40              
+  StatCard.vue     |       0 |        0 |       0 |       0 | 1-70              
+ ...onents/filters |       0 |        0 |       0 |       0 |                   
+  ChartFilters.vue |       0 |        0 |       0 |       0 | 1-123             
+ ...omponents/home |       0 |        0 |       0 |       0 |                   
+  ...dsSection.vue |       0 |        0 |       0 |       0 | 1-115             
+  ...tActivity.vue |       0 |        0 |       0 |       0 | 1-82              
+  QuickStats.vue   |       0 |        0 |       0 |       0 | 1-18              
+ ...mponents/icons |       0 |        0 |       0 |       0 |                   
+  ...Community.vue |       0 |        0 |       0 |       0 | 1-6               
+  ...mentation.vue |       0 |        0 |       0 |       0 | 1-6               
+  ...Ecosystem.vue |       0 |        0 |       0 |       0 | 1-6               
+  IconSupport.vue  |       0 |        0 |       0 |       0 | 1-6               
+  IconTooling.vue  |       0 |        0 |       0 |       0 | 1-18              
+ ...ponents/layout |       0 |        0 |       0 |       0 |                   
+  ...ardLayout.vue |       0 |        0 |       0 |       0 | 1-106             
+  ...ardLayout.vue |       0 |        0 |       0 |       0 | 1-268             
+ src/composables   |    6.15 |    27.27 |   23.07 |    6.15 |                   
+  ...hartConfig.ts |       0 |        0 |       0 |       0 | 1-204             
+  useKartingAPI.ts |       0 |        0 |       0 |       0 | 1-290             
+  ...ifications.ts |   50.72 |    42.85 |   33.33 |   50.72 | ...01-102,108-109 
+  ...eVariables.ts |       0 |        0 |       0 |       0 | 1-156             
+  useToast.ts      |       0 |        0 |       0 |       0 | 1-50              
+ src/router        |       0 |        0 |       0 |       0 |                   
+  index.ts         |       0 |        0 |       0 |       0 | 1-157             
+ src/services      |   42.23 |    83.33 |     5.1 |   42.23 |                   
+  api.ts           |   42.23 |    83.33 |     5.1 |   42.23 | ...35-637,642-644 
+ ...ices/__tests__ |     100 |      100 |     100 |     100 |                   
+  api.spec.ts      |     100 |      100 |     100 |     100 |                   
+ src/stores        |   84.61 |     64.4 |   93.75 |   84.61 |                   
+  auth.ts          |   74.46 |    70.58 |      75 |   74.46 | 35-47,58-65,85-88 
+  driver.ts        |   90.82 |    72.72 |     100 |   90.82 | ...2,82-83,99-100 
+  track.ts         |   87.15 |       50 |     100 |   87.15 | ...3,96-97,99-100 
+ ...ores/__tests__ |     100 |      100 |     100 |     100 |                   
+  auth.spec.ts     |     100 |      100 |     100 |     100 |                   
+  driver.spec.ts   |     100 |      100 |     100 |     100 |                   
+  track.spec.ts    |     100 |      100 |     100 |     100 |                   
+ src/utils         |       0 |      100 |     100 |       0 |                   
+  driverColors.ts  |       0 |      100 |     100 |       0 | 7-85              
+ src/views         |       0 |        0 |       0 |       0 |                   
+  AboutView.vue    |       0 |        0 |       0 |       0 | 1-4               
+  ...nDataView.vue |       0 |        0 |       0 |       0 | 1-371             
+  ...taViewNew.vue |       0 |        0 |       0 |       0 | 1-335             
+  ...ylingView.vue |       0 |        0 |       0 |       0 | 1-208             
+  ...ementView.vue |       0 |        0 |       0 |       0 | 1-375             
+  AdminView.vue    |       0 |        0 |       0 |       0 | 1-34              
+  BattlesView.vue  |       0 |        0 |       0 |       0 | 1-502             
+  ...boardView.vue |       0 |        0 |       0 |       0 | 1-8               
+  ...ementView.vue |       0 |        0 |       0 |       0 | 1-283             
+  ...StatsView.vue |       0 |        0 |       0 |       0 | 1-105             
+  ...ploadView.vue |       0 |        0 |       0 |       0 | 1-1401            
+  ...ncialView.vue |       0 |        0 |       0 |       0 | 1-589             
+  ...aphicView.vue |       0 |        0 |       0 |       0 | 1-243             
+  HomeView.vue     |       0 |        0 |       0 |       0 | 1-1575            
+  LoginView.vue    |       0 |        0 |       0 |       0 | 1-83              
+  ...ctiveView.vue |       0 |        0 |       0 |       0 | 1-730             
+  ...lysisView.vue |       0 |        0 |       0 |       0 | 1-223             
+  TemporalView.vue |       0 |        0 |       0 |       0 | 1-692             
+  ...ementView.vue |       0 |        0 |       0 |       0 | 1-545             
+  ...manceView.vue |       0 |        0 |       0 |       0 | 1-408             
+  ...dDataView.vue |       0 |        0 |       0 |       0 | 1-641             
+  ...tingsView.vue |       0 |        0 |       0 |       0 | 1-346             
+-------------------|---------|----------|---------|---------|-------------------
