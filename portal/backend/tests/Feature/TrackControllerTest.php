@@ -87,7 +87,7 @@ class TrackControllerTest extends TestCase
         $response = $this->actingAs($this->user)->deleteJson("/api/tracks/{$track->id}");
 
         $response->assertStatus(200);
-        $this->assertDatabaseMissing('tracks', ['id' => $track->id]);
+        $this->assertSoftDeleted('tracks', ['id' => $track->id]);
     }
 
     public function test_stats_returns_track_statistics(): void
@@ -95,7 +95,7 @@ class TrackControllerTest extends TestCase
         $track = Track::factory()->create();
         KartingSession::factory()->count(2)->create(['track_id' => $track->id]);
 
-        $response = $this->actingAs($this->user)->getJson('/api/tracks/stats');
+        $response = $this->actingAs($this->user)->getJson('/api/stats/tracks');
 
         $response->assertStatus(200)->assertJsonStructure([
             '*' => ['track_id', 'track_name', 'total_sessions'],

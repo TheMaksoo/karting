@@ -124,7 +124,7 @@ class LapControllerTest extends TestCase
         $response = $this->actingAs($this->user)->deleteJson("/api/laps/{$lap->id}");
 
         $response->assertStatus(200);
-        $this->assertDatabaseMissing('laps', ['id' => $lap->id]);
+        $this->assertSoftDeleted('laps', ['id' => $lap->id]);
     }
 
     public function test_by_driver_returns_driver_laps(): void
@@ -153,10 +153,10 @@ class LapControllerTest extends TestCase
             'lap_time' => 30.0,
         ]);
 
-        $response = $this->actingAs($this->user)->getJson('/api/laps/overview');
+        $response = $this->actingAs($this->user)->getJson('/api/stats/overview');
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['total_laps', 'total_drivers', 'best_lap_time']);
+            ->assertJsonStructure(['total_laps', 'total_drivers', 'best_lap']);
     }
 
     public function test_lap_stores_sector_times(): void
@@ -166,18 +166,18 @@ class LapControllerTest extends TestCase
             'driver_id' => $this->driver->id,
             'lap_number' => 1,
             'lap_time' => 30.0,
-            'sector_1_time' => 10.5,
-            'sector_2_time' => 10.0,
-            'sector_3_time' => 9.5,
+            'sector1' => 10.5,
+            'sector2' => 10.0,
+            'sector3' => 9.5,
         ];
 
         $response = $this->actingAs($this->user)->postJson('/api/laps', $data);
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('laps', [
-            'sector_1_time' => 10.5,
-            'sector_2_time' => 10.0,
-            'sector_3_time' => 9.5,
+            'sector1' => 10.5,
+            'sector2' => 10.0,
+            'sector3' => 9.5,
         ]);
     }
 }

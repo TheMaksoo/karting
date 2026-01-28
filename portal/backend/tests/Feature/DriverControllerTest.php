@@ -137,7 +137,7 @@ class DriverControllerTest extends TestCase
         $response = $this->actingAs($this->user)->deleteJson("/api/drivers/{$driver->id}");
 
         $response->assertStatus(200);
-        $this->assertDatabaseMissing('drivers', ['id' => $driver->id]);
+        $this->assertSoftDeleted('drivers', ['id' => $driver->id]);
     }
 
     public function test_stats_returns_driver_statistics(): void
@@ -151,7 +151,7 @@ class DriverControllerTest extends TestCase
             'lap_time' => 30.5,
         ]);
 
-        $response = $this->actingAs($this->user)->getJson('/api/drivers/stats');
+        $response = $this->actingAs($this->user)->getJson('/api/stats/drivers');
 
         $response->assertStatus(200)->assertJsonStructure([
             '*' => ['driver_id', 'driver_name', 'total_laps', 'total_sessions'],
@@ -164,7 +164,7 @@ class DriverControllerTest extends TestCase
         $driver2 = Driver::factory()->create();
 
         $response = $this->actingAs($this->user)
-            ->getJson("/api/drivers/stats?driver_id={$driver1->id}");
+            ->getJson("/api/stats/drivers?driver_id={$driver1->id}");
 
         $response->assertStatus(200)->assertJsonCount(1);
     }

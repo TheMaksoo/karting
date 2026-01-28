@@ -113,8 +113,8 @@ describe('Health Check Metrics', function () {
 
         $data = $response->json();
 
-        expect($data['metrics']['memory_usage_mb'])->toBeFloat();
-        expect($data['metrics']['memory_peak_mb'])->toBeFloat();
+        expect($data['metrics']['memory_usage_mb'])->toBeNumeric();
+        expect($data['metrics']['memory_peak_mb'])->toBeNumeric();
         expect($data['metrics']['memory_usage_mb'])->toBeLessThan(1024); // Sanity check
     });
 

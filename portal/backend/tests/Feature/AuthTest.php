@@ -87,12 +87,12 @@ class AuthTest extends TestCase
 
         $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
             'current_password' => 'oldpassword',
-            'new_password' => 'newpassword123',
-            'new_password_confirmation' => 'newpassword123',
+            'new_password' => 'NewPass123!',
+            'new_password_confirmation' => 'NewPass123!',
         ]);
 
         $response->assertStatus(200);
-        $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
+        $this->assertTrue(Hash::check('NewPass123!', $user->fresh()->password));
     }
 
     public function test_change_password_requires_correct_current_password(): void
@@ -103,8 +103,8 @@ class AuthTest extends TestCase
 
         $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
             'current_password' => 'wrongpassword',
-            'new_password' => 'newpassword123',
-            'new_password_confirmation' => 'newpassword123',
+            'new_password' => 'NewPass123!',
+            'new_password_confirmation' => 'NewPass123!',
         ]);
 
         $response->assertStatus(422)
@@ -120,8 +120,8 @@ class AuthTest extends TestCase
 
         $this->actingAs($user)->postJson('/api/auth/change-password', [
             'current_password' => 'oldpassword',
-            'new_password' => 'newpassword123',
-            'new_password_confirmation' => 'newpassword123',
+            'new_password' => 'NewPass123!',
+            'new_password_confirmation' => 'NewPass123!',
         ]);
 
         $this->assertFalse($user->fresh()->must_change_password);

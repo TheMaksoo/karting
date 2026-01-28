@@ -52,7 +52,7 @@ class UploadControllerTest extends TestCase
 
     public function test_manual_entry_validates_required_fields(): void
     {
-        $response = $this->actingAs($this->admin)->postJson('/api/upload/manual', []);
+        $response = $this->actingAs($this->admin)->postJson('/api/upload/manual-entry', []);
 
         $response->assertStatus(422);
     }
@@ -74,7 +74,7 @@ class UploadControllerTest extends TestCase
             ],
         ];
 
-        $response = $this->actingAs($this->admin)->postJson('/api/upload/manual', $data);
+        $response = $this->actingAs($this->admin)->postJson('/api/upload/manual-entry', $data);
 
         // Should create session (200 or 201)
         $this->assertContains($response->status(), [200, 201, 422]);

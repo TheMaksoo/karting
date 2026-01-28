@@ -21,9 +21,9 @@ class LapFactory extends Factory
             'lap_number' => fake()->numberBetween(1, 20),
             'lap_time' => $lapTime,
             'position' => fake()->numberBetween(1, 10),
-            'sector_1_time' => $lapTime * 0.35,
-            'sector_2_time' => $lapTime * 0.35,
-            'sector_3_time' => $lapTime * 0.30,
+            'sector1' => $lapTime * 0.35,
+            'sector2' => $lapTime * 0.35,
+            'sector3' => $lapTime * 0.30,
             'is_best_lap' => false,
         ];
     }

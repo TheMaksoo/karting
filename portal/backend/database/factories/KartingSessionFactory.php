@@ -16,7 +16,7 @@ class KartingSessionFactory extends Factory
             'track_id' => Track::factory(),
             'session_date' => fake()->dateTimeBetween('-1 year', 'now'),
             'session_type' => fake()->randomElement(['heat', 'qualifying', 'race']),
-            'weather_conditions' => fake()->randomElement(['sunny', 'cloudy', 'indoor']),
+            'weather' => fake()->randomElement(['sunny', 'cloudy', 'indoor']),
             'notes' => fake()->optional()->sentence(),
         ];
     }

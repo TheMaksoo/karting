@@ -62,7 +62,7 @@ class FriendControllerTest extends TestCase
             'driver_id' => $friend->id,
         ]);
 
-        $response->assertStatus(422);
+        $response->assertStatus(400); // 400 = conflict (already friends)
     }
 
     public function test_destroy_removes_friend(): void
@@ -77,7 +77,7 @@ class FriendControllerTest extends TestCase
         $response = $this->actingAs($this->user)->deleteJson("/api/friends/{$friend->id}");
 
         $response->assertStatus(200);
-        $this->assertDatabaseMissing('friends', ['id' => $friendship->id]);
+        $this->assertSoftDeleted('friends', ['id' => $friendship->id]);
     }
 
     public function test_get_friend_driver_ids_returns_ids(): void

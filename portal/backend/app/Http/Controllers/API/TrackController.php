@@ -25,7 +25,7 @@ class TrackController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'track_id' => 'required|string|unique:tracks,track_id',
+            'track_id' => 'nullable|string|unique:tracks,track_id',
             'name' => 'required|string|max:255',
             'city' => 'nullable|string',
             'country' => 'nullable|string',
@@ -40,6 +40,11 @@ class TrackController extends Controller
             'pricing' => 'nullable|array',
             'karts' => 'nullable|array',
         ]);
+
+        // Auto-generate track_id if not provided
+        if (empty($validated['track_id'])) {
+            $validated['track_id'] = \Illuminate\Support\Str::slug($validated['name'] . '-' . uniqid());
+        }
 
         $track = Track::create($validated);
 

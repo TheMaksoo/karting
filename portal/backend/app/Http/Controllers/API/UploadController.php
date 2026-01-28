@@ -213,17 +213,16 @@ class UploadController extends Controller
 
                 // Create lap
                 Lap::create([
-                    'session_id' => $session->id,
+                    'karting_session_id' => $session->id,
                     'driver_id' => $driver->id,
                     'lap_number' => $lapData['lap_number'] ?? 1,
                     'lap_time' => $lapData['best_lap_time'],
-                    'sector_1_time' => $lapData['sector_1_time'] ?? null,
-                    'sector_2_time' => $lapData['sector_2_time'] ?? null,
-                    'sector_3_time' => $lapData['sector_3_time'] ?? null,
+                    'sector1' => $lapData['sector1'] ?? $lapData['sector_1_time'] ?? null,
+                    'sector2' => $lapData['sector2'] ?? $lapData['sector_2_time'] ?? null,
+                    'sector3' => $lapData['sector3'] ?? $lapData['sector_3_time'] ?? null,
                     'kart_number' => $lapData['kart_number'] ?? null,
                     'position' => $lapData['position'] ?? null,
                     'is_best_lap' => $lapData['is_best_lap'] ?? false,
-                    'notes' => $lapData['notes'] ?? null,
                 ]);
 
                 $lapsImported++;
@@ -396,13 +395,13 @@ class UploadController extends Controller
                 $driversProcessed[] = $driver->name;
 
                 Lap::create([
-                    'session_id' => $session->id,
+                    'karting_session_id' => $session->id,
                     'driver_id' => $driver->id,
                     'lap_number' => $lapData['lap_number'] ?? null,
                     'lap_time' => $lapData['best_lap_time'] ?? null,
-                    'sector_1_time' => $lapData['sector_1_time'] ?? null,
-                    'sector_2_time' => $lapData['sector_2_time'] ?? null,
-                    'sector_3_time' => $lapData['sector_3_time'] ?? null,
+                    'sector1' => $lapData['sector1'] ?? $lapData['sector_1_time'] ?? null,
+                    'sector2' => $lapData['sector2'] ?? $lapData['sector_2_time'] ?? null,
+                    'sector3' => $lapData['sector3'] ?? $lapData['sector_3_time'] ?? null,
                     'kart_number' => $lapData['kart_number'] ?? null,
                     'position' => $lapData['position'] ?? null,
                     'is_best_lap' => $lapData['is_best_lap'] ?? false,

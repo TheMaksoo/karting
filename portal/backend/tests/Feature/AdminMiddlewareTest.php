@@ -14,7 +14,7 @@ class AdminMiddlewareTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
 
-        $response = $this->actingAs($admin)->getJson('/api/admin/style-variables');
+        $response = $this->actingAs($admin)->getJson('/api/admin/users');
 
         $response->assertStatus(200);
     }
@@ -23,14 +23,14 @@ class AdminMiddlewareTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'driver']);
 
-        $response = $this->actingAs($user)->getJson('/api/admin/style-variables');
+        $response = $this->actingAs($user)->getJson('/api/admin/users');
 
         $response->assertStatus(403);
     }
 
     public function test_unauthenticated_user_cannot_access_admin_routes(): void
     {
-        $response = $this->getJson('/api/admin/style-variables');
+        $response = $this->getJson('/api/admin/users');
 
         $response->assertStatus(401);
     }
