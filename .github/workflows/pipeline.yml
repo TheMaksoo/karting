@@ -288,12 +288,11 @@ jobs:
           [ -f portal/backend/coverage/clover.xml ] && echo "✅ PHP Coverage" >> $GITHUB_STEP_SUMMARY || echo "❌ PHP Coverage missing" >> $GITHUB_STEP_SUMMARY
           [ -f portal/frontend/coverage/lcov.info ] && echo "✅ Frontend Coverage" >> $GITHUB_STEP_SUMMARY || echo "❌ Frontend Coverage missing" >> $GITHUB_STEP_SUMMARY
           [ -f data-importer/scripts/coverage.xml ] && echo "✅ Python Coverage" >> $GITHUB_STEP_SUMMARY || echo "❌ Python Coverage missing" >> $GITHUB_STEP_SUMMARY
-      - uses: SonarSource/sonarqube-scan-action@v5
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: -Dsonar.host.url=https://sonarcloud.io
 
   # ════════════════════════════════════════════════════════════════════════════
   # ✅ STAGE 5: QUALITY GATE

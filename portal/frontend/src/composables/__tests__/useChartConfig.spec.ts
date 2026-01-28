@@ -78,7 +78,8 @@ describe('useChartConfig', () => {
 
     it('should have y-axis beginAtZero', () => {
       const { lineChartOptions } = useChartConfig()
-      expect((lineChartOptions.value.scales?.y as any)?.beginAtZero).toBe(true)
+      const yScale = lineChartOptions.value.scales?.y as { beginAtZero?: boolean } | undefined
+      expect(yScale?.beginAtZero).toBe(true)
     })
   })
 
@@ -127,8 +128,10 @@ describe('useChartConfig', () => {
 
     it('should have both axes beginAtZero', () => {
       const { scatterChartOptions } = useChartConfig()
-      expect((scatterChartOptions.value.scales?.y as any)?.beginAtZero).toBe(true)
-      expect((scatterChartOptions.value.scales?.x as any)?.beginAtZero).toBe(true)
+      const yScale = scatterChartOptions.value.scales?.y as { beginAtZero?: boolean } | undefined
+      const xScale = scatterChartOptions.value.scales?.x as { beginAtZero?: boolean } | undefined
+      expect(yScale?.beginAtZero).toBe(true)
+      expect(xScale?.beginAtZero).toBe(true)
     })
   })
 
