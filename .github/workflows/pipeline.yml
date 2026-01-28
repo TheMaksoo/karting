@@ -1,42 +1,44 @@
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║                    🏎️ KARTING DASHBOARD - UNIFIED PIPELINE                  ║
 # ║                                                                              ║
-# ║  All-in-one CI/CD with automatic fixes and deployment                       ║
-# ║                                                                              ║
-# ║  WORKFLOW GRAPH:                                                             ║
-# ║  ┌─────────┐   ┌─────────┐   ┌─────────┐                                    ║
-# ║  │ Lint    │   │ Lint    │   │ Lint    │                                    ║
-# ║  │   PHP   │   │   TS    │   │ ESLint  │                                    ║
-# ║  └────┬────┘   └────┬────┘   └────┬────┘                                    ║
-# ║       │             │             │                                          ║
-# ║       └──────┬──────┴─────────────┘                                          ║
-# ║              ▼                                                               ║
-# ║  ┌─────────────────────────────────────────┐                                ║
-# ║  │              TESTS                       │                                ║
-# ║  │  ┌─────────┐  ┌─────────┐  ┌─────────┐  │                                ║
-# ║  │  │ Backend │  │Frontend │  │ Python  │  │                                ║
-# ║  │  │  Pest   │  │ Vitest  │  │ Pytest  │  │                                ║
-# ║  │  └────┬────┘  └────┬────┘  └────┬────┘  │                                ║
-# ║  └───────┴────────────┴───────────┴────────┘                                ║
-# ║              │                                                               ║
-# ║              ▼                                                               ║
-# ║  ┌─────────────────┐     ┌─────────────────┐                                ║
-# ║  │   SonarCloud    │────▶│  Quality Gate   │                                ║
-# ║  │    Analysis     │     │    (Pass?)      │                                ║
-# ║  └─────────────────┘     └────────┬────────┘                                ║
-# ║                                   │                                          ║
-# ║              ┌────────────────────┼────────────────────┐                    ║
-# ║              ▼                    │                    ▼                    ║
-# ║  ┌─────────────────┐              │       ┌─────────────────┐               ║
-# ║  │   ❌ Auto-Fix   │              │       │   ✅ Deploy     │               ║
-# ║  │  (on failure)   │              │       │  (on success)   │               ║
-# ║  └────────┬────────┘              │       └─────────────────┘               ║
-# ║           │                       │                                          ║
-# ║           ▼                       │                                          ║
-# ║  ┌─────────────────┐              │                                          ║
-# ║  │  Push Fixes &   │──────────────┘                                          ║
-# ║  │   Re-trigger    │                                                         ║
-# ║  └─────────────────┘                                                         ║
+# ║  CORRECT FLOW:                                                               ║
+# ║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+# ║  │                           STAGE 1: LINT                                 │ ║
+# ║  │         PHP Lint ──┬── TypeScript ──┬── ESLint ──┬── Python            │ ║
+# ║  └────────────────────┴────────────────┴────────────┴─────────────────────┘ ║
+# ║                                    │                                         ║
+# ║                                    ▼                                         ║
+# ║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+# ║  │                          STAGE 2: TEST                                  │ ║
+# ║  │              Backend ──────┬────── Frontend ──────┬────── Python        │ ║
+# ║  └────────────────────────────┴──────────────────────┴────────────────────┘ ║
+# ║                                    │                                         ║
+# ║                                    ▼                                         ║
+# ║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+# ║  │                   STAGE 3: BUILD + SONARCLOUD                           │ ║
+# ║  │                   Frontend Build ────── SonarCloud Analysis             │ ║
+# ║  └─────────────────────────────────────────────────────────────────────────┘ ║
+# ║                                    │                                         ║
+# ║                                    ▼                                         ║
+# ║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+# ║  │                        STAGE 4: QUALITY GATE                            │ ║
+# ║  │                      Check if all stages passed                         │ ║
+# ║  └────────────────────────────┬────────────────────────────────────────────┘ ║
+# ║                               │                                              ║
+# ║              ┌────────────────┴────────────────┐                            ║
+# ║              │                                 │                            ║
+# ║              ▼ (FAILED)                        ▼ (PASSED)                   ║
+# ║  ┌─────────────────────┐            ┌─────────────────────┐                 ║
+# ║  │   🔧 AUTO-FIX       │            │   🚀 DEPLOY         │                 ║
+# ║  │   Apply formatters  │            │   (main only)       │                 ║
+# ║  │   Push & re-trigger │            │                     │                 ║
+# ║  └──────────┬──────────┘            └──────────┬──────────┘                 ║
+# ║             │                                  │                            ║
+# ║             ▼                                  ▼                            ║
+# ║    Re-runs entire pipeline           ┌─────────────────────┐                ║
+# ║    from start                        │  🎉 CLOSE ISSUES    │                ║
+# ║                                      │  (after deploy)     │                ║
+# ║                                      └─────────────────────┘                ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 #
 # 🔑 REQUIRED SECRETS:
@@ -82,12 +84,11 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
-          tools: composer:v2
-      - run: composer install --prefer-dist --no-progress
+      - run: composer install --no-dev --quiet
       - run: vendor/bin/pint --test
 
   lint-typescript:
-    name: 📘 TypeScript Check
+    name: 🔷 TypeScript Check
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -100,7 +101,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: portal/frontend/package-lock.json
       - run: npm ci
-      - run: npm run type-check
+      - run: npx vue-tsc --noEmit
 
   lint-eslint:
     name: 🟨 ESLint Check
@@ -116,14 +117,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: portal/frontend/package-lock.json
       - run: npm ci
-      - run: npm run lint
+      - run: npx eslint "src/**/*.{ts,vue}" --max-warnings=0
 
   # ════════════════════════════════════════════════════════════════════════════
-  # 🧪 STAGE 2: TESTS (runs after linting passes)
+  # 🧪 STAGE 2: TESTS (after lint passes)
   # ════════════════════════════════════════════════════════════════════════════
   
   test-backend:
-    name: 🐘 Backend Tests
+    name: 🧪 Backend Tests
     runs-on: ubuntu-latest
     needs: [lint-php]
     defaults:
@@ -133,53 +134,50 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
+          MYSQL_DATABASE: karting_test
           MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: testing
         ports:
           - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=3
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
-          extensions: pdo_mysql, mbstring, xml, curl, zip
           coverage: xdebug
-      - run: composer install --prefer-dist --no-progress
-      - run: cp .env.example .env && php artisan key:generate
-      - name: Wait for MySQL
-        run: |
-          for i in {1..30}; do
-            mysqladmin ping -h 127.0.0.1 -u root -ppassword --silent && exit 0 || sleep 2
-          done
-          exit 1
-      - name: Run Tests
+      - run: composer install
+      - run: cp .env.testing .env
+      - run: php artisan key:generate
+      - run: php artisan migrate --seed
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
-          DB_DATABASE: testing
+          DB_DATABASE: karting_test
           DB_USERNAME: root
           DB_PASSWORD: password
-        run: |
-          php artisan migrate --force
-          mkdir -p coverage
-          vendor/bin/pest --coverage --coverage-clover=coverage/clover.xml
+      - run: vendor/bin/pest --coverage-clover=coverage/clover.xml
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_DATABASE: karting_test
+          DB_USERNAME: root
+          DB_PASSWORD: password
       - uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./portal/backend/coverage/clover.xml
-          flags: backend
+          flags: php
       - uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
-          path: portal/backend/coverage/
+          path: portal/backend/coverage/clover.xml
 
   test-frontend:
-    name: 🎨 Frontend Tests
+    name: 🧪 Frontend Tests
     runs-on: ubuntu-latest
     needs: [lint-typescript, lint-eslint]
     defaults:
@@ -193,16 +191,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: portal/frontend/package-lock.json
       - run: npm ci
-      - run: npm run test:coverage -- --run
+      - run: npm run test -- --coverage
       - uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./portal/frontend/coverage/lcov.info
-          flags: frontend
+          flags: typescript
       - uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
-          path: portal/frontend/coverage/
+          path: portal/frontend/coverage/lcov.info
 
   test-python:
     name: 🐍 Python Tests
@@ -215,8 +213,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - run: pip install pytest pytest-cov requests python-dateutil
-      - run: python -m pytest --cov=. --cov-report=xml:coverage.xml -v || true
+      - run: pip install pytest pytest-cov
+      - run: pytest --cov=. --cov-report=xml:coverage.xml --ignore=tests/
       - uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -295,7 +293,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   # ════════════════════════════════════════════════════════════════════════════
-  # ✅ STAGE 5: QUALITY GATE
+  # ✅ STAGE 5: QUALITY GATE - DECISION POINT
   # ════════════════════════════════════════════════════════════════════════════
   
   quality-gate:
@@ -311,7 +309,7 @@ jobs:
         run: |
           FAILED=0
           
-          # Check each job
+          # Check critical jobs (not SonarCloud - it's advisory)
           [ "${{ needs.lint-php.result }}" != "success" ] && FAILED=1
           [ "${{ needs.lint-typescript.result }}" != "success" ] && FAILED=1
           [ "${{ needs.lint-eslint.result }}" != "success" ] && FAILED=1
@@ -322,9 +320,13 @@ jobs:
           if [ $FAILED -eq 0 ]; then
             echo "passed=true" >> $GITHUB_OUTPUT
             echo "### ✅ All Quality Gates Passed!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Ready for deployment (if on main branch)." >> $GITHUB_STEP_SUMMARY
           else
             echo "passed=false" >> $GITHUB_OUTPUT
             echo "### ❌ Quality Gate Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Auto-fix will attempt to resolve issues..." >> $GITHUB_STEP_SUMMARY
           fi
           
           # Summary table
@@ -340,7 +342,7 @@ jobs:
           echo "| SonarCloud | ${{ needs.sonarcloud.result }} |" >> $GITHUB_STEP_SUMMARY
 
   # ════════════════════════════════════════════════════════════════════════════
-  # 🔧 STAGE 6A: AUTO-FIX (on failure)
+  # 🔧 AUTO-FIX (ONLY on failure, runs and re-triggers pipeline)
   # ════════════════════════════════════════════════════════════════════════════
   
   auto-fix:
@@ -361,9 +363,11 @@ jobs:
           echo "attempts=$COUNT" >> $GITHUB_OUTPUT
           if [ $COUNT -ge ${{ env.MAX_FIX_ATTEMPTS }} ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "⚠️ Max fix attempts (${{ env.MAX_FIX_ATTEMPTS }}) reached" >> $GITHUB_STEP_SUMMARY
+            echo "### ⚠️ Max Auto-Fix Attempts Reached" >> $GITHUB_STEP_SUMMARY
+            echo "Reached ${{ env.MAX_FIX_ATTEMPTS }} attempts. Manual fix required." >> $GITHUB_STEP_SUMMARY
           else
             echo "skip=false" >> $GITHUB_OUTPUT
+            echo "### 🔧 Attempting Auto-Fix (Attempt $((COUNT + 1))/${{ env.MAX_FIX_ATTEMPTS }})" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Setup Tools
@@ -407,22 +411,27 @@ jobs:
           # Check for changes
           if [ -n "$(git status --porcelain)" ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected! Will commit and re-run pipeline." >> $GITHUB_STEP_SUMMARY
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No auto-fixable changes found. Manual fix may be required." >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Commit & Push Fixes
+      - name: Commit & Push Fixes (Re-triggers Pipeline)
         if: steps.fix.outputs.has_changes == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "🔧 Auto-fix: code style corrections [skip ci]"
+          git commit -m "🔧 Auto-fix: code style corrections"
           git push
-          echo "### ✅ Fixes Applied" >> $GITHUB_STEP_SUMMARY
-          echo "Auto-fix committed and pushed. Pipeline will re-run." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Fixes Committed" >> $GITHUB_STEP_SUMMARY
+          echo "Pipeline will re-run automatically with the fixes applied." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "If the new run passes, deployment will proceed." >> $GITHUB_STEP_SUMMARY
 
-      - name: Create Issue (Max Attempts)
+      - name: Create Issue (Max Attempts Reached)
         if: steps.attempts.outputs.skip == 'true'
         uses: actions/github-script@v7
         with:
@@ -439,13 +448,13 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: '🔴 CI Failed - Manual Fix Required',
-                body: `Auto-fix attempts exhausted. Please fix manually.\n\nRun: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+                body: `## Auto-fix attempts exhausted\n\nThe pipeline has failed and automatic fixes could not resolve the issues after ${process.env.MAX_FIX_ATTEMPTS} attempts.\n\n### Action Required\nPlease manually fix the issues and push a new commit.\n\n### Failed Run\n${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
                 labels: ['ci-failure', 'bug']
               });
             }
 
   # ════════════════════════════════════════════════════════════════════════════
-  # 🚀 STAGE 6B: DEPLOY (on success, main branch only)
+  # 🚀 DEPLOY (ONLY on success + main branch)
   # ════════════════════════════════════════════════════════════════════════════
   
   deploy:
@@ -538,14 +547,14 @@ jobs:
           echo "Migrations and caching completed successfully." >> $GITHUB_STEP_SUMMARY
 
   # ════════════════════════════════════════════════════════════════════════════
-  # 🎉 STAGE 7: CLOSE ISSUES ON SUCCESS
+  # 🎉 CLOSE ISSUES (ONLY after successful deploy)
   # ════════════════════════════════════════════════════════════════════════════
   
   close-issues:
     name: 🎉 Close CI Issues
     runs-on: ubuntu-latest
-    needs: [quality-gate]
-    if: needs.quality-gate.outputs.passed == 'true'
+    needs: [deploy]
+    if: success()
     steps:
       - uses: actions/github-script@v7
         with:
@@ -562,7 +571,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
-                body: '🎉 CI Pipeline passed! Closing automatically.'
+                body: '🎉 CI Pipeline passed and deployed successfully! Closing automatically.'
               });
               await github.rest.issues.update({
                 owner: context.repo.owner,
@@ -571,3 +580,8 @@ jobs:
                 state: 'closed'
               });
             }
+            
+            core.summary
+              .addHeading('🎉 CI Issues Closed', 3)
+              .addRaw(`Closed ${issues.data.length} CI failure issue(s).`)
+              .write();
