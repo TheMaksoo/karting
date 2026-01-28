@@ -257,7 +257,7 @@ const fetchDrivers = async () => {
   
   try {
     const response = await apiService.getDrivers()
-    drivers.value = Array.isArray(response) ? response : response.data || []
+    drivers.value = response
     driverTotal.value = drivers.value.length
   } catch (error: any) {
     driversError.value = error.response?.data?.message || 'Failed to load drivers'
@@ -272,7 +272,7 @@ const fetchTracks = async () => {
   
   try {
     const response = await apiService.getTracks()
-    tracks.value = Array.isArray(response) ? response : response.data || []
+    tracks.value = response
     trackTotal.value = tracks.value.length
   } catch (error: any) {
     tracksError.value = error.response?.data?.message || 'Failed to load tracks'
@@ -287,8 +287,8 @@ const loadFilters = async () => {
       apiService.getDrivers(),
       apiService.getTracks()
     ])
-    allDrivers.value = Array.isArray(driversRes) ? driversRes : driversRes.data || []
-    allTracks.value = Array.isArray(tracksRes) ? tracksRes : tracksRes.data || []
+    allDrivers.value = driversRes
+    allTracks.value = tracksRes
   } catch (error) {
     console.error('Failed to load filters:', error)
   }

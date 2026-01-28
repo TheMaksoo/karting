@@ -144,7 +144,11 @@ describe('Auth Store', () => {
       
       await store.changePassword('old', 'new')
 
-      expect(apiService.changePassword).toHaveBeenCalledWith('old', 'new')
+      expect(apiService.changePassword).toHaveBeenCalledWith({
+        current_password: 'old',
+        new_password: 'new',
+        new_password_confirmation: 'new',
+      })
     })
 
     it('should clear must_change_password flag after success', async () => {

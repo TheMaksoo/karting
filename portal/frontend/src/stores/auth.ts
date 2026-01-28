@@ -72,7 +72,11 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
-      await apiService.changePassword(currentPassword, newPassword)
+      await apiService.changePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+        new_password_confirmation: newPassword,
+      })
       if (user.value) {
         user.value.must_change_password = false
       }

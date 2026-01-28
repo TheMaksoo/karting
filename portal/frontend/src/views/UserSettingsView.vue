@@ -169,7 +169,7 @@ const authStore = useAuthStore()
 const displayName = ref('')
 const tracks = ref<any[]>([])
 const trackNicknames = ref<Record<number, string>>({})
-const existingNicknames = ref<Record<number, string>>({}) // track_id -> nickname_id mapping
+const existingNicknames = ref<Record<number, number>>({}) // track_id -> nickname_id mapping
 const loading = ref(false)
 const saving = ref(false)
 
@@ -210,7 +210,7 @@ const loadTracks = async () => {
     // Only show tracks where user has connected drivers with sessions
     if (myDrivers.value.length > 0) {
       const driverIds = myDrivers.value.map(d => d.id)
-      const trackStats = await apiService.tracks.getStats()
+      const trackStats = await apiService.tracks.stats()
       
       // Filter tracks that have data for any of the user's connected drivers
       const tracksWithData = new Set()
@@ -238,7 +238,7 @@ const saveDisplayName = async () => {
     
     // Update auth store
     if (authStore.user) {
-      authStore.user.display_name = displayName.value
+      (authStore.user as any).display_name = displayName.value
     }
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to save display name')

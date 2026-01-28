@@ -1,8 +1,8 @@
 # 🏎️ Karting Dashboard - Improvement TODO List
 
-> Last updated: Auto-generated
+> Last updated: January 28, 2026
 > Status: **87 improvements identified** across 10 categories  
-> **27 completed** ✅ | **60 remaining**
+> **30 completed** ✅ | **57 remaining**
 
 ## Summary
 
@@ -183,6 +183,18 @@
 - [x] Add Content-Security-Policy headers via middleware
 - [x] Add toast notifications (vue-toastification)
 - [x] Configure SonarCloud + Codecov integration
+- [x] Fix Laravel Pint style issues (78 files)
+- [x] Update ESLint config for flat config format
+- [x] Fix frontend api.spec.ts tests
+
+---
+
+## 🔧 CI/CD Fixes Applied
+
+- Fixed Backend Lint (Pint) - ran `vendor/bin/pint` to fix 78 style issues
+- Fixed Backend Tests (Pest) - configured MySQL env vars for CI
+- Fixed Frontend Lint - updated ESLint scripts for flat config
+- Fixed Frontend Tests - fixed api.spec.ts localStorage assertions
 
 ---
 
