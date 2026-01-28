@@ -128,18 +128,32 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
-import { useKartingAPI } from '@/composables/useKartingAPI'
+import { useKartingAPI, type LapData, type DriverStat } from '@/composables/useKartingAPI'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+import { getErrorMessage } from '@/types'
 
 // Register Chart.js components
 Chart.register(...registerables)
 
 const { getColor } = useChartConfig()
 const { getAllLaps, getDriverStats, loading, error } = useKartingAPI()
+const { handleError } = useErrorHandler()
+
+// Types for battles
+interface Battle {
+  session_id: string
+  track_name: string
+  date: Date
+  driver1Best: number
+  driver2Best: number
+  gap: number
+  winner: 'driver1' | 'driver2'
+}
 
 // State
 const driver1 = ref<number | null>(null)
 const driver2 = ref<number | null>(null)
-const drivers = ref<any[]>([])
+const drivers = ref<DriverStat[]>([])
 const battleData = ref({
   totalBattles: 0,
   driver1Wins: 0,
@@ -147,7 +161,7 @@ const battleData = ref({
   avgGap: 0,
   closestGap: 0,
 })
-const battleHistory = ref<any[]>([])
+const battleHistory = ref<Battle[]>([])
 
 // Chart refs
 const lapTimeChart = ref<HTMLCanvasElement>()
@@ -163,19 +177,16 @@ async function loadDrivers() {
   try {
     const driverStats = await getDriverStats()
     if (driverStats && driverStats.length > 0) {
-      drivers.value = driverStats.map(d => ({
-        id: d.driver_id,
-        name: d.driver_name
-      }))
+      drivers.value = driverStats
 
       // Set default drivers if available
       if (drivers.value.length >= 2) {
-        driver1.value = drivers.value[0].id
-        driver2.value = drivers.value[1].id
+        driver1.value = drivers.value[0].driver_id
+        driver2.value = drivers.value[1].driver_id
       }
     }
-  } catch (err) {
-    console.error('Failed to load drivers:', err)
+  } catch (err: unknown) {
+    handleError(err, 'loading drivers')
   }
 }
 
@@ -224,16 +235,16 @@ async function loadBattle() {
     await nextTick()
     createCharts()
 
-  } catch (err: any) {
-    error.value = err.message || 'Failed to load battle data'
-    console.error('Battle load error:', err)
+  } catch (err: unknown) {
+    handleError(err, 'battle data')
+    error.value = getErrorMessage(err)
   } finally {
     loading.value = false
   }
 }
 
-function findBattles(driver1Laps: any[], driver2Laps: any[]) {
-  const battles: any[] = []
+function findBattles(driver1Laps: LapData[], driver2Laps: LapData[]): Battle[] {
+  const battles: Battle[] = []
 
   // Group laps by track
   const driver1ByTrack = groupBy(driver1Laps, 'track_id')
@@ -261,22 +272,21 @@ function findBattles(driver1Laps: any[], driver2Laps: any[]) {
       const sessionD2Laps = d2Sessions[sessionId]
 
       // Get best lap for each driver in this session
-      const d1Best = sessionD1Laps.reduce((best: any, lap: any) =>
+      const d1Best = sessionD1Laps.reduce((best: LapData | null, lap: LapData) =>
         !best || lap.lap_time < best.lap_time ? lap : best
-      )
-      const d2Best = sessionD2Laps.reduce((best: any, lap: any) =>
+      , null as LapData | null)
+      const d2Best = sessionD2Laps.reduce((best: LapData | null, lap: LapData) =>
         !best || lap.lap_time < best.lap_time ? lap : best
-      )
+      , null as LapData | null)
 
       if (d1Best && d2Best) {
         battles.push({
-          track_id: trackId,
-          track_name: d1Best.track_name,
+          track_name: d1Best.track_name || 'Unknown',
           session_id: sessionId,
-          date: d1Best.created_at,
-          driver1_time: d1Best.lap_time,
-          driver2_time: d2Best.lap_time,
-          winner: d1Best.lap_time < d2Best.lap_time ? driver1.value : driver2.value,
+          date: new Date(d1Best.created_at),
+          driver1Best: d1Best.lap_time,
+          driver2Best: d2Best.lap_time,
+          winner: d1Best.lap_time < d2Best.lap_time ? 'driver1' : 'driver2',
           gap: Math.abs(d1Best.lap_time - d2Best.lap_time)
         })
       }
@@ -286,7 +296,7 @@ function findBattles(driver1Laps: any[], driver2Laps: any[]) {
   return battles
 }
 
-function calculateBattleStats(battles: any[]) {
+function calculateBattleStats(battles: Battle[]) {
   if (battles.length === 0) {
     battleData.value = {
       totalBattles: 0,
@@ -313,13 +323,13 @@ function calculateBattleStats(battles: any[]) {
   }
 }
 
-function groupBy(array: any[], key: string) {
+function groupBy(array: LapData[], key: keyof LapData): { [key: string]: LapData[] } {
   return array.reduce((groups, item) => {
-    const group = item[key]
+    const group = String(item[key])
     groups[group] = groups[group] || []
     groups[group].push(item)
     return groups
-  }, {})
+  }, {} as { [key: string]: LapData[] })
 }
 
 function createCharts() {
@@ -448,8 +458,13 @@ function createCharts() {
   }
 }
 
-function calculateTrackStats(battles: any[]) {
-  const trackStats: any = {}
+interface TrackStat {
+  driver1Wins: number
+  driver2Wins: number
+}
+
+function calculateTrackStats(battles: Battle[]) {
+  const trackStats: { [key: string]: TrackStat } = {}
 
   battles.forEach(battle => {
     const track = battle.track_name
@@ -457,7 +472,7 @@ function calculateTrackStats(battles: any[]) {
       trackStats[track] = { driver1Wins: 0, driver2Wins: 0 }
     }
 
-    if (battle.winner === driver1.value) {
+    if (battle.winner === 'driver1') {
       trackStats[track].driver1Wins++
     } else {
       trackStats[track].driver2Wins++
