@@ -135,6 +135,41 @@
   max-width: 500px;
 }
 
+/* Global Stats Banner */
+.global-stats-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.1) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  
+  .banner-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  
+  .banner-content {
+    flex: 1;
+    
+    strong {
+      display: block;
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+    
+    p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+}
+
 /* Empty State */
 .empty-state {
   display: flex;

@@ -29,6 +29,15 @@
 
       <!-- Dashboard Content (Only shown when data loaded) -->
       <div v-else>
+        <!-- Global Stats Banner -->
+        <div v-if="showingGlobalStats" class="global-stats-banner">
+          <span class="banner-icon">ℹ️</span>
+          <div class="banner-content">
+            <strong>Viewing Global Statistics</strong>
+            <p>Your account is not linked to a driver profile. Contact an administrator to see your personal stats.</p>
+          </div>
+        </div>
+
         <!-- Friends and Activity Sections -->
         <div class="home-sections-grid">
           <FriendsSection 
@@ -547,6 +556,7 @@ const { getOverviewStats, getDriverStats, getTrackStats, getDriverActivityOverTi
 
 const dataLoading = ref(true)
 const dataError = ref<string | null>(null)
+const showingGlobalStats = ref(false)
 
 // Friend and Activity Types
 interface Friend {
@@ -820,10 +830,6 @@ const loadRealData = async () => {
             if (matchingDriver) {
               driverId = matchingDriver.driver_id
               resolvedDriverId.value = driverId // Store resolved ID
-            } else {
-              dataError.value = `No driver profile found for "${authStore.user.name}". Please contact an administrator.`
-              dataLoading.value = false
-              return
             }
           }
         } catch (err: unknown) {
@@ -831,24 +837,25 @@ const loadRealData = async () => {
         }
       }
       
-      // Still no driver ID
+      // No driver profile found - show global stats instead of error
       if (!driverId) {
-        dataError.value = 'Driver ID not found. Please contact an administrator to link your account to a driver profile.'
-        dataLoading.value = false
-        return
+        showingGlobalStats.value = true
+        console.log('No driver profile linked - showing global stats')
       }
     }
 
-    resolvedDriverId.value = driverId // Store resolved ID
+    if (driverId) {
+      resolvedDriverId.value = driverId // Store resolved ID
+    }
 
-    // Fetch all data from API including new analytics endpoints - filtered by logged-in driver
+    // Fetch all data from API - use driver filter if available, otherwise show global
     const [overviewData, , , activityData, heatmapApiResponse, trophyData] = await Promise.all([
-      getOverviewStats(driverId),
+      getOverviewStats(driverId || undefined),
       getDriverStats(), 
       getTrackStats(),
       getDriverActivityOverTime(), // Remove driverId to get ALL drivers' activity
       getDriverTrackHeatmap(),
-      getTrophyCase(driverId)
+      driverId ? getTrophyCase(driverId) : Promise.resolve(null)
     ])
 
     if (!overviewData) {
