@@ -847,7 +847,6 @@ const loadRealData = async () => {
       // No driver profile found - show global stats instead of error
       if (!driverId) {
         showingGlobalStats.value = true
-        console.log('No driver profile linked - showing global stats')
       }
     }
 
