@@ -175,8 +175,10 @@ import { ref, onMounted } from 'vue'
 import apiService from '@/services/api'
 import type { Driver } from '@/services/api'
 import { useErrorHandler, getErrorMessage } from '@/composables/useErrorHandler'
+import { useToast } from '@/composables/useToast'
 
 const { handleError } = useErrorHandler()
+const toast = useToast()
 
 interface User {
   id: number
@@ -255,7 +257,7 @@ const loadUnconnectedDrivers = async () => {
 
 const quickConnectDriver = (driver: Driver) => {
   if (users.value.length === 0) {
-    alert('No users available to connect to')
+    toast.error('No users available to connect to')
     return
   }
   
@@ -287,9 +289,9 @@ const deleteUser = async (user: User) => {
   try {
     await apiService.adminUsers.delete(user.id)
     await loadUsers()
-    alert('User deleted successfully')
+    toast.success('User deleted successfully')
   } catch (error: unknown) {
-    alert(getErrorMessage(error))
+    toast.error(getErrorMessage(error))
   }
 }
 
@@ -303,9 +305,9 @@ const saveUser = async () => {
     }
     await loadUsers()
     closeModals()
-    alert(showEditModal.value ? 'User updated successfully' : 'User created successfully')
+    toast.success(showEditModal.value ? 'User updated successfully' : 'User created successfully')
   } catch (error: unknown) {
-    alert(getErrorMessage(error))
+    toast.error(getErrorMessage(error))
   } finally {
     saving.value = false
   }
@@ -355,9 +357,9 @@ const connectDriver = async (driverId: number) => {
     await apiService.adminUsers.connectDriver(selectedUser.value.id, driverId)
     await loadUsers()
     showDriverModal.value = false
-    alert('Driver connected successfully')
+    toast.success('Driver connected successfully')
   } catch (error: unknown) {
-    alert(getErrorMessage(error))
+    toast.error(getErrorMessage(error))
   }
 }
 
@@ -367,9 +369,9 @@ const disconnectDriver = async (userId: number, driverId: number) => {
   try {
     await apiService.adminUsers.disconnectDriver(userId, driverId)
     await loadUsers()
-    alert('Driver disconnected')
+    toast.success('Driver disconnected')
   } catch (error: unknown) {
-    alert(getErrorMessage(error))
+    toast.error(getErrorMessage(error))
   }
 }
 

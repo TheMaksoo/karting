@@ -612,9 +612,11 @@ import apiService from '@/services/api'
 import type { Track, Driver, User } from '@/services/api'
 import { useErrorHandler, getErrorMessage, getAxiosErrorResponse } from '@/composables/useErrorHandler'
 import { useRouter } from 'vue-router'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const { handleError } = useErrorHandler()
+const toast = useToast()
 
 interface ParsedLap {
   driver_name: string
@@ -942,7 +944,7 @@ const uploadBatch = async (files: File[]) => {
 
 const retryFileWithTrack = async (failedFile: FailedAutoDetection, trackId: number | undefined) => {
   if (!trackId) {
-    alert('Please select a track first')
+    toast.error('Please select a track first')
     return
   }
   
@@ -966,7 +968,7 @@ const retryFileWithTrack = async (failedFile: FailedAutoDetection, trackId: numb
       })
       
       if (saveResponse.success) {
-        alert(`✅ Successfully imported ${failedFile.fileName} with ${response.data.laps?.length || 0} laps!`)
+        toast.success(`Successfully imported ${failedFile.fileName} with ${response.data.laps?.length || 0} laps!`)
         
         // Remove from failedAutoDetection list
         batchResults.value.failedAutoDetection = batchResults.value.failedAutoDetection.filter(
@@ -981,14 +983,14 @@ const retryFileWithTrack = async (failedFile: FailedAutoDetection, trackId: numb
           batchLaps.value.push(...response.data.laps)
         }
       } else {
-        alert(`Failed to save ${failedFile.fileName}: ${saveResponse.message || 'Unknown error'}`)
+        toast.error(`Failed to save ${failedFile.fileName}: ${saveResponse.message || 'Unknown error'}`)
       }
     } else {
-      alert(`Failed to parse ${failedFile.fileName}: ${response.errors?.join(', ') || 'Unknown error'}`)
+      toast.error(`Failed to parse ${failedFile.fileName}: ${response.errors?.join(', ') || 'Unknown error'}`)
     }
   } catch (error: unknown) {
     handleError(error, `retrying ${failedFile.fileName}`)
-    alert(`Error retrying ${failedFile.fileName}: ${getErrorMessage(error)}`)
+    toast.error(`Error retrying ${failedFile.fileName}: ${getErrorMessage(error)}`)
   } finally {
     loading.value = false
     loadingMessage.value = ''
@@ -1121,7 +1123,7 @@ const sortLapsByPosition = () => {
 
 const saveSession = async () => {
   if (lapsData.value.length === 0) {
-    alert('No laps to save')
+    toast.error('No laps to save')
     return
   }
 
@@ -1152,15 +1154,15 @@ const saveSession = async () => {
         await loadAvailableUsers()
         showNewDriversModal.value = true
       } else {
-        alert(`Session ${action} successfully! ${response.laps_imported} laps imported, ${response.drivers_processed.length} drivers processed.`)
+        toast.success(`Session ${action} successfully! ${response.laps_imported} laps imported, ${response.drivers_processed.length} drivers processed.`)
         router.push('/admin/data')
       }
     } else {
-      alert('Failed to save session: ' + (response.message || 'Unknown error'))
+      toast.error('Failed to save session: ' + (response.message || 'Unknown error'))
     }
   } catch (error: unknown) {
     handleError(error, 'saving session')
-    alert('Failed to save session: ' + getErrorMessage(error))
+    toast.error('Failed to save session: ' + getErrorMessage(error))
   } finally {
     saving.value = false
   }
@@ -1211,7 +1213,7 @@ const getGlobalIndex = (pageIndex: number): number => {
 // Manual entry methods
 const addManualLap = () => {
   if (!quickLap.driver_name || !quickLap.lap_time) {
-    alert('Driver name and lap time are required')
+    toast.error('Driver name and lap time are required')
     return
   }
   
@@ -1233,7 +1235,7 @@ const addManualLap = () => {
   }
   
   if (isNaN(lapTimeSeconds) || lapTimeSeconds <= 0) {
-    alert('Invalid lap time format. Use MM:SS.mmm or SS.mmm')
+    toast.error('Invalid lap time format. Use MM:SS.mmm or SS.mmm')
     return
   }
   
@@ -1276,12 +1278,12 @@ const formatLapTime = (seconds: number): string => {
 
 const saveManualSession = async () => {
   if (!manualSession.track_id || !manualSession.session_date) {
-    alert('Track and session date are required')
+    toast.error('Track and session date are required')
     return
   }
   
   if (manualLaps.value.length === 0) {
-    alert('Add at least one lap')
+    toast.error('Add at least one lap')
     return
   }
   
@@ -1300,7 +1302,7 @@ const saveManualSession = async () => {
     })
     
     if (response.success) {
-      alert(`✅ Session saved! ${manualLaps.value.length} laps imported.`)
+      toast.success(`Session saved! ${manualLaps.value.length} laps imported.`)
       // Reset form
       manualSession.track_id = ''
       manualSession.session_date = ''
@@ -1311,11 +1313,11 @@ const saveManualSession = async () => {
       quickLap.lap_number = 1
       router.push('/sessions')
     } else {
-      alert('Failed to save session: ' + (response.message || 'Unknown error'))
+      toast.error('Failed to save session: ' + (response.message || 'Unknown error'))
     }
   } catch (error: unknown) {
     handleError(error, 'saving session')
-    alert('Error saving session: ' + getErrorMessage(error))
+    toast.error('Error saving session: ' + getErrorMessage(error))
   } finally {
     saving.value = false
   }
@@ -1386,12 +1388,12 @@ const connectNewDriver = async (driverId: number) => {
   connectingDriver.value = driverId
   try {
     await apiService.adminUsers.connectDriver(userId, driverId)
-    alert('Driver connected successfully!')
+    toast.success('Driver connected successfully!')
     // Remove from list
     newDriversCreated.value = newDriversCreated.value.filter(d => d.id !== driverId)
     delete driverUserConnections.value[driverId]
   } catch (error: unknown) {
-    alert(getErrorMessage(error))
+    toast.error(getErrorMessage(error))
   } finally {
     connectingDriver.value = null
   }
