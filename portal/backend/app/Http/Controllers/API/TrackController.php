@@ -96,98 +96,110 @@ class TrackController extends Controller
 
     public function stats(Request $request)
     {
-        // Get allowed driver IDs for the user (user + friends) - aggregated by account
         $user = $request->user();
         $allowedDriverIds = $this->getAllowedDriverIds($user);
         $accounts = $this->getDriverIdsByAccount($user);
-
-        // Create cache key based on user
         $cacheKey = 'track_stats_account_' . $user->id;
 
-        // Cache for 5 minutes
         $stats = Cache::remember($cacheKey, 300, function () use ($allowedDriverIds, $accounts) {
-            // Get all tracks with eager loading
             $tracks = Track::all();
-
-            // Fetch all relevant laps in ONE query with eager loading
-            $allLaps = Lap::whereIn('driver_id', $allowedDriverIds)
-                ->with(['kartingSession.track', 'driver.user'])
-                ->get()
-                ->groupBy(fn ($lap) => $lap->kartingSession?->track_id);
-
-            // Get session counts by track using aggregation
-            $sessionCounts = KartingSession::whereHas('laps', function ($q) use ($allowedDriverIds) {
-                $q->whereIn('driver_id', $allowedDriverIds);
-            })
-                ->select('track_id', DB::raw('COUNT(*) as count'))
-                ->groupBy('track_id')
-                ->pluck('count', 'track_id');
-
-            // Build driver_id to account mapping
-            $driverToAccount = [];
-
-            foreach ($accounts as $account) {
-                foreach ($account['driver_ids'] as $driverId) {
-                    $driverToAccount[$driverId] = $account['user_name'];
-                }
-            }
+            $allLaps = $this->fetchLapsByTrack($allowedDriverIds);
+            $sessionCounts = $this->fetchSessionCounts($allowedDriverIds);
+            $driverToAccount = $this->buildDriverToAccountMap($accounts);
 
             return $tracks->map(function ($track) use ($allLaps, $sessionCounts, $driverToAccount) {
-                $laps = $allLaps->get($track->id, collect());
-
-                // Skip tracks with no laps
-                if ($laps->count() === 0) {
-                    return null;
-                }
-
-                $bestLap = $laps->sortBy('lap_time')->first();
-                $allLapTimes = $laps->pluck('lap_time')->filter();
-
-                // Calculate average speed
-                $avgSpeed = null;
-
-                if ($laps->count() > 0 && $track->distance) {
-                    $speeds = $laps->map(fn ($lap) => ($track->distance / $lap->lap_time) * 3.6);
-                    $avgSpeed = $speeds->avg();
-                }
-
-                // Count unique accounts instead of unique drivers
-                $uniqueAccounts = $laps->pluck('driver_id')
-                    ->map(fn ($driverId) => $driverToAccount[$driverId] ?? 'Unknown')
-                    ->unique()
-                    ->count();
-
-                // Get record holder account name
-                $recordHolderAccount = $bestLap
-                    ? ($driverToAccount[$bestLap->driver_id] ?? $bestLap->driver?->name)
-                    : null;
-
-                return [
-                    'track_id' => $track->id,
-                    'track_name' => $track->name,
-                    'city' => $track->city,
-                    'country' => $track->country,
-                    'region' => $track->region,
-                    'distance' => $track->distance,
-                    'corners' => $track->corners,
-                    'indoor' => $track->indoor,
-                    'latitude' => $track->latitude ? (float) $track->latitude : null,
-                    'longitude' => $track->longitude ? (float) $track->longitude : null,
-                    'total_sessions' => $sessionCounts->get($track->id, 0),
-                    'total_laps' => $laps->count(),
-                    'unique_accounts' => $uniqueAccounts,
-                    'track_record' => $bestLap ? (float) $bestLap->lap_time : null,
-                    'record_holder' => $recordHolderAccount,
-                    'avg_lap_time' => $allLapTimes->count() > 0 ? (float) $allLapTimes->avg() : null,
-                    'median_lap_time' => $allLapTimes->count() > 0 ? (float) $allLapTimes->median() : null,
-                    'avg_speed_kmh' => $avgSpeed ? round($avgSpeed, 2) : null,
-                    'total_distance_km' => $laps->count() > 0 && $track->distance
-                        ? round(($laps->count() * $track->distance) / 1000, 2)
-                        : null,
-                ];
+                return $this->buildTrackStats($track, $allLaps, $sessionCounts, $driverToAccount);
             })->filter()->values();
         });
 
         return response()->json($stats);
+    }
+
+    private function fetchLapsByTrack(array $allowedDriverIds)
+    {
+        return Lap::whereIn('driver_id', $allowedDriverIds)
+            ->with(['kartingSession.track', 'driver.user'])
+            ->get()
+            ->groupBy(fn ($lap) => $lap->kartingSession?->track_id);
+    }
+
+    private function fetchSessionCounts(array $allowedDriverIds)
+    {
+        return KartingSession::whereHas('laps', function ($q) use ($allowedDriverIds) {
+            $q->whereIn('driver_id', $allowedDriverIds);
+        })
+            ->select('track_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('track_id')
+            ->pluck('count', 'track_id');
+    }
+
+    private function buildDriverToAccountMap(array $accounts): array
+    {
+        $driverToAccount = [];
+
+        foreach ($accounts as $account) {
+            foreach ($account['driver_ids'] as $driverId) {
+                $driverToAccount[$driverId] = $account['user_name'];
+            }
+        }
+
+        return $driverToAccount;
+    }
+
+    private function buildTrackStats($track, $allLaps, $sessionCounts, array $driverToAccount): ?array
+    {
+        $laps = $allLaps->get($track->id, collect());
+
+        if ($laps->count() === 0) {
+            return null;
+        }
+
+        $bestLap = $laps->sortBy('lap_time')->first();
+        $allLapTimes = $laps->pluck('lap_time')->filter();
+
+        $avgSpeed = $this->calculateAverageSpeed($laps, $track);
+        $uniqueAccounts = $laps->pluck('driver_id')
+            ->map(fn ($driverId) => $driverToAccount[$driverId] ?? 'Unknown')
+            ->unique()
+            ->count();
+
+        $recordHolderAccount = $bestLap
+            ? ($driverToAccount[$bestLap->driver_id] ?? $bestLap->driver?->name)
+            : null;
+
+        return [
+            'track_id' => $track->id,
+            'track_name' => $track->name,
+            'city' => $track->city,
+            'country' => $track->country,
+            'region' => $track->region,
+            'distance' => $track->distance,
+            'corners' => $track->corners,
+            'indoor' => $track->indoor,
+            'latitude' => $track->latitude ? (float) $track->latitude : null,
+            'longitude' => $track->longitude ? (float) $track->longitude : null,
+            'total_sessions' => $sessionCounts->get($track->id, 0),
+            'total_laps' => $laps->count(),
+            'unique_accounts' => $uniqueAccounts,
+            'track_record' => $bestLap ? (float) $bestLap->lap_time : null,
+            'record_holder' => $recordHolderAccount,
+            'avg_lap_time' => $allLapTimes->count() > 0 ? (float) $allLapTimes->avg() : null,
+            'median_lap_time' => $allLapTimes->count() > 0 ? (float) $allLapTimes->median() : null,
+            'avg_speed_kmh' => $avgSpeed ? round($avgSpeed, 2) : null,
+            'total_distance_km' => $laps->count() > 0 && $track->distance
+                ? round(($laps->count() * $track->distance) / 1000, 2)
+                : null,
+        ];
+    }
+
+    private function calculateAverageSpeed($laps, $track): ?float
+    {
+        if ($laps->count() === 0 || ! $track->distance) {
+            return null;
+        }
+
+        $speeds = $laps->map(fn ($lap) => ($track->distance / $lap->lap_time) * 3.6);
+
+        return $speeds->avg();
     }
 }
