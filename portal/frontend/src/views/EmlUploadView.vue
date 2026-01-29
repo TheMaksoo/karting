@@ -570,9 +570,45 @@
         <div class="modal-body">
           <p class="modal-hint">The following new drivers were created from the upload. Connect them to user accounts:</p>
           
+          <!-- Bulk Connection Section -->
+          <div class="bulk-connection-section">
+            <div class="bulk-header">
+              <label class="checkbox-wrapper">
+                <input 
+                  type="checkbox" 
+                  :checked="selectedDriversForBulk.size === newDriversCreated.length && newDriversCreated.length > 0"
+                  @change="toggleSelectAllDrivers"
+                />
+                <span>Select All</span>
+              </label>
+              <div class="bulk-controls" v-if="selectedDriversForBulk.size > 0">
+                <select v-model="bulkSelectedUser" class="user-select bulk-user-select">
+                  <option value="">Select user for {{ selectedDriversForBulk.size }} driver(s)...</option>
+                  <option v-for="user in availableUsers" :key="user.id" :value="user.id">
+                    {{ user.name }} ({{ user.email }})
+                  </option>
+                </select>
+                <button 
+                  @click="connectSelectedDrivers" 
+                  :disabled="!bulkSelectedUser || connectingBulk"
+                  class="btn-sm btn-primary"
+                >
+                  {{ connectingBulk ? 'Connecting...' : `Connect ${selectedDriversForBulk.size} Driver(s)` }}
+                </button>
+              </div>
+            </div>
+          </div>
+          
           <div class="new-drivers-list">
             <div v-for="driver in newDriversCreated" :key="driver.id" class="new-driver-item">
               <div class="driver-info-section">
+                <label class="checkbox-wrapper">
+                  <input 
+                    type="checkbox" 
+                    :checked="selectedDriversForBulk.has(driver.id)"
+                    @change="toggleDriverSelection(driver.id)"
+                  />
+                </label>
                 <div class="driver-name-badge">
                   <span class="driver-icon">🏎️</span>
                   <strong>{{ driver.name }}</strong>
@@ -717,6 +753,9 @@ const newDriversCreated = ref<Driver[]>([])
 const availableUsers = ref<User[]>([])
 const driverUserConnections = ref<Record<number, number | ''>>({})
 const connectingDriver = ref<number | null>(null)
+const selectedDriversForBulk = ref<Set<number>>(new Set())
+const bulkSelectedUser = ref<number | ''>('')
+const connectingBulk = ref(false)
 
 // Pagination
 const currentPage = ref(1)
@@ -1396,6 +1435,60 @@ const connectNewDriver = async (driverId: number) => {
     toast.error(getErrorMessage(error))
   } finally {
     connectingDriver.value = null
+  }
+}
+
+// Bulk driver connection functions
+const toggleDriverSelection = (driverId: number) => {
+  const newSet = new Set(selectedDriversForBulk.value)
+  if (newSet.has(driverId)) {
+    newSet.delete(driverId)
+  } else {
+    newSet.add(driverId)
+  }
+  selectedDriversForBulk.value = newSet
+}
+
+const toggleSelectAllDrivers = () => {
+  if (selectedDriversForBulk.value.size === newDriversCreated.value.length) {
+    // Deselect all
+    selectedDriversForBulk.value = new Set()
+  } else {
+    // Select all
+    selectedDriversForBulk.value = new Set(newDriversCreated.value.map(d => d.id))
+  }
+}
+
+const connectSelectedDrivers = async () => {
+  if (!bulkSelectedUser.value || selectedDriversForBulk.value.size === 0) return
+  
+  connectingBulk.value = true
+  const driverIds = Array.from(selectedDriversForBulk.value)
+  let successCount = 0
+  let failCount = 0
+  
+  for (const driverId of driverIds) {
+    try {
+      await apiService.adminUsers.connectDriver(bulkSelectedUser.value as number, driverId)
+      successCount++
+      // Remove from list
+      newDriversCreated.value = newDriversCreated.value.filter(d => d.id !== driverId)
+      delete driverUserConnections.value[driverId]
+    } catch {
+      failCount++
+    }
+  }
+  
+  // Clear selection
+  selectedDriversForBulk.value = new Set()
+  bulkSelectedUser.value = ''
+  connectingBulk.value = false
+  
+  if (successCount > 0) {
+    toast.success(`Connected ${successCount} driver(s) successfully!`)
+  }
+  if (failCount > 0) {
+    toast.error(`Failed to connect ${failCount} driver(s)`)
   }
 }
 

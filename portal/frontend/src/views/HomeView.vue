@@ -52,7 +52,7 @@
           <LatestActivity 
             :activities="activities"
             :loading="activityLoading"
-            :user-driver-id="loggedInDriverId"
+            :user-driver-ids="userDriverIds"
           />
         </div>
 
@@ -566,18 +566,24 @@ interface Friend {
   added_at: string
 }
 
-interface Activity {
-  id: number
-  type: string
-  description: string
-  created_at: string
-  driver_id?: number
-  track_id?: number
+interface SessionActivity {
+  session_id: number
+  track_name: string
+  track_id: number
+  session_date: string
+  session_type: string
+  results: Array<{
+    driver_name: string
+    driver_id: number
+    position: number
+    best_lap_time: number
+  }>
+  total_drivers: number
 }
 
 // Friends and Activity Data
 const friends = ref<Friend[]>([])
-const activities = ref<Activity[]>([])
+const activities = ref<SessionActivity[]>([])
 const allDrivers = ref<Driver[]>([])
 const friendsLoading = ref(false)
 const friendsError = ref<string | null>(null)
@@ -586,6 +592,7 @@ const driversLoading = ref(false)
 const showAddFriendModal = ref(false)
 const driverSearchQuery = ref('')
 const excludedDriverIds = ref<number[]>([])
+const userDriverIds = ref<number[]>([]) // All driver IDs linked to this user account
 
 // Computed property for filtered available drivers (optimized)
 // Note: Debouncing is not needed here as we're filtering an in-memory array
@@ -1482,6 +1489,22 @@ const loadActivity = async () => {
   }
 }
 
+const loadUserDriverIds = async () => {
+  try {
+    const drivers = await apiService.getUserDrivers()
+    userDriverIds.value = drivers.map(d => d.id)
+    // Also include legacy driver_id if set
+    if (authStore.user?.driver_id && !userDriverIds.value.includes(authStore.user.driver_id)) {
+      userDriverIds.value.push(authStore.user.driver_id)
+    }
+  } catch (error: unknown) {
+    // Fallback to legacy driver_id only
+    if (authStore.user?.driver_id) {
+      userDriverIds.value = [authStore.user.driver_id]
+    }
+  }
+}
+
 const loadAllDrivers = async () => {
   driversLoading.value = true
   try {
@@ -1587,10 +1610,11 @@ onMounted(async () => {
     await authStore.fetchCurrentUser()
   }
   
-  // Load friends and activity
+  // Load friends, activity, and user's linked drivers
   await Promise.all([
     loadFriends(),
     loadActivity(),
+    loadUserDriverIds(),
   ])
   
   // Load real data from database

@@ -23,7 +23,7 @@
             v-for="result in activity.results.slice(0, 3)" 
             :key="result.driver_id" 
             class="result-item"
-            :class="{ 'is-highlight': result.driver_id === userDriverId }"
+            :class="{ 'is-highlight': userDriverIds?.includes(result.driver_id) }"
           >
             <div class="position-badge" :class="`position-${result.position}`">
               {{ result.position === 1 ? '🥇' : result.position === 2 ? '🥈' : result.position === 3 ? '🥉' : `#${result.position}` }}
@@ -59,7 +59,7 @@ interface Activity {
 defineProps<{
   activities: Activity[]
   loading: boolean
-  userDriverId?: number
+  userDriverIds?: number[]
 }>()
 
 const formatDate = (dateString: string) => {
