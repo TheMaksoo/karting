@@ -182,21 +182,26 @@ jobs:
   test-python:
     name: 🐍 Python Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: data-importer/scripts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
-        run: pip install -r requirements.txt
-      - run: pytest tests/ --cov=. --cov-report=xml:coverage.xml -v
+        run: pip install -r data-importer/scripts/requirements.txt
+      - name: Run Python tests with coverage
+        run: |
+          cd data-importer/scripts
+          pytest tests/ --cov=. --cov-report=xml -v
+          # Fix paths in coverage.xml for SonarCloud
+          sed -i 's|<source>.*</source>|<source>data-importer/scripts</source>|g' coverage.xml
+          sed -i 's|filename="|filename="data-importer/scripts/|g' coverage.xml
+          mv coverage.xml ../../coverage-python.xml
+      - run: mv coverage-python.xml data-importer/scripts/coverage.xml
       - uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./data-importer/scripts/coverage.xml
+          files: data-importer/scripts/coverage.xml
           flags: python
       - uses: actions/upload-artifact@v4
         with:
