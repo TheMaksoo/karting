@@ -28,6 +28,12 @@ class AuthController extends Controller
             ]);
         }
 
+        // Track login activity
+        $user->update([
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip(),
+        ]);
+
         // Create token
         $token = $user->createToken('auth-token')->plainTextToken;
 
@@ -38,6 +44,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'role' => $user->role,
                 'must_change_password' => $user->must_change_password,
+                'last_login_at' => $user->last_login_at,
             ],
             'token' => $token,
         ]);

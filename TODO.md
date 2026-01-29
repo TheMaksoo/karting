@@ -2,7 +2,7 @@
 
 > Last updated: January 30, 2026
 > Status: **87 improvements identified** across 10 categories  
-> **37 completed** ✅ | **50 remaining**
+> **39 completed** ✅ | **48 remaining**
 
 ## Summary
 
@@ -82,11 +82,11 @@
 
 ### Database
 - [x] Add `deleted_at` column for soft deletes on all main tables ✅
-- [ ] Add `last_login_at` and `last_login_ip` to users table
+- [x] Add `last_login_at` and `last_login_ip` to users table ✅
 - [ ] Add `uploaded_from` IP address to uploads table
 - [x] Add SoftDeletes trait to all models ✅
 - [x] Add model scopes: `scopeBestLaps()`, `scopeActive()` ✅
-- [ ] Define `$with` property on KartingSession for eager loading
+- [x] Define `$with` property on KartingSession for eager loading ✅
 
 ### Frontend UX
 - [x] Create `ErrorBoundary.vue` component for Vue error handling ✅
