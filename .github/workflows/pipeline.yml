@@ -190,14 +190,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r data-importer/scripts/requirements.txt
       - name: Run Python tests with coverage
+        working-directory: data-importer/scripts
+        run: pytest tests/ --cov=. --cov-report=xml -v
+      - name: Fix coverage paths for SonarCloud
         run: |
-          cd data-importer/scripts
-          pytest tests/ --cov=. --cov-report=xml -v
-          # Fix paths in coverage.xml for SonarCloud
-          sed -i 's|<source>.*</source>|<source>data-importer/scripts</source>|g' coverage.xml
-          sed -i 's|filename="|filename="data-importer/scripts/|g' coverage.xml
-          mv coverage.xml ../../coverage-python.xml
-      - run: mv coverage-python.xml data-importer/scripts/coverage.xml
+          # Replace absolute source path with relative path
+          sed -i 's|<source>.*/data-importer/scripts</source>|<source>data-importer/scripts</source>|g' data-importer/scripts/coverage.xml
+          # Prefix filenames with the relative path
+          sed -i 's|filename="|filename="data-importer/scripts/|g' data-importer/scripts/coverage.xml
+          cat data-importer/scripts/coverage.xml | head -20
       - uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
