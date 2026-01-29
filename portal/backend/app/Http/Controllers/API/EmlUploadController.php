@@ -574,59 +574,6 @@ class EmlUploadController extends Controller
         return $countries[$trackName] ?? 'Netherlands';
     }
 
-    private function extractSessionData($emailData, $track)
-    {
-        $body = $emailData['body'];
-        $subject = $emailData['subject'];
-
-        // Extract session number from subject or body
-        $sessionNumber = null;
-
-        if (preg_match('/Sessie\s+(\d+)/i', $subject, $matches)) {
-            $sessionNumber = $matches[1];
-        }
-
-        // Extract session date from email headers
-        $sessionDate = $this->parseEmailDate($emailData['date']);
-
-        // Extract lap data based on track format
-        $laps = $this->extractLapsData($body, $track);
-
-        return [
-            'session_number' => $sessionNumber,
-            'session_date' => $sessionDate,
-            'track_name' => $track->name,
-            'laps_count' => count($laps),
-            'drivers_detected' => count(array_unique(array_column($laps, 'driver_name'))),
-            'laps' => $laps,
-        ];
-    }
-
-    private function extractLapsData($body, $track)
-    {
-        $laps = [];
-
-        // Remove HTML tags to get clean text
-        $text = strip_tags($body);
-
-        // Detect format based on track or content patterns
-        $trackName = strtolower($track->name);
-
-        // Lot66 format: Single driver, lap-by-lap with sector times
-        if (stripos($trackName, 'lot66') !== false || stripos($text, 'Lap 1') !== false && stripos($text, 'S1') !== false) {
-            return $this->extractLot66LapsData($text);
-        }
-
-        // Elche / Gilesias format: Spanish single driver
-        if (stripos($trackName, 'elche') !== false || stripos($trackName, 'gilesias') !== false ||
-            stripos($text, 'RESUMEN DE TU CARRERA') !== false || stripos($text, 'Mejor V.') !== false) {
-            return $this->extractElcheLapsData($text);
-        }
-
-        // De Voltage / Goodwill / Circuit Park Berghem: Multi-driver with detailed lap table
-        return $this->extractDeVoltageStyleLapsData($text);
-    }
-
     private function extractLot66LapsData($text)
     {
         $laps = [];

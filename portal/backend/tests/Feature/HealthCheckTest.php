@@ -10,10 +10,15 @@
 |
 */
 
+const HEALTH_ENDPOINT = '/api/health';
+const HEALTH_DETAILED_ENDPOINT = '/api/health/detailed';
+const HEALTH_READY_ENDPOINT = '/api/health/ready';
+const HEALTH_LIVE_ENDPOINT = '/api/health/live';
+
 describe('Health Check Endpoints', function () {
 
     test('basic health check returns healthy status', function () {
-        $response = $this->getJson('/api/health');
+        $response = $this->getJson(HEALTH_ENDPOINT);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -26,7 +31,7 @@ describe('Health Check Endpoints', function () {
     });
 
     test('detailed health check includes all components', function () {
-        $response = $this->getJson('/api/health/detailed');
+        $response = $this->getJson(HEALTH_DETAILED_ENDPOINT);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -49,7 +54,7 @@ describe('Health Check Endpoints', function () {
     });
 
     test('readiness check verifies database connection', function () {
-        $response = $this->getJson('/api/health/ready');
+        $response = $this->getJson(HEALTH_READY_ENDPOINT);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -58,7 +63,7 @@ describe('Health Check Endpoints', function () {
     });
 
     test('liveness check always returns alive', function () {
-        $response = $this->getJson('/api/health/live');
+        $response = $this->getJson(HEALTH_LIVE_ENDPOINT);
 
         $response->assertStatus(200)
             ->assertJson([
@@ -71,7 +76,7 @@ describe('Health Check Endpoints', function () {
 describe('Health Check Component Verification', function () {
 
     test('database check returns response time', function () {
-        $response = $this->getJson('/api/health/detailed');
+        $response = $this->getJson(HEALTH_DETAILED_ENDPOINT);
 
         $response->assertStatus(200);
 
@@ -85,7 +90,7 @@ describe('Health Check Component Verification', function () {
     });
 
     test('cache check can read and write', function () {
-        $response = $this->getJson('/api/health/detailed');
+        $response = $this->getJson(HEALTH_DETAILED_ENDPOINT);
 
         $response->assertStatus(200);
 
@@ -95,7 +100,7 @@ describe('Health Check Component Verification', function () {
     });
 
     test('storage check can write files', function () {
-        $response = $this->getJson('/api/health/detailed');
+        $response = $this->getJson(HEALTH_DETAILED_ENDPOINT);
 
         $response->assertStatus(200);
 
@@ -109,7 +114,7 @@ describe('Health Check Component Verification', function () {
 describe('Health Check Metrics', function () {
 
     test('metrics include memory usage', function () {
-        $response = $this->getJson('/api/health/detailed');
+        $response = $this->getJson(HEALTH_DETAILED_ENDPOINT);
 
         $data = $response->json();
 
@@ -119,7 +124,7 @@ describe('Health Check Metrics', function () {
     });
 
     test('metrics include version information', function () {
-        $response = $this->getJson('/api/health/detailed');
+        $response = $this->getJson(HEALTH_DETAILED_ENDPOINT);
 
         $data = $response->json();
 
