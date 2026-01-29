@@ -18,7 +18,7 @@ class AllowedDriversTraitTest extends TestCase
      */
     private function getTraitUser(): object
     {
-        return new class
+        return new class()
         {
             use AllowedDriversTrait;
 
