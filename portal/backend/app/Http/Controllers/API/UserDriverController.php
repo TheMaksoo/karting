@@ -51,25 +51,29 @@ class UserDriverController extends Controller
             ], 409);
         }
 
-        // If this is the first driver, make it primary
-        $isPrimary = $user->drivers()->count() === 0;
+        $driver = DB::transaction(function () use ($user, $driverId) {
+            // If this is the first driver, make it primary
+            $isPrimary = $user->drivers()->count() === 0;
 
-        // Attach driver
-        $user->drivers()->attach($driverId, [
-            'is_primary' => $isPrimary,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+            // Attach driver
+            $user->drivers()->attach($driverId, [
+                'is_primary' => $isPrimary,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-        // If primary, update user's driver_id
-        if ($isPrimary) {
-            $user->driver_id = $driverId;
-            $user->save();
-        }
+            // If primary, update user's driver_id
+            if ($isPrimary) {
+                $user->driver_id = $driverId;
+                $user->save();
+            }
+
+            return Driver::find($driverId);
+        });
 
         return response()->json([
             'message' => 'Driver connected successfully',
-            'driver' => Driver::find($driverId),
+            'driver' => $driver,
         ]);
     }
 
@@ -81,29 +85,33 @@ class UserDriverController extends Controller
         $user = $request->user();
 
         // Check if driver is connected
-        if (! $user->drivers()->where('driver_id', $driverId)->exists()) {
+        $driverPivot = $user->drivers()->where('driver_id', $driverId)->first();
+
+        if (! $driverPivot) {
             return response()->json([
                 'message' => 'Driver not connected to your account',
             ], 404);
         }
 
-        // Don't allow disconnecting the primary driver if there are others
-        $isPrimary = $user->drivers()->where('driver_id', $driverId)->first()->pivot->is_primary;
+        $isPrimary = $driverPivot->pivot->is_primary;
 
+        // Don't allow disconnecting the primary driver if there are others
         if ($isPrimary && $user->drivers()->count() > 1) {
             return response()->json([
                 'message' => 'Cannot disconnect primary driver. Set another driver as primary first.',
             ], 400);
         }
 
-        // Detach driver
-        $user->drivers()->detach($driverId);
+        DB::transaction(function () use ($user, $driverId, $isPrimary) {
+            // Detach driver
+            $user->drivers()->detach($driverId);
 
-        // If this was the primary driver, clear user's driver_id
-        if ($isPrimary) {
-            $user->driver_id = null;
-            $user->save();
-        }
+            // If this was the primary driver, clear user's driver_id
+            if ($isPrimary) {
+                $user->driver_id = null;
+                $user->save();
+            }
+        });
 
         return response()->json([
             'message' => 'Driver disconnected successfully',
@@ -124,20 +132,22 @@ class UserDriverController extends Controller
             ], 404);
         }
 
-        // Remove primary from all drivers
-        DB::table('driver_user')
-            ->where('user_id', $user->id)
-            ->update(['is_primary' => false]);
+        DB::transaction(function () use ($user, $driverId) {
+            // Remove primary from all drivers
+            DB::table('driver_user')
+                ->where('user_id', $user->id)
+                ->update(['is_primary' => false]);
 
-        // Set this driver as primary
-        DB::table('driver_user')
-            ->where('user_id', $user->id)
-            ->where('driver_id', $driverId)
-            ->update(['is_primary' => true]);
+            // Set this driver as primary
+            DB::table('driver_user')
+                ->where('user_id', $user->id)
+                ->where('driver_id', $driverId)
+                ->update(['is_primary' => true]);
 
-        // Update user's driver_id
-        $user->driver_id = $driverId;
-        $user->save();
+            // Update user's driver_id
+            $user->driver_id = $driverId;
+            $user->save();
+        });
 
         return response()->json([
             'message' => 'Primary driver updated successfully',

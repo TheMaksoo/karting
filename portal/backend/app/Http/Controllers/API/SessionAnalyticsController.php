@@ -233,89 +233,95 @@ class SessionAnalyticsController extends Controller
             return response()->json(['error' => 'driver_id is required'], 400);
         }
 
-        Log::info("🏆 Trophy Case for driver: {$driverId}");
+        $cacheKey = 'trophy_case_' . $driverId;
 
-        $trophies = [
-            'emblems' => 0,  // Track records
-            'gold' => 0,     // Session fastest
-            'silver' => 0,   // Session 2nd fastest
-            'bronze' => 0,   // Session 3rd fastest
-            'coal' => 0,     // Session slowest
-        ];
+        $trophies = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($driverId) {
+            Log::info("🏆 Trophy Case for driver: {$driverId}");
 
-        // Get all sessions this driver participated in
-        $sessions = KartingSession::whereHas('laps', function ($q) use ($driverId) {
-            $q->where('driver_id', $driverId);
-        })->get();
+            $trophies = [
+                'emblems' => 0,  // Track records
+                'gold' => 0,     // Session fastest
+                'silver' => 0,   // Session 2nd fastest
+                'bronze' => 0,   // Session 3rd fastest
+                'coal' => 0,     // Session slowest
+            ];
 
-        Log::info("📊 Found {$sessions->count()} sessions");
+            // Get all sessions this driver participated in
+            $sessions = KartingSession::whereHas('laps', function ($q) use ($driverId) {
+                $q->where('driver_id', $driverId);
+            })->get();
 
-        foreach ($sessions as $session) {
-            // Get all drivers' best laps in this session
-            $sessionLaps = Lap::where('karting_session_id', $session->id)
-                ->select('driver_id', DB::raw('MIN(lap_time) as best_lap'))
-                ->groupBy('driver_id')
-                ->orderBy('best_lap')
+            Log::info("📊 Found {$sessions->count()} sessions");
+
+            foreach ($sessions as $session) {
+                // Get all drivers' best laps in this session
+                $sessionLaps = Lap::where('karting_session_id', $session->id)
+                    ->select('driver_id', DB::raw('MIN(lap_time) as best_lap'))
+                    ->groupBy('driver_id')
+                    ->orderBy('best_lap')
+                    ->get();
+
+                Log::info("Session {$session->id}: {$sessionLaps->count()} drivers");
+
+                // Find this driver's position
+                $position = $sessionLaps->search(function ($item) use ($driverId) {
+                    return $item->driver_id == $driverId;
+                });
+
+                if ($position !== false) {
+                    $position++; // Convert 0-based index to 1-based position
+                    $totalDrivers = $sessionLaps->count();
+
+                    Log::info("Driver position: {$position}/{$totalDrivers}");
+
+                    if ($position === 1) {
+                        $trophies['gold']++;
+                    }
+
+                    if ($position === 2 && $totalDrivers >= 2) {
+                        $trophies['silver']++;
+                    }
+
+                    if ($position === 3 && $totalDrivers >= 3) {
+                        $trophies['bronze']++;
+                    }
+
+                    if ($position === $totalDrivers && $totalDrivers > 1) {
+                        $trophies['coal']++;
+                    }
+                }
+            }
+
+            // Count track records (emblems)
+            // A track record is when driver's best lap is the fastest ever on that track
+            $trackRecords = Lap::select('tracks.id', 'tracks.name')
+                ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+                ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
+                ->where('laps.driver_id', $driverId)
+                ->groupBy('tracks.id', 'tracks.name')
                 ->get();
 
-            Log::info("Session {$session->id}: {$sessionLaps->count()} drivers");
+            Log::info("🏁 Checking {$trackRecords->count()} tracks for records");
 
-            // Find this driver's position
-            $position = $sessionLaps->search(function ($item) use ($driverId) {
-                return $item->driver_id == $driverId;
-            });
+            foreach ($trackRecords as $track) {
+                $driverBestOnTrack = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+                    ->where('karting_sessions.track_id', $track->id)
+                    ->where('laps.driver_id', $driverId)
+                    ->min('laps.lap_time');
 
-            if ($position !== false) {
-                $position++; // Convert 0-based index to 1-based position
-                $totalDrivers = $sessionLaps->count();
+                $trackRecord = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+                    ->where('karting_sessions.track_id', $track->id)
+                    ->min('laps.lap_time');
 
-                Log::info("Driver position: {$position}/{$totalDrivers}");
-
-                if ($position === 1) {
-                    $trophies['gold']++;
-                }
-
-                if ($position === 2 && $totalDrivers >= 2) {
-                    $trophies['silver']++;
-                }
-
-                if ($position === 3 && $totalDrivers >= 3) {
-                    $trophies['bronze']++;
-                }
-
-                if ($position === $totalDrivers && $totalDrivers > 1) {
-                    $trophies['coal']++;
+                if ($driverBestOnTrack == $trackRecord) {
+                    $trophies['emblems']++;
                 }
             }
-        }
 
-        // Count track records (emblems)
-        // A track record is when driver's best lap is the fastest ever on that track
-        $trackRecords = Lap::select('tracks.id', 'tracks.name')
-            ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
-            ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
-            ->where('laps.driver_id', $driverId)
-            ->groupBy('tracks.id', 'tracks.name')
-            ->get();
+            Log::info('🏆 Final trophies:', $trophies);
 
-        Log::info("🏁 Checking {$trackRecords->count()} tracks for records");
-
-        foreach ($trackRecords as $track) {
-            $driverBestOnTrack = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
-                ->where('karting_sessions.track_id', $track->id)
-                ->where('laps.driver_id', $driverId)
-                ->min('laps.lap_time');
-
-            $trackRecord = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
-                ->where('karting_sessions.track_id', $track->id)
-                ->min('laps.lap_time');
-
-            if ($driverBestOnTrack == $trackRecord) {
-                $trophies['emblems']++;
-            }
-        }
-
-        Log::info('🏆 Final trophies:', $trophies);
+            return $trophies;
+        });
 
         return response()->json($trophies);
     }
