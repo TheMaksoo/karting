@@ -7,6 +7,7 @@ use App\Http\Controllers\Traits\AllowedDriversTrait;
 use App\Models\KartingSession;
 use App\Models\Lap;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LapController extends Controller
 {
@@ -117,16 +118,16 @@ class LapController extends Controller
     public function databaseMetrics(Request $request)
     {
         // Count rows in each table
-        $lapsCount = \DB::table('laps')->count();
-        $sessionsCount = \DB::table('karting_sessions')->count();
-        $driversCount = \DB::table('drivers')->count();
-        $tracksCount = \DB::table('tracks')->count();
-        $usersCount = \DB::table('users')->count();
-        $uploadsCount = \DB::table('uploads')->count();
-        $friendsCount = \DB::table('friends')->count();
-        $userTrackNicknamesCount = \DB::table('user_track_nicknames')->count();
-        $settingsCount = \DB::table('settings')->count();
-        $styleVariablesCount = \DB::table('style_variables')->count();
+        $lapsCount = DB::table('laps')->count();
+        $sessionsCount = DB::table('karting_sessions')->count();
+        $driversCount = DB::table('drivers')->count();
+        $tracksCount = DB::table('tracks')->count();
+        $usersCount = DB::table('users')->count();
+        $uploadsCount = DB::table('uploads')->count();
+        $friendsCount = DB::table('friends')->count();
+        $userTrackNicknamesCount = DB::table('user_track_nicknames')->count();
+        $settingsCount = DB::table('settings')->count();
+        $styleVariablesCount = DB::table('style_variables')->count();
 
         // Define field counts per table (actual database schema)
         $fieldsPerTable = [

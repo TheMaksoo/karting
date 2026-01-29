@@ -7,6 +7,7 @@ use App\Models\Driver;
 use App\Models\Friend;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -22,7 +23,6 @@ class FriendController extends Controller
 
             // Get pagination parameters
             $perPage = $request->input('per_page', 50);
-            $page = $request->input('page', 1);
 
             $friendsQuery = Friend::where('user_id', $user->id)
                 ->where('friendship_status', 'active')

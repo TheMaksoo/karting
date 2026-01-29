@@ -376,7 +376,7 @@ class SessionAnalyticsController extends Controller
                             $allDriversOnTrack = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
                                 ->join('drivers', 'laps.driver_id', '=', 'drivers.id')
                                 ->where('karting_sessions.track_id', $track->id)
-                                ->select('drivers.name as driver_name', \DB::raw('MIN(laps.lap_time) as best_time'))
+                                ->select('drivers.name as driver_name', DB::raw('MIN(laps.lap_time) as best_time'))
                                 ->groupBy('laps.driver_id', 'drivers.name')
                                 ->orderBy('best_time', 'asc')
                                 ->get();
@@ -388,7 +388,7 @@ class SessionAnalyticsController extends Controller
                                     'name' => $driver->driver_name,
                                     'position' => $index + 1,
                                     'time' => $driver->best_time,
-                                    'is_current_driver' => $driver->driver_name === \DB::table('drivers')->where('id', $driverId)->value('name'),
+                                    'is_current_driver' => $driver->driver_name === DB::table('drivers')->where('id', $driverId)->value('name'),
                                 ];
                             }
 
@@ -408,7 +408,7 @@ class SessionAnalyticsController extends Controller
                     }
                 }
             } elseif ($type === 'gold' || $type === 'silver' || $type === 'bronze' || $type === 'coal') {
-                $sessions = \DB::table('karting_sessions')
+                $sessions = DB::table('karting_sessions')
                     ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
                     ->whereIn('karting_sessions.id', function ($query) use ($driverId) {
                         $query->select('karting_session_id')
@@ -423,7 +423,7 @@ class SessionAnalyticsController extends Controller
                     // Get all drivers with their best times, ordered by best lap
                     $sessionLaps = Lap::where('karting_session_id', $session->id)
                         ->join('drivers', 'laps.driver_id', '=', 'drivers.id')
-                        ->select('laps.driver_id', 'drivers.name as driver_name', \DB::raw('MIN(laps.lap_time) as best_time'))
+                        ->select('laps.driver_id', 'drivers.name as driver_name', DB::raw('MIN(laps.lap_time) as best_time'))
                         ->groupBy('laps.driver_id', 'drivers.name')
                         ->orderBy('best_time', 'asc')
                         ->get();
