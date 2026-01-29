@@ -335,199 +335,205 @@ class SessionAnalyticsController extends Controller
             return response()->json([]);
         }
 
-        $details = [];
+        $cacheKey = "trophy_details_{$driverId}_{$type}";
 
-        if ($type === 'emblems') {
-            // Track records - driver's best lap is the fastest ever on that track
-            $trackRecords = Lap::select('tracks.id', 'tracks.name')
-                ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
-                ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
-                ->where('laps.driver_id', $driverId)
-                ->groupBy('tracks.id', 'tracks.name')
-                ->get();
+        $details = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($driverId, $type) {
+            $details = [];
 
-            foreach ($trackRecords as $track) {
-                // Get driver's best lap on this track
-                $driverBestOnTrack = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
-                    ->where('karting_sessions.track_id', $track->id)
+            if ($type === 'emblems') {
+                // Track records - driver's best lap is the fastest ever on that track
+                $trackRecords = Lap::select('tracks.id', 'tracks.name')
+                    ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+                    ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
                     ->where('laps.driver_id', $driverId)
-                    ->min('laps.lap_time');
+                    ->groupBy('tracks.id', 'tracks.name')
+                    ->get();
 
-                // Get overall track record (fastest lap by anyone)
-                $trackRecord = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
-                    ->where('karting_sessions.track_id', $track->id)
-                    ->min('laps.lap_time');
-
-                // If driver's best equals the track record, they have the record
-                if ($driverBestOnTrack == $trackRecord) {
-                    // Get the date when they set this record
-                    $recordSession = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+                foreach ($trackRecords as $track) {
+                    // Get driver's best lap on this track
+                    $driverBestOnTrack = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
                         ->where('karting_sessions.track_id', $track->id)
                         ->where('laps.driver_id', $driverId)
-                        ->where('laps.lap_time', $driverBestOnTrack)
-                        ->select('karting_sessions.session_date', 'karting_sessions.id as session_id')
-                        ->first();
+                        ->min('laps.lap_time');
 
-                    if ($recordSession) {
-                        // Get all drivers who have raced on this track
-                        $allDriversOnTrack = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
-                            ->join('drivers', 'laps.driver_id', '=', 'drivers.id')
+                    // Get overall track record (fastest lap by anyone)
+                    $trackRecord = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+                        ->where('karting_sessions.track_id', $track->id)
+                        ->min('laps.lap_time');
+
+                    // If driver's best equals the track record, they have the record
+                    if ($driverBestOnTrack == $trackRecord) {
+                        // Get the date when they set this record
+                        $recordSession = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
                             ->where('karting_sessions.track_id', $track->id)
-                            ->select('drivers.name as driver_name', \DB::raw('MIN(laps.lap_time) as best_time'))
-                            ->groupBy('laps.driver_id', 'drivers.name')
-                            ->orderBy('best_time', 'asc')
-                            ->get();
+                            ->where('laps.driver_id', $driverId)
+                            ->where('laps.lap_time', $driverBestOnTrack)
+                            ->select('karting_sessions.session_date', 'karting_sessions.id as session_id')
+                            ->first();
 
-                        $allDriversWithPositions = [];
+                        if ($recordSession) {
+                            // Get all drivers who have raced on this track
+                            $allDriversOnTrack = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+                                ->join('drivers', 'laps.driver_id', '=', 'drivers.id')
+                                ->where('karting_sessions.track_id', $track->id)
+                                ->select('drivers.name as driver_name', \DB::raw('MIN(laps.lap_time) as best_time'))
+                                ->groupBy('laps.driver_id', 'drivers.name')
+                                ->orderBy('best_time', 'asc')
+                                ->get();
 
-                        foreach ($allDriversOnTrack as $index => $driver) {
-                            $allDriversWithPositions[] = [
-                                'name' => $driver->driver_name,
-                                'position' => $index + 1,
-                                'time' => $driver->best_time,
-                                'is_current_driver' => $driver->driver_name === \DB::table('drivers')->where('id', $driverId)->value('name'),
+                            $allDriversWithPositions = [];
+
+                            foreach ($allDriversOnTrack as $index => $driver) {
+                                $allDriversWithPositions[] = [
+                                    'name' => $driver->driver_name,
+                                    'position' => $index + 1,
+                                    'time' => $driver->best_time,
+                                    'is_current_driver' => $driver->driver_name === \DB::table('drivers')->where('id', $driverId)->value('name'),
+                                ];
+                            }
+
+                            $details[] = [
+                                'track_name' => $track->name,
+                                'session_date' => $recordSession->session_date,
+                                'time' => $driverBestOnTrack,
+                                'all_drivers' => $allDriversWithPositions,
+                                'position' => 1,
+                                'total_drivers' => count($allDriversWithPositions),
+                                'gap_ahead' => null,
+                                'gap_behind' => count($allDriversWithPositions) > 1 ? '+' . number_format($allDriversOnTrack[1]->best_time - $driverBestOnTrack, 3) . 's' : null,
+                                'driver_ahead' => null,
+                                'driver_behind' => count($allDriversWithPositions) > 1 ? $allDriversOnTrack[1]->driver_name : null,
                             ];
+                        }
+                    }
+                }
+            } elseif ($type === 'gold' || $type === 'silver' || $type === 'bronze' || $type === 'coal') {
+                $sessions = \DB::table('karting_sessions')
+                    ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
+                    ->whereIn('karting_sessions.id', function ($query) use ($driverId) {
+                        $query->select('karting_session_id')
+                            ->from('laps')
+                            ->where('driver_id', $driverId);
+                    })
+                    ->select('karting_sessions.id', 'karting_sessions.session_date', 'tracks.name as track_name')
+                    ->orderBy('karting_sessions.session_date', 'desc')
+                    ->get();
+
+                foreach ($sessions as $session) {
+                    // Get all drivers with their best times, ordered by best lap
+                    $sessionLaps = Lap::where('karting_session_id', $session->id)
+                        ->join('drivers', 'laps.driver_id', '=', 'drivers.id')
+                        ->select('laps.driver_id', 'drivers.name as driver_name', \DB::raw('MIN(laps.lap_time) as best_time'))
+                        ->groupBy('laps.driver_id', 'drivers.name')
+                        ->orderBy('best_time', 'asc')
+                        ->get();
+
+                    // Find the driver's position
+                    $position = null;
+                    $driverBestTime = null;
+
+                    foreach ($sessionLaps as $index => $lap) {
+                        if ($lap->driver_id == $driverId) {
+                            $position = $index + 1; // 1-based position
+                            $driverBestTime = $lap->best_time;
+                            break;
+                        }
+                    }
+
+                    if ($position === null) {
+                        continue; // Driver didn't participate in this session
+                    }
+
+                    $totalDrivers = $sessionLaps->count();
+
+                    // Check if this session matches the trophy type
+                    $matchesPosition = false;
+
+                    if ($type === 'gold' && $position === 1) {
+                        $matchesPosition = true;
+                    }
+
+                    if ($type === 'silver' && $position === 2) {
+                        $matchesPosition = true;
+                    }
+
+                    if ($type === 'bronze' && $position === 3) {
+                        $matchesPosition = true;
+                    }
+
+                    if ($type === 'coal' && $position === $totalDrivers && $totalDrivers > 1) {
+                        $matchesPosition = true;
+                    }
+
+                    if ($matchesPosition) {
+                        // Build gaps and opponent information
+                        $gapAhead = null;
+                        $gapBehind = null;
+                        $driverAhead = null;
+                        $driverBehind = null;
+
+                        // For 1st place: show gap to 2nd place (how much they won by)
+                        if ($position === 1 && $totalDrivers > 1) {
+                            $secondPlace = $sessionLaps[1];
+                            $gapSeconds = $secondPlace->best_time - $driverBestTime;
+                            $gapAhead = '+' . number_format($gapSeconds, 3) . 's';
+                            $driverBehind = $secondPlace->driver_name;
+                        }
+                        // For other positions: show gap ahead (red) and behind (green)
+                        elseif ($position > 1) {
+                            // Gap to driver ahead (red - losing)
+                            $aheadDriver = $sessionLaps[$position - 2]; // -2 because 0-indexed and we want previous
+                            $gapSeconds = $driverBestTime - $aheadDriver->best_time;
+                            $gapAhead = '+' . number_format($gapSeconds, 3) . 's';
+                            $driverAhead = $aheadDriver->driver_name;
+
+                            // Gap to driver behind (green - winning)
+                            if ($position < $totalDrivers) {
+                                $behindDriver = $sessionLaps[$position]; // +0 because 0-indexed and we want next
+                                $gapSeconds = $behindDriver->best_time - $driverBestTime;
+                                $gapBehind = '+' . number_format($gapSeconds, 3) . 's';
+                                $driverBehind = $behindDriver->driver_name;
+                            }
+                        }
+
+                        // Get list of all drivers in the session with their positions
+                        $allDriversWithPositions = [];
+                        $driversList = [];
+
+                        foreach ($sessionLaps as $index => $lap) {
+                            $driverPosition = $index + 1;
+                            $allDriversWithPositions[] = [
+                                'name' => $lap->driver_name,
+                                'position' => $driverPosition,
+                                'time' => $lap->best_time,
+                                'is_current_driver' => $lap->driver_id == $driverId,
+                            ];
+
+                            // Also build simple list for backward compatibility
+                            if ($lap->driver_id != $driverId) {
+                                $driversList[] = $lap->driver_name;
+                            }
                         }
 
                         $details[] = [
-                            'track_name' => $track->name,
-                            'session_date' => $recordSession->session_date,
-                            'time' => $driverBestOnTrack,
+                            'track_name' => $session->track_name,
+                            'session_date' => $session->session_date,
+                            'opponents' => ! empty($driversList) ? implode(', ', $driversList) : 'Solo',
                             'all_drivers' => $allDriversWithPositions,
-                            'position' => 1,
-                            'total_drivers' => count($allDriversWithPositions),
-                            'gap_ahead' => null,
-                            'gap_behind' => count($allDriversWithPositions) > 1 ? '+' . number_format($allDriversOnTrack[1]->best_time - $driverBestOnTrack, 3) . 's' : null,
-                            'driver_ahead' => null,
-                            'driver_behind' => count($allDriversWithPositions) > 1 ? $allDriversOnTrack[1]->driver_name : null,
+                            'time' => $driverBestTime,
+                            'gap_ahead' => $gapAhead,
+                            'gap_behind' => $gapBehind,
+                            'driver_ahead' => $driverAhead,
+                            'driver_behind' => $driverBehind,
+                            'position' => $position,
+                            'total_drivers' => $totalDrivers,
                         ];
                     }
                 }
             }
-        } elseif ($type === 'gold' || $type === 'silver' || $type === 'bronze' || $type === 'coal') {
-            $sessions = \DB::table('karting_sessions')
-                ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
-                ->whereIn('karting_sessions.id', function ($query) use ($driverId) {
-                    $query->select('karting_session_id')
-                        ->from('laps')
-                        ->where('driver_id', $driverId);
-                })
-                ->select('karting_sessions.id', 'karting_sessions.session_date', 'tracks.name as track_name')
-                ->orderBy('karting_sessions.session_date', 'desc')
-                ->get();
 
-            foreach ($sessions as $session) {
-                // Get all drivers with their best times, ordered by best lap
-                $sessionLaps = Lap::where('karting_session_id', $session->id)
-                    ->join('drivers', 'laps.driver_id', '=', 'drivers.id')
-                    ->select('laps.driver_id', 'drivers.name as driver_name', \DB::raw('MIN(laps.lap_time) as best_time'))
-                    ->groupBy('laps.driver_id', 'drivers.name')
-                    ->orderBy('best_time', 'asc')
-                    ->get();
-
-                // Find the driver's position
-                $position = null;
-                $driverBestTime = null;
-
-                foreach ($sessionLaps as $index => $lap) {
-                    if ($lap->driver_id == $driverId) {
-                        $position = $index + 1; // 1-based position
-                        $driverBestTime = $lap->best_time;
-                        break;
-                    }
-                }
-
-                if ($position === null) {
-                    continue; // Driver didn't participate in this session
-                }
-
-                $totalDrivers = $sessionLaps->count();
-
-                // Check if this session matches the trophy type
-                $matchesPosition = false;
-
-                if ($type === 'gold' && $position === 1) {
-                    $matchesPosition = true;
-                }
-
-                if ($type === 'silver' && $position === 2) {
-                    $matchesPosition = true;
-                }
-
-                if ($type === 'bronze' && $position === 3) {
-                    $matchesPosition = true;
-                }
-
-                if ($type === 'coal' && $position === $totalDrivers && $totalDrivers > 1) {
-                    $matchesPosition = true;
-                }
-
-                if ($matchesPosition) {
-                    // Build gaps and opponent information
-                    $gapAhead = null;
-                    $gapBehind = null;
-                    $driverAhead = null;
-                    $driverBehind = null;
-
-                    // For 1st place: show gap to 2nd place (how much they won by)
-                    if ($position === 1 && $totalDrivers > 1) {
-                        $secondPlace = $sessionLaps[1];
-                        $gapSeconds = $secondPlace->best_time - $driverBestTime;
-                        $gapAhead = '+' . number_format($gapSeconds, 3) . 's';
-                        $driverBehind = $secondPlace->driver_name;
-                    }
-                    // For other positions: show gap ahead (red) and behind (green)
-                    elseif ($position > 1) {
-                        // Gap to driver ahead (red - losing)
-                        $aheadDriver = $sessionLaps[$position - 2]; // -2 because 0-indexed and we want previous
-                        $gapSeconds = $driverBestTime - $aheadDriver->best_time;
-                        $gapAhead = '+' . number_format($gapSeconds, 3) . 's';
-                        $driverAhead = $aheadDriver->driver_name;
-
-                        // Gap to driver behind (green - winning)
-                        if ($position < $totalDrivers) {
-                            $behindDriver = $sessionLaps[$position]; // +0 because 0-indexed and we want next
-                            $gapSeconds = $behindDriver->best_time - $driverBestTime;
-                            $gapBehind = '+' . number_format($gapSeconds, 3) . 's';
-                            $driverBehind = $behindDriver->driver_name;
-                        }
-                    }
-
-                    // Get list of all drivers in the session with their positions
-                    $allDriversWithPositions = [];
-                    $driversList = [];
-
-                    foreach ($sessionLaps as $index => $lap) {
-                        $driverPosition = $index + 1;
-                        $allDriversWithPositions[] = [
-                            'name' => $lap->driver_name,
-                            'position' => $driverPosition,
-                            'time' => $lap->best_time,
-                            'is_current_driver' => $lap->driver_id == $driverId,
-                        ];
-
-                        // Also build simple list for backward compatibility
-                        if ($lap->driver_id != $driverId) {
-                            $driversList[] = $lap->driver_name;
-                        }
-                    }
-
-                    $details[] = [
-                        'track_name' => $session->track_name,
-                        'session_date' => $session->session_date,
-                        'opponents' => ! empty($driversList) ? implode(', ', $driversList) : 'Solo',
-                        'all_drivers' => $allDriversWithPositions,
-                        'time' => $driverBestTime,
-                        'gap_ahead' => $gapAhead,
-                        'gap_behind' => $gapBehind,
-                        'driver_ahead' => $driverAhead,
-                        'driver_behind' => $driverBehind,
-                        'position' => $position,
-                        'total_drivers' => $totalDrivers,
-                    ];
-                }
-            }
-        }
+            return $details;
+        });
 
         return response()->json($details);
     }
