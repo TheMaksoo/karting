@@ -167,14 +167,17 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: password
       - uses: codecov/codecov-action@v4
+        if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/clover.xml
+          files: portal/backend/coverage/clover.xml
           flags: php
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: backend-coverage
-          path: coverage/clover.xml
+          path: portal/backend/coverage/clover.xml
+          if-no-files-found: warn
 
   test-frontend:
     name: 🧪 Frontend Tests
