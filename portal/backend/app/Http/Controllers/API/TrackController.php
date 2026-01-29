@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\AllowedDriversTrait;
+use App\Http\Requests\StoreTrackRequest;
+use App\Http\Requests\UpdateTrackRequest;
 use App\Models\KartingSession;
 use App\Models\Lap;
 use App\Models\Track;
@@ -25,24 +27,9 @@ class TrackController extends Controller
         return response()->json($tracks);
     }
 
-    public function store(Request $request)
+    public function store(StoreTrackRequest $request)
     {
-        $validated = $request->validate([
-            'track_id' => 'nullable|string|unique:tracks,track_id',
-            'name' => 'required|string|max:255',
-            'city' => 'nullable|string',
-            'country' => 'nullable|string',
-            'region' => 'nullable|string',
-            'distance' => 'nullable|integer',
-            'corners' => 'nullable|integer',
-            'width' => 'nullable|integer',
-            'indoor' => 'sometimes|boolean',
-            'features' => 'nullable|array',
-            'website' => 'nullable|string',
-            'contact' => 'nullable|array',
-            'pricing' => 'nullable|array',
-            'karts' => 'nullable|array',
-        ]);
+        $validated = $request->validated();
 
         // Auto-generate track_id if not provided
         if (empty($validated['track_id'])) {
@@ -61,25 +48,11 @@ class TrackController extends Controller
         return response()->json($track);
     }
 
-    public function update(Request $request, string $id)
+    public function update(UpdateTrackRequest $request, string $id)
     {
         $track = Track::findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'city' => 'nullable|string',
-            'country' => 'nullable|string',
-            'region' => 'nullable|string',
-            'distance' => 'nullable|integer',
-            'corners' => 'nullable|integer',
-            'width' => 'nullable|integer',
-            'indoor' => 'sometimes|boolean',
-            'features' => 'nullable|array',
-            'website' => 'nullable|string',
-            'contact' => 'nullable|array',
-            'pricing' => 'nullable|array',
-            'karts' => 'nullable|array',
-        ]);
+        $validated = $request->validated();
 
         $track->update($validated);
 

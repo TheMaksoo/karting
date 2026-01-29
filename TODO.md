@@ -2,7 +2,7 @@
 
 > Last updated: January 30, 2026
 > Status: **87 improvements identified** across 10 categories  
-> **35 completed** ✅ | **52 remaining**
+> **37 completed** ✅ | **50 remaining**
 
 ## Summary
 
@@ -103,8 +103,8 @@
 
 ### Validation
 - [x] Validate `session_type` against enum in KartingSessionController ✅
-- [ ] Validate `color` as hex format in DriverController
-- [ ] Add min/max bounds to `latitude`, `longitude`, `length` in TrackController
+- [x] Validate `color` as hex format in DriverController ✅
+- [x] Add min/max bounds to `latitude`, `longitude`, `length` in TrackController ✅
 - [x] Add reasonable bounds (1-600 seconds) to `lap_time` in LapController ✅
 - [ ] Add file content validation beyond MIME type in EmlUploadController
 
