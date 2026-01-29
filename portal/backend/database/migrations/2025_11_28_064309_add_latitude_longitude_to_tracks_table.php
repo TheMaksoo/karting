@@ -15,6 +15,7 @@ return new class() extends Migration
             if (! Schema::hasColumn('tracks', 'latitude')) {
                 $table->decimal('latitude', 10, 8)->nullable()->after('region');
             }
+
             if (! Schema::hasColumn('tracks', 'longitude')) {
                 $table->decimal('longitude', 11, 8)->nullable()->after('latitude');
             }
