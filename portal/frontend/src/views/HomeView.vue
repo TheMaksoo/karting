@@ -533,7 +533,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import { getErrorMessage } from '@/types'
-import apiService, { type Driver, type Lap } from '@/services/api'
+import apiService, { type Driver } from '@/services/api'
 
 Chart.register(...registerables)
 

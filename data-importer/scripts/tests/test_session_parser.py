@@ -25,9 +25,10 @@ class TestSessionParser:
         assert parser is not None
 
     def test_parse_file_with_invalid_path(self, parser):
-        """Test parsing non-existent file returns None or raises."""
-        result = parser.parse_file("/nonexistent/file.eml")
-        assert result is None or result == {}
+        """Test parsing non-existent file raises FileNotFoundError."""
+        import pytest
+        with pytest.raises(FileNotFoundError):
+            parser.parse_file("/nonexistent/file.eml")
 
     def test_parse_file_detects_eml(self, parser, temp_eml_file):
         """Test that EML files are detected and parsed."""
@@ -42,14 +43,14 @@ class TestSessionParser:
         msg.set_content('Plain text content')
         msg.add_alternative('<html><body>HTML content</body></html>', subtype='html')
         
-        body = parser.get_email_body(msg)
+        body = parser._get_email_body(msg)
         assert body is not None
         assert len(body) > 0
 
-    def test_identify_track_from_content(self, parser):
+    def test_detect_track_from_content(self, parser):
         """Test track identification from email content."""
         content = "Results from De Voltage karting session"
-        track = parser.identify_track(content)
+        track = parser._detect_track_from_text(content)
         # May or may not identify, depending on implementation
         assert track is None or isinstance(track, str)
 
@@ -62,10 +63,10 @@ class TestSessionParser:
                 {'name': 'Driver 1', 'best_time': 30.456},
             ],
         }
-        # This tests the interface exists
-        if hasattr(parser, 'convert_to_csv_row'):
-            result = parser.convert_to_csv_row(sample_data)
-            assert result is not None
+        # Use format_for_csv method
+        result = parser.format_for_csv(sample_data)
+        assert result is not None
+        assert isinstance(result, list)
 
 
 class TestBase64Decoding:

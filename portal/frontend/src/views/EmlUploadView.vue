@@ -609,8 +609,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import apiService from '@/services/api'
-import type { Track, Driver, Lap, User } from '@/services/api'
-import { useErrorHandler, getErrorMessage, isAxiosError, getAxiosErrorResponse } from '@/composables/useErrorHandler'
+import type { Track, Driver, User } from '@/services/api'
+import { useErrorHandler, getErrorMessage, getAxiosErrorResponse } from '@/composables/useErrorHandler'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
