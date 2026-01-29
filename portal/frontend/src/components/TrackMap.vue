@@ -13,6 +13,9 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useKartingAPI, type TrackStat } from '@/composables/useKartingAPI'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+
+const { handleError } = useErrorHandler()
 
 defineProps<{
   driverId?: number
@@ -35,8 +38,8 @@ const loadTracks = async () => {
         track.latitude !== 0 && track.longitude !== 0
       )
     }
-  } catch (error) {
-    console.error('Error loading tracks:', error)
+  } catch (error: unknown) {
+    handleError(error, 'Error loading tracks')
     tracks.value = []
   }
 }

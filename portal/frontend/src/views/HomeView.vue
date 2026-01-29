@@ -526,16 +526,20 @@ import LatestActivity from '@/components/home/LatestActivity.vue'
 import QuickStats from '@/components/home/QuickStats.vue'
 import ToastContainer from '@/components/ToastContainer.vue'
 import { Chart, registerables } from 'chart.js'
+import type { TooltipItem } from 'chart.js'
 import 'chartjs-adapter-date-fns'
-import { useKartingAPI } from '@/composables/useKartingAPI'
+import { useKartingAPI, type DriverStat } from '@/composables/useKartingAPI'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
-import apiService from '@/services/api'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+import { getErrorMessage } from '@/types'
+import apiService, { type Driver, type Lap } from '@/services/api'
 
 Chart.register(...registerables)
 
 const authStore = useAuthStore()
 const toast = useToast()
+const { handleError } = useErrorHandler()
 const loggedInDriverId = computed(() => authStore.user?.driver_id)
 const resolvedDriverId = ref<number | null>(null) // Store the actual driver ID after resolution
 
@@ -544,10 +548,27 @@ const { getOverviewStats, getDriverStats, getTrackStats, getDriverActivityOverTi
 const dataLoading = ref(true)
 const dataError = ref<string | null>(null)
 
+// Friend and Activity Types
+interface Friend {
+  id: number
+  driver_id: number
+  driver: Driver
+  added_at: string
+}
+
+interface Activity {
+  id: number
+  type: string
+  description: string
+  created_at: string
+  driver_id?: number
+  track_id?: number
+}
+
 // Friends and Activity Data
-const friends = ref<any[]>([])
-const activities = ref<any[]>([])
-const allDrivers = ref<any[]>([])
+const friends = ref<Friend[]>([])
+const activities = ref<Activity[]>([])
+const allDrivers = ref<Driver[]>([])
 const friendsLoading = ref(false)
 const friendsError = ref<string | null>(null)
 const activityLoading = ref(false)
@@ -589,6 +610,22 @@ interface StatCategory {
   stats: StatCard[]
 }
 
+// Heatmap cell type
+interface HeatmapCell {
+  time: string
+  gap: string
+  gapPercentage: number
+  performance: number
+  has_data: boolean
+  isRecord?: boolean
+  lapCount?: number
+  gapSeconds?: number
+  avgLap?: string
+  worstLap?: string
+  trackRecord?: string
+  consistency?: string
+}
+
 const statCategories = ref<StatCategory[]>([])
 const trophyCase = ref<{ emblems: number; gold: number; silver: number; bronze: number; coal: number }>({
   emblems: 0,
@@ -620,8 +657,12 @@ const avgConsistency = ref<number>(0)
 const allActivityDrivers = ref<string[]>([])
 const selectedActivityDrivers = ref<string[]>([])
 
-// Heatmap stats panel
-const selectedHeatmapCell = ref<any>(null)
+// Heatmap stats panel - extended cell info
+interface SelectedCellInfo extends HeatmapCell {
+  driver?: string
+  track?: string
+}
+const selectedHeatmapCell = ref<SelectedCellInfo | null>(null)
 
 // Toggle driver visibility in activity chart
 const toggleActivityDriver = (driver: string) => {
@@ -709,7 +750,7 @@ const showTrophyDetails = async (type: string) => {
     const driverId = resolvedDriverId.value || loggedInDriverId.value
     
     if (!driverId) {
-      console.error('No driver ID available for trophy details')
+      handleError(new Error('No driver ID available'), 'trophy details')
       trophyDetails.value = []
       trophyDetailsLoading.value = false
       return
@@ -717,8 +758,8 @@ const showTrophyDetails = async (type: string) => {
     
     const details = await fetchTrophyDetails(driverId, type)
     trophyDetails.value = (details || []) as TrophyDetail[]
-  } catch (error) {
-    console.error('Failed to fetch trophy details:', error)
+  } catch (error: unknown) {
+    handleError(error, 'trophy details')
     trophyDetails.value = []
   } finally {
     trophyDetailsLoading.value = false
@@ -767,14 +808,12 @@ const loadRealData = async () => {
     
     // If no driver_id, try to find driver by name
     if (!driverId) {
-      console.warn('⚠️ No driver_id in user object, attempting to find driver by name...')
-      
       if (authStore.user?.name) {
         try {
           // Fetch all drivers and find by name
           const driversData = await getDriverStats()
           if (driversData) {
-            const matchingDriver = driversData.find((d: any) => 
+            const matchingDriver = driversData.find((d: DriverStat) => 
               d.driver_name.toLowerCase() === authStore.user?.name.toLowerCase()
             )
             
@@ -782,20 +821,18 @@ const loadRealData = async () => {
               driverId = matchingDriver.driver_id
               resolvedDriverId.value = driverId // Store resolved ID
             } else {
-              console.error('❌ No driver found matching user name:', authStore.user.name)
               dataError.value = `No driver profile found for "${authStore.user.name}". Please contact an administrator.`
               dataLoading.value = false
               return
             }
           }
-        } catch (err) {
-          console.error('❌ Error finding driver by name:', err)
+        } catch (err: unknown) {
+          handleError(err, 'finding driver by name')
         }
       }
       
       // Still no driver ID
       if (!driverId) {
-        console.error('Driver ID not found. Auth user:', authStore.user)
         dataError.value = 'Driver ID not found. Please contact an administrator to link your account to a driver profile.'
         dataLoading.value = false
         return
@@ -937,8 +974,8 @@ const loadRealData = async () => {
       }, 100)
     }
 
-  } catch (error: any) {
-    console.error('Error loading real data:', error)
+  } catch (error: unknown) {
+    handleError(error, 'dashboard data')
     dataError.value = 'Failed to load dashboard data. Please check your connection.'
   } finally {
     dataLoading.value = false
@@ -1068,12 +1105,19 @@ const getTrackLapCount = (trackIndex: number): number => {
 const activityCanvas = ref<HTMLCanvasElement | null>(null)
 const consistencyCanvas = ref<HTMLCanvasElement | null>(null)
 
-let chartInstances: { [key: string]: Chart } = {}
+// Activity chart data type
+interface ActivityDataItem {
+  driver_name: string
+  session_date: string
+  cumulative_laps: number
+  laps_added?: number
+}
 
-const createActivityChart = (activityData: any[]) => {
+let chartInstances: { [key: string]: Chart | null } = {}
+
+const createActivityChart = (activityData: ActivityDataItem[]) => {
   if (!activityCanvas.value) {
-    console.warn('⚠️ Activity canvas not available')
-    return
+    return // Canvas not available yet
   }
   
   
@@ -1083,14 +1127,13 @@ const createActivityChart = (activityData: any[]) => {
   // Destroy existing chart
   if (chartInstances.activity) {
     chartInstances.activity.destroy()
-    chartInstances.activity = null as any
+    chartInstances.activity = null
   }
   
   // Wait for next tick to ensure canvas is ready
   nextTick(() => {
     if (!activityCanvas.value) {
-      console.warn('⚠️ Activity canvas lost after nextTick')
-      return
+      return // Canvas lost after nextTick
     }
     
 
@@ -1104,7 +1147,7 @@ const createActivityChart = (activityData: any[]) => {
     
     const dateMap = driverDateMap[item.driver_name]
     if (!dateMap) {
-      console.error('Data processing error: dateMap not found for driver', item.driver_name)
+      // This should never happen since we just initialized it above
       return
     }
     
@@ -1264,7 +1307,7 @@ const createActivityChart = (activityData: any[]) => {
           caretSize: 6,
           caretPadding: 10,
           callbacks: {
-            title: (context: any) => {
+            title: (context: TooltipItem<'line'>[]) => {
               const dateIndex = context[0].parsed.x
               const dateStr = allSessionDates[dateIndex]
               if (!dateStr) return 'Unknown Date'
@@ -1275,21 +1318,21 @@ const createActivityChart = (activityData: any[]) => {
                 day: 'numeric'
               })
             },
-            label: (context: any) => {
-              const driverName = context.dataset.label
-              const dataPoint = context.dataset.data[context.dataIndex]
+            label: (context: TooltipItem<'line'>) => {
+              const driverName = context.dataset.label || 'Unknown'
+              const dataPoint = context.dataset.data[context.dataIndex] as { y?: number; added?: number } | null
               
-              if (!dataPoint) {
+              if (!dataPoint || typeof dataPoint !== 'object') {
                 return ''
               }
               
-              const totalLaps = dataPoint.y
+              const totalLaps = dataPoint.y || 0
               const lapsAdded = dataPoint.added || 0
               
               return `${driverName}: ${totalLaps} (+${lapsAdded})`
             },
-            labelTextColor: function(context: any) {
-              return context.dataset.borderColor
+            labelTextColor: function(context: TooltipItem<'line'>) {
+              return context.dataset.borderColor as string || '#fff'
             }
           }
         }
@@ -1317,8 +1360,8 @@ const createActivityChart = (activityData: any[]) => {
             stepSize: 1,
             color: '#8B949E',
             font: { size: 11 },
-            callback: function(value: any) {
-              return formattedDates[value] || ''
+            callback: function(value: string | number) {
+              return formattedDates[value as number] || ''
             }
           },
           title: { 
@@ -1408,10 +1451,9 @@ const loadFriends = async () => {
   friendsError.value = null
   try {
     friends.value = await apiService.friends.getAll()
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.message || error.message || 'Failed to load friends'
-    friendsError.value = errorMessage
-    console.error('Failed to load friends:', error)
+  } catch (error: unknown) {
+    handleError(error, 'loading friends')
+    friendsError.value = getErrorMessage(error)
   } finally {
     friendsLoading.value = false
   }
@@ -1425,9 +1467,9 @@ const loadActivity = async () => {
   activityLoading.value = true
   try {
     activities.value = await apiService.activity.latest(true, 10)
-  } catch (error: any) {
-    console.error('Failed to load activity:', error)
-    // Don't show error to user for activity - just log it
+  } catch (error: unknown) {
+    // Log error silently for activity - non-critical feature
+    handleError(error, 'loading activity')
   } finally {
     activityLoading.value = false
   }
@@ -1504,9 +1546,8 @@ const addFriend = async (driverId: number) => {
     } else {
       toast.success('New friend added to your racing crew!')
     }
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.message || 'Failed to add friend'
-    toast.error(errorMessage)
+  } catch (error: unknown) {
+    toast.error(getErrorMessage(error))
   }
 }
 
@@ -1526,9 +1567,8 @@ const removeFriend = async (friendId: number) => {
     if (response.success) {
       toast.success('Friend removed from your racing crew')
     }
-  } catch (error: any) {
-    const errorMessage = error.response?.data?.message || 'Failed to remove friend'
-    toast.error(errorMessage)
+  } catch (error: unknown) {
+    toast.error(getErrorMessage(error))
   }
 }
 

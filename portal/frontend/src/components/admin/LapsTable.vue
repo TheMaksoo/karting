@@ -133,16 +133,28 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import apiService from '@/services/api'
+import type { Lap, Driver, Track } from '@/services/api'
+import { getErrorMessage } from '@/composables/useErrorHandler'
+
+interface LapEditForm {
+  id: number
+  lap_number: number
+  lap_time: number | null
+  sector_1_time: number | null
+  sector_2_time: number | null
+  sector_3_time: number | null
+  position: number | null
+}
 
 const props = defineProps<{
-  items: any[]
+  items: Lap[]
   loading: boolean
   error: string
   currentPage: number
   totalPages: number
   total: number
-  drivers: any[]
-  tracks: any[]
+  drivers: Driver[]
+  tracks: Track[]
   driverFilter: string
   trackFilter: string
 }>()
@@ -156,7 +168,15 @@ const emit = defineEmits<{
 const localDriverFilter = ref(props.driverFilter)
 const localTrackFilter = ref(props.trackFilter)
 const editingId = ref<number | null>(null)
-const editForm = reactive<any>({})
+const editForm = reactive<LapEditForm>({
+  id: 0,
+  lap_number: 0,
+  lap_time: null,
+  sector_1_time: null,
+  sector_2_time: null,
+  sector_3_time: null,
+  position: null
+})
 
 const formatTime = (time: string | number | null | undefined): string => {
   if (time === null || time === undefined || time === '' || time === 0) return '-'
@@ -179,7 +199,7 @@ const formatCost = (cost: string | number | null | undefined): string => {
   return '€' + num.toFixed(2)
 }
 
-const startEdit = (lap: any) => {
+const startEdit = (lap: Lap) => {
   editingId.value = lap.id
   Object.assign(editForm, { ...lap })
 }
@@ -191,8 +211,8 @@ const saveEdit = async () => {
     await apiService.updateLap(editingId.value, editForm)
     editingId.value = null
     emit('refresh')
-  } catch (error: any) {
-    alert('Failed to save: ' + (error.response?.data?.message || error.message))
+  } catch (error: unknown) {
+    alert('Failed to save: ' + getErrorMessage(error))
   }
 }
 
@@ -206,8 +226,8 @@ const deleteItem = async (id: number) => {
   try {
     await apiService.deleteLap(id)
     emit('refresh')
-  } catch (error: any) {
-    alert('Failed to delete: ' + (error.response?.data?.message || error.message))
+  } catch (error: unknown) {
+    alert('Failed to delete: ' + getErrorMessage(error))
   }
 }
 </script>

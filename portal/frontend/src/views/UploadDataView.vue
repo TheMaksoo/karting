@@ -403,6 +403,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, type Ref } from 'vue'
 import apiService from '@/services/api'
+import { useErrorHandler, getErrorMessage } from '@/composables/useErrorHandler'
+
+const { handleError } = useErrorHandler()
 
 interface Track {
   id: number
@@ -417,13 +420,32 @@ interface Driver {
   name: string
 }
 
+interface LapPreview {
+  position?: number
+  driver_name: string
+  kart_number?: number
+  best_lap_time?: number
+  total_laps?: number
+}
+
+interface SessionInfo {
+  date?: string
+  type?: string
+}
+
 interface PreviewData {
   track: Track
   laps_count: number
   drivers_detected: number
-  laps: any[]
-  session_info: any
+  laps: LapPreview[]
+  session_info: SessionInfo
   temp_path?: string
+}
+
+interface ImportStats {
+  laps_imported: number
+  drivers_processed: number
+  session_id: number
 }
 
 // Refs
@@ -444,7 +466,7 @@ const sessionDate = ref(new Date().toISOString().split('T')[0])
 const sessionType = ref('practice')
 const showSuccessModal = ref(false)
 const successMessage = ref('')
-const importStats = ref<any>(null)
+const importStats = ref<ImportStats | null>(null)
 
 // Manual form
 const manualForm = ref({
@@ -468,8 +490,8 @@ const loadTracks = async () => {
   try {
     const response = await apiService.tracks.getAll()
     allTracks.value = response
-  } catch (error) {
-    console.error('Failed to load tracks:', error)
+  } catch (error: unknown) {
+    handleError(error, 'Failed to load tracks')
   }
 }
 
@@ -477,8 +499,8 @@ const loadDrivers = async () => {
   try {
     const response = await apiService.drivers.getAll()
     drivers.value = response
-  } catch (error) {
-    console.error('Failed to load drivers:', error)
+  } catch (error: unknown) {
+    handleError(error, 'Failed to load drivers')
   }
 }
 
@@ -526,9 +548,9 @@ const parseFile = async () => {
     } else {
       alert('Failed to parse file: ' + (response.data.message || 'Unknown error'))
     }
-  } catch (error: any) {
-    console.error('Parse error:', error)
-    alert('Failed to parse file: ' + (error.response?.data?.message || error.message))
+  } catch (error: unknown) {
+    handleError(error, 'Parse error')
+    alert('Failed to parse file: ' + getErrorMessage(error))
   } finally {
     parsing.value = false
   }
@@ -555,9 +577,9 @@ const importData = async () => {
     } else {
       alert('Import failed: ' + (response.data.message || 'Unknown error'))
     }
-  } catch (error: any) {
-    console.error('Import error:', error)
-    alert('Import failed: ' + (error.response?.data?.message || error.message))
+  } catch (error: unknown) {
+    handleError(error, 'Import error')
+    alert('Import failed: ' + getErrorMessage(error))
   } finally {
     importing.value = false
   }
@@ -581,9 +603,9 @@ const submitManualEntry = async () => {
     } else {
       alert('Failed to add lap: ' + (response.data.message || 'Unknown error'))
     }
-  } catch (error: any) {
-    console.error('Manual entry error:', error)
-    alert('Failed to add lap: ' + (error.response?.data?.message || error.message))
+  } catch (error: unknown) {
+    handleError(error, 'Manual entry error')
+    alert('Failed to add lap: ' + getErrorMessage(error))
   } finally {
     submittingManual.value = false
   }

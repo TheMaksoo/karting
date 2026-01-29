@@ -66,9 +66,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { handleError } = useErrorHandler()
 
 const email = ref('')
 const password = ref('')
@@ -77,8 +79,8 @@ async function handleLogin() {
   try {
     await authStore.login(email.value, password.value)
     router.push({ name: 'dashboard' })
-  } catch (error) {
-    console.error('Login failed:', error)
+  } catch (error: unknown) {
+    handleError(error, 'Login failed')
   }
 }
 </script>

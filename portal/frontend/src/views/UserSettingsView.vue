@@ -160,14 +160,22 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import apiService from '@/services/api'
-import type { Driver } from '@/services/api'
+import type { Driver, Track } from '@/services/api'
+import { useErrorHandler, getErrorMessage } from '@/composables/useErrorHandler'
 import '@/styles/UserSettingsView.scss'
 
 const authStore = useAuthStore()
+const { handleError } = useErrorHandler()
+
+interface TrackNickname {
+  id: number
+  track_id: number
+  nickname: string
+}
 
 // State
 const displayName = ref('')
-const tracks = ref<any[]>([])
+const tracks = ref<Track[]>([])
 const trackNicknames = ref<Record<number, string>>({})
 const existingNicknames = ref<Record<number, number>>({}) // track_id -> nickname_id mapping
 const loading = ref(false)
@@ -192,12 +200,12 @@ const loadSettings = async () => {
     displayName.value = settings.display_name || authStore.user?.name || ''
     
     // Map existing track nicknames
-    settings.track_nicknames?.forEach((tn: any) => {
+    settings.track_nicknames?.forEach((tn: TrackNickname) => {
       trackNicknames.value[tn.track_id] = tn.nickname
       existingNicknames.value[tn.track_id] = tn.id
     })
-  } catch (error) {
-    console.error('Failed to load settings:', error)
+  } catch (error: unknown) {
+    handleError(error, 'loading settings')
   } finally {
     loading.value = false
   }
@@ -212,7 +220,7 @@ const loadTracks = async () => {
       const trackStats = await apiService.tracks.stats()
       
       // Filter tracks that have data for any of the user's connected drivers
-      const tracksWithData = new Set()
+      const tracksWithData = new Set<number>()
       for (const stat of trackStats) {
         // Check if this track has sessions from any of the user's drivers
         if (stat.total_sessions > 0) {
@@ -224,8 +232,8 @@ const loadTracks = async () => {
     } else {
       tracks.value = []
     }
-  } catch (error) {
-    console.error('Failed to load tracks:', error)
+  } catch (error: unknown) {
+    handleError(error, 'loading tracks')
   }
 }
 
@@ -237,10 +245,10 @@ const saveDisplayName = async () => {
     
     // Update auth store
     if (authStore.user) {
-      (authStore.user as any).display_name = displayName.value
+      (authStore.user as { display_name?: string }).display_name = displayName.value
     }
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to save display name')
+  } catch (error: unknown) {
+    alert(getErrorMessage(error))
   } finally {
     saving.value = false
   }
@@ -258,8 +266,8 @@ const saveTrackNickname = async (trackId: number) => {
     const result = await apiService.userSettings.setTrackNickname(trackId, nickname)
     existingNicknames.value[trackId] = result.track_nickname.id
     alert('Track nickname saved!')
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to save track nickname')
+  } catch (error: unknown) {
+    alert(getErrorMessage(error))
   } finally {
     saving.value = false
   }
@@ -289,8 +297,8 @@ const loadDrivers = async () => {
   loadingDrivers.value = true
   try {
     myDrivers.value = await apiService.getUserDrivers()
-  } catch (error) {
-    console.error('Failed to load drivers:', error)
+  } catch (error: unknown) {
+    handleError(error, 'loading drivers')
   } finally {
     loadingDrivers.value = false
   }
@@ -330,8 +338,8 @@ const changePassword = async () => {
     }
     
     alert('Password changed successfully!')
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to change password')
+  } catch (error: unknown) {
+    alert(getErrorMessage(error))
   } finally {
     saving.value = false
   }

@@ -173,6 +173,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import apiService from '@/services/api'
+import type { Driver } from '@/services/api'
+import { useErrorHandler, getErrorMessage } from '@/composables/useErrorHandler'
+
+const { handleError } = useErrorHandler()
 
 interface User {
   id: number
@@ -193,13 +197,13 @@ const loading = ref(false)
 const saving = ref(false)
 const loadingDrivers = ref(false)
 const users = ref<User[]>([])
-const unconnectedDrivers = ref<any[]>([])
+const unconnectedDrivers = ref<Driver[]>([])
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showDriverModal = ref(false)
 const selectedUser = ref<User | null>(null)
-const allAvailableDrivers = ref<any[]>([])
-const availableDrivers = ref<any[]>([])
+const allAvailableDrivers = ref<Driver[]>([])
+const availableDrivers = ref<Driver[]>([])
 const driverSearchQuery = ref('')
 
 const formData = ref({
@@ -218,9 +222,8 @@ const loadUsers = async () => {
   loading.value = true
   try {
     users.value = await apiService.adminUsers.getAll()
-  } catch (error) {
-    console.error('Failed to load users:', error)
-    alert('Failed to load users')
+  } catch (error: unknown) {
+    handleError(error, 'loading users')
   } finally {
     loading.value = false
   }
@@ -234,7 +237,7 @@ const loadUnconnectedDrivers = async () => {
     const allDrivers = await apiService.getDrivers()
     
     // Get all connected driver IDs from users
-    const connectedDriverIds = new Set()
+    const connectedDriverIds = new Set<number>()
     users.value.forEach(user => {
       user.drivers?.forEach(driver => {
         connectedDriverIds.add(driver.id)
@@ -242,15 +245,15 @@ const loadUnconnectedDrivers = async () => {
     })
     
     // Filter to find unconnected drivers
-    unconnectedDrivers.value = allDrivers.filter((driver: any) => 
+    unconnectedDrivers.value = allDrivers.filter((driver: Driver) => 
       !connectedDriverIds.has(driver.id)
     )
-  } catch (error) {
-    console.error('Failed to load unconnected drivers:', error)
+  } catch (error: unknown) {
+    handleError(error, 'loading unconnected drivers')
   }
 }
 
-const quickConnectDriver = (driver: any) => {
+const quickConnectDriver = (driver: Driver) => {
   if (users.value.length === 0) {
     alert('No users available to connect to')
     return
@@ -285,8 +288,8 @@ const deleteUser = async (user: User) => {
     await apiService.adminUsers.delete(user.id)
     await loadUsers()
     alert('User deleted successfully')
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to delete user')
+  } catch (error: unknown) {
+    alert(getErrorMessage(error))
   }
 }
 
@@ -301,8 +304,8 @@ const saveUser = async () => {
     await loadUsers()
     closeModals()
     alert(showEditModal.value ? 'User updated successfully' : 'User created successfully')
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to save user')
+  } catch (error: unknown) {
+    alert(getErrorMessage(error))
   } finally {
     saving.value = false
   }
@@ -323,8 +326,8 @@ const showConnectDriverModal = async (user: User) => {
     const drivers = await apiService.adminUsers.availableDrivers(user.id)
     allAvailableDrivers.value = drivers
     availableDrivers.value = drivers
-  } catch (error) {
-    console.error('Failed to load available drivers:', error)
+  } catch (error: unknown) {
+    handleError(error, 'loading available drivers')
   } finally {
     loadingDrivers.value = false
   }
@@ -353,8 +356,8 @@ const connectDriver = async (driverId: number) => {
     await loadUsers()
     showDriverModal.value = false
     alert('Driver connected successfully')
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to connect driver')
+  } catch (error: unknown) {
+    alert(getErrorMessage(error))
   }
 }
 
@@ -365,8 +368,8 @@ const disconnectDriver = async (userId: number, driverId: number) => {
     await apiService.adminUsers.disconnectDriver(userId, driverId)
     await loadUsers()
     alert('Driver disconnected')
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to disconnect driver')
+  } catch (error: unknown) {
+    alert(getErrorMessage(error))
   }
 }
 

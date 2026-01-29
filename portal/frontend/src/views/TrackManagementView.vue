@@ -350,6 +350,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import apiService from '@/services/api'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+
+const { handleError } = useErrorHandler()
 
 interface Track {
   id: number
@@ -428,12 +431,12 @@ const loadTracks = async () => {
   loading.value = true
   try {
     const response = await apiService.tracks.getAll()
-    tracks.value = response.map((track: any) => ({
+    tracks.value = response.map((track: { id: number; name: string; city: string; country: string; indoor?: boolean; distance_km?: number | null; corners?: number | null; width_m?: number | null; elevation_m?: number | null; website?: string | null; phone?: string | null; email?: string | null; latitude?: number | null; longitude?: number | null; eml_supported?: boolean }) => ({
       ...track,
       emlSupported: track.eml_supported || false
     }))
-  } catch (error) {
-    console.error('Failed to load tracks:', error)
+  } catch (error: unknown) {
+    handleError(error, 'Failed to load tracks')
   } finally {
     loading.value = false
   }
@@ -453,7 +456,7 @@ const saveTrack = async () => {
   saving.value = true
   try {
     // Transform form data to API Track format
-    const apiTrackData: any = {
+    const apiTrackData = {
       name: formData.value.name,
       city: formData.value.city,
       country: formData.value.country,
@@ -479,8 +482,8 @@ const saveTrack = async () => {
     }
     await loadTracks()
     closeModals()
-  } catch (error) {
-    console.error('Failed to save track:', error)
+  } catch (error: unknown) {
+    handleError(error, 'Failed to save track')
     alert('Failed to save track. Please try again.')
   } finally {
     saving.value = false
@@ -496,8 +499,8 @@ const deleteTrack = async () => {
     await loadTracks()
     showDeleteModal.value = false
     trackToDelete.value = null
-  } catch (error) {
-    console.error('Failed to delete track:', error)
+  } catch (error: unknown) {
+    handleError(error, 'Failed to delete track')
     alert('Failed to delete track. Please try again.')
   } finally {
     deleting.value = false

@@ -1,6 +1,55 @@
 import { useNotifications } from './useNotifications'
 
 /**
+ * Interface for axios-like error responses
+ */
+interface AxiosLikeError {
+  response?: {
+    status?: number
+    data?: {
+      message?: string
+      errors?: string[] | Record<string, string[]>
+      duplicate_file?: boolean
+      existing_upload?: unknown
+    }
+  }
+  message?: string
+}
+
+/**
+ * Type guard to check if error is an axios-like error
+ */
+export function isAxiosError(error: unknown): error is AxiosLikeError {
+  return typeof error === 'object' && error !== null && 'response' in error
+}
+
+/**
+ * Get the response data from an axios error
+ */
+export function getAxiosErrorResponse(error: unknown): AxiosLikeError['response'] | undefined {
+  if (isAxiosError(error)) {
+    return error.response
+  }
+  return undefined
+}
+
+/**
+ * Extract a user-friendly error message from any error type
+ */
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  if (typeof error === 'string') {
+    return error
+  }
+  if (isAxiosError(error)) {
+    return error.response?.data?.message || error.message || 'Unknown error'
+  }
+  return 'An unexpected error occurred'
+}
+
+/**
  * Shared error handler composable
  * Reduces code duplication and fixes 'any' type usage
  */

@@ -149,10 +149,30 @@ interface Session {
   source: string | null
   heat_price: number | null
   notes: string | null
-  track?: any
+  track?: Track
+}
+
+interface SessionFilters {
+  track_id?: string
+  session_type?: string
+  date_from?: string
+  date_to?: string
+}
+
+interface SessionEditForm {
+  track_id: number
+  session_date: string
+  session_time: string | null
+  session_type: string
+  heat: number
+  weather: string | null
+  source: string | null
+  heat_price: number | null
+  notes: string | null
 }
 
 import type { Track } from '@/services/api'
+import { getErrorMessage } from '@/composables/useErrorHandler'
 
 const props = defineProps<{
   items: Session[]
@@ -171,11 +191,21 @@ const _props = props
 const emit = defineEmits<{
   (e: 'refresh'): void
   (e: 'page-change', page: number): void
-  (e: 'filter-change', filters: any): void
+  (e: 'filter-change', filters: SessionFilters): void
 }>()
 
 const editingId = ref<number | null>(null)
-const editForm = reactive<any>({})
+const editForm = reactive<SessionEditForm>({
+  track_id: 0,
+  session_date: '',
+  session_time: null,
+  session_type: '',
+  heat: 0,
+  weather: null,
+  source: null,
+  heat_price: null,
+  notes: null
+})
 
 const filters = reactive({
   track_id: '',
@@ -185,7 +215,7 @@ const filters = reactive({
 })
 
 const emitFilters = () => {
-  const activeFilters: any = {}
+  const activeFilters: SessionFilters = {}
   if (filters.track_id) activeFilters.track_id = filters.track_id
   if (filters.session_type) activeFilters.session_type = filters.session_type
   if (filters.date_from) activeFilters.date_from = filters.date_from
@@ -206,7 +236,7 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString()
 }
 
-const formatCost = (price: any): string => {
+const formatCost = (price: number | string | null | undefined): string => {
   if (price === null || price === undefined) return '0.00'
   const num = typeof price === 'string' ? parseFloat(price) : price
   return isNaN(num) ? '0.00' : num.toFixed(2)
@@ -234,8 +264,8 @@ const saveEdit = async () => {
     await apiService.updateSession(editingId.value, editForm)
     editingId.value = null
     emit('refresh')
-  } catch (error: any) {
-    alert('Failed to save: ' + (error.response?.data?.message || error.message))
+  } catch (error: unknown) {
+    alert('Failed to save: ' + getErrorMessage(error))
   }
 }
 
@@ -249,8 +279,8 @@ const deleteItem = async (id: number) => {
   try {
     await apiService.deleteSession(id)
     emit('refresh')
-  } catch (error: any) {
-    alert('Failed to delete: ' + (error.response?.data?.message || error.message))
+  } catch (error: unknown) {
+    alert('Failed to delete: ' + getErrorMessage(error))
   }
 }
 </script>

@@ -609,9 +609,30 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import apiService from '@/services/api'
+import type { Track, Driver, Lap, User } from '@/services/api'
+import { useErrorHandler, getErrorMessage, isAxiosError, getAxiosErrorResponse } from '@/composables/useErrorHandler'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const { handleError } = useErrorHandler()
+
+interface ParsedLap {
+  driver_name: string
+  lap_number: number
+  lap_time: string | number
+  position?: number | null
+  kart_number?: string
+  sector1?: number | null
+  sector2?: number | null
+  sector3?: number | null
+}
+
+interface FailedAutoDetection {
+  file: File
+  fileName: string
+  availableTracks: Track[]
+  selectedTrackId?: number
+}
 
 // Refs
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -627,9 +648,9 @@ const saving = ref(false)
 const duplicate = ref<any>(null)
 const proceedAnyway = ref(false)
 const replaceSession = ref(false)
-const parsedData = ref<any>(null)
+const parsedData = ref<{ track_name?: string; session_number?: string; session_date?: string; laps?: ParsedLap[] } | null>(null)
 const editingIndex = ref<number | null>(null)
-const editBackup = ref<any>(null)
+const editBackup = ref<ParsedLap | null>(null)
 
 const sessionData = reactive({
   track_name: '',
@@ -641,7 +662,7 @@ const sessionData = reactive({
   file_hash: '',
 })
 
-const lapsData = ref<any[]>([])
+const lapsData = ref<ParsedLap[]>([])
 const batchFiles = ref<File[]>([])
 const batchProgress = ref({ 
   current: 0, 
@@ -649,7 +670,7 @@ const batchProgress = ref({
   currentFile: '',
   fileLog: [] as Array<{ filename: string, status: 'processing' | 'success' | 'uploaded' | 'uploaded-incomplete' | 'failed', message: string }>
 })
-const batchResults = ref<{ success: number, failed: number, errors: string[], duplicates: string[], incompleteData: string[], savedSessionIds: number[], failedAutoDetection: Array<{ file: File, fileName: string, availableTracks: any[], selectedTrackId?: number }> }>({ 
+const batchResults = ref<{ success: number, failed: number, errors: string[], duplicates: string[], incompleteData: string[], savedSessionIds: number[], failedAutoDetection: FailedAutoDetection[] }>({ 
   success: 0, 
   failed: 0, 
   errors: [], 
@@ -658,11 +679,11 @@ const batchResults = ref<{ success: number, failed: number, errors: string[], du
   savedSessionIds: [],
   failedAutoDetection: []
 })
-const batchLaps = ref<any[]>([])
+const batchLaps = ref<ParsedLap[]>([])
 
 // Manual entry mode
 const entryMode = ref<'file' | 'manual'>('file')
-const availableTracks = ref<any[]>([])
+const availableTracks = ref<Track[]>([])
 const forceTrack = ref(false)
 const forcedTrackId = ref<number | ''>('')
 const manualSession = reactive({
@@ -681,17 +702,17 @@ const quickLap = reactive({
   sector2: null as number | null,
   sector3: null as number | null,
 })
-const manualLaps = ref<any[]>([])
+const manualLaps = ref<ParsedLap[]>([])
 
 // Driver autocomplete
-const allDrivers = ref<any[]>([])
-const driverSuggestions = ref<any[]>([])
+const allDrivers = ref<Driver[]>([])
+const driverSuggestions = ref<Driver[]>([])
 const showDriverSuggestions = ref(false)
 
 // New drivers connection
 const showNewDriversModal = ref(false)
-const newDriversCreated = ref<any[]>([])
-const availableUsers = ref<any[]>([])
+const newDriversCreated = ref<Driver[]>([])
+const availableUsers = ref<User[]>([])
 const driverUserConnections = ref<Record<number, number | ''>>({})
 const connectingDriver = ref<number | null>(null)
 
@@ -870,19 +891,18 @@ const uploadBatch = async (files: File[]) => {
         batchResults.value.errors.push(`${file.name}: ⚠️ ${response.warnings.join(', ')}`)
       }
       
-    } catch (error: any) {
-      console.error('Upload error for', file.name, error)
-      
+    } catch (error: unknown) {
       // Check if this is a duplicate file error (409 status)
-      if (error.response?.status === 409 && error.response?.data?.duplicate_file) {
-        const responseData = error.response.data
+      const errorResponse = getAxiosErrorResponse(error)
+      if (errorResponse?.status === 409 && errorResponse?.data?.duplicate_file) {
+        const responseData = errorResponse.data as { message?: string; existing_upload?: { status?: string; laps_count?: number; upload_date?: string } }
         const hasMissingData = responseData.existing_upload && 
           (responseData.existing_upload.status === 'partial' || 
            responseData.existing_upload.laps_count === 0)
         
         const status = hasMissingData ? 'uploaded-incomplete' : 'uploaded'
         const errorMsg = hasMissingData 
-          ? `Already uploaded (${responseData.existing_upload.upload_date}) - has missing data`
+          ? `Already uploaded (${responseData.existing_upload?.upload_date}) - has missing data`
           : responseData.message || 'Already uploaded'
         
         // Add to duplicates or incomplete data arrays (not errors)
@@ -898,15 +918,15 @@ const uploadBatch = async (files: File[]) => {
       
       let errorMsg = 'Upload failed'
       
-      if (error.response?.data) {
-        if (error.response.data.errors) {
-          errorMsg = Array.isArray(error.response.data.errors) 
-            ? error.response.data.errors.join(', ')
-            : JSON.stringify(error.response.data.errors)
-        } else if (error.response.data.message) {
-          errorMsg = error.response.data.message
+      if (errorResponse?.data) {
+        if (errorResponse.data.errors) {
+          errorMsg = Array.isArray(errorResponse.data.errors) 
+            ? errorResponse.data.errors.join(', ')
+            : JSON.stringify(errorResponse.data.errors)
+        } else if (errorResponse.data.message) {
+          errorMsg = errorResponse.data.message
         }
-      } else if (error.message) {
+      } else if (error instanceof Error) {
         errorMsg = error.message
       }
       
@@ -920,7 +940,7 @@ const uploadBatch = async (files: File[]) => {
   step.value = 'batch-complete'
 }
 
-const retryFileWithTrack = async (failedFile: { file: File, fileName: string, availableTracks: any[], selectedTrackId?: number }, trackId: number | undefined) => {
+const retryFileWithTrack = async (failedFile: FailedAutoDetection, trackId: number | undefined) => {
   if (!trackId) {
     alert('Please select a track first')
     return
@@ -966,9 +986,9 @@ const retryFileWithTrack = async (failedFile: { file: File, fileName: string, av
     } else {
       alert(`Failed to parse ${failedFile.fileName}: ${response.errors?.join(', ') || 'Unknown error'}`)
     }
-  } catch (error: any) {
-    console.error('Retry error:', error)
-    alert(`Error retrying ${failedFile.fileName}: ${error.message || 'Unknown error'}`)
+  } catch (error: unknown) {
+    handleError(error, `retrying ${failedFile.fileName}`)
+    alert(`Error retrying ${failedFile.fileName}: ${getErrorMessage(error)}`)
   } finally {
     loading.value = false
     loadingMessage.value = ''
@@ -1044,18 +1064,14 @@ const uploadFile = async (file: File) => {
     lapsData.value = response.data.laps || []
     
     step.value = 'preview'
-  } catch (error: any) {
-    const errors = error.response?.data?.errors
-    const errorDetails = error.response?.data?.error_details
+  } catch (error: unknown) {
+    const errorResponse = getAxiosErrorResponse(error)
+    const errors = errorResponse?.data?.errors
     
     if (errors) {
-      uploadError.value = errors.join(', ')
+      uploadError.value = Array.isArray(errors) ? errors.join(', ') : JSON.stringify(errors)
     } else {
-      uploadError.value = error.response?.data?.message || 'Failed to upload file'
-    }
-    
-    if (errorDetails) {
-      console.error('Upload error details:', errorDetails)
+      uploadError.value = errorResponse?.data?.message || 'Failed to upload file'
     }
   }
 }
@@ -1142,9 +1158,9 @@ const saveSession = async () => {
     } else {
       alert('Failed to save session: ' + (response.message || 'Unknown error'))
     }
-  } catch (error: any) {
-    alert('Failed to save session: ' + (error.response?.data?.message || error.message))
-    console.error('Save error:', error)
+  } catch (error: unknown) {
+    handleError(error, 'saving session')
+    alert('Failed to save session: ' + getErrorMessage(error))
   } finally {
     saving.value = false
   }
@@ -1175,7 +1191,7 @@ const resetForm = () => {
 }
 
 // Helper to check if a lap has missing critical data
-const hasMissingData = (lap: any): boolean => {
+const hasMissingData = (lap: ParsedLap): boolean => {
   return !lap.driver_name || !lap.lap_time || lap.lap_time === 0
 }
 
@@ -1297,9 +1313,9 @@ const saveManualSession = async () => {
     } else {
       alert('Failed to save session: ' + (response.message || 'Unknown error'))
     }
-  } catch (error: any) {
-    console.error('Save error:', error)
-    alert('Error saving session: ' + (error.response?.data?.message || error.message))
+  } catch (error: unknown) {
+    handleError(error, 'saving session')
+    alert('Error saving session: ' + getErrorMessage(error))
   } finally {
     saving.value = false
   }
@@ -1311,8 +1327,8 @@ onMounted(async () => {
     availableTracks.value = await apiService.getTracks()
     // Load all drivers for autocomplete
     allDrivers.value = await apiService.getDrivers()
-  } catch (error) {
-    console.error('Failed to load data:', error)
+  } catch (error: unknown) {
+    handleError(error, 'loading data')
   }
 })
 
@@ -1342,7 +1358,7 @@ const searchDrivers = () => {
     .slice(0, 8) // Limit to 8 suggestions
 }
 
-const selectDriver = (driver: any) => {
+const selectDriver = (driver: Driver) => {
   quickLap.driver_name = driver.name
   showDriverSuggestions.value = false
 }
@@ -1358,8 +1374,8 @@ const loadAvailableUsers = async () => {
   try {
     const users = await apiService.adminUsers.getAll()
     availableUsers.value = users
-  } catch (error) {
-    console.error('Failed to load users:', error)
+  } catch (error: unknown) {
+    handleError(error, 'loading users')
   }
 }
 
@@ -1374,8 +1390,8 @@ const connectNewDriver = async (driverId: number) => {
     // Remove from list
     newDriversCreated.value = newDriversCreated.value.filter(d => d.id !== driverId)
     delete driverUserConnections.value[driverId]
-  } catch (error: any) {
-    alert(error.response?.data?.message || 'Failed to connect driver')
+  } catch (error: unknown) {
+    alert(getErrorMessage(error))
   } finally {
     connectingDriver.value = null
   }

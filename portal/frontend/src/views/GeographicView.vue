@@ -108,9 +108,12 @@ import 'leaflet/dist/leaflet.css'
 import { useKartingAPI } from '@/composables/useKartingAPI'
 import { useAuthStore } from '@/stores/auth'
 import TrackMap from '@/components/TrackMap.vue'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+
+const { handleError } = useErrorHandler()
 
 // Fix for default markers in Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -179,7 +182,7 @@ async function loadTrackData() {
           // Fetch all drivers and find by name
           const driversData = await getDriverStats()
           if (driversData) {
-            const matchingDriver = driversData.find((d: any) => 
+            const matchingDriver = driversData.find((d) => 
               d.driver_name.toLowerCase() === authStore.user?.name.toLowerCase()
             )
             
@@ -187,20 +190,20 @@ async function loadTrackData() {
               driverId = matchingDriver.driver_id
               resolvedDriverId.value = driverId // Store resolved ID
             } else {
-              console.error('No driver found matching user name:', authStore.user.name)
+              handleError(new Error(`No driver profile found for "${authStore.user.name}"`), 'Driver lookup failed')
               error.value = `No driver profile found for "${authStore.user.name}". Please contact an administrator.`
               loading.value = false
               return
             }
           }
-        } catch (err) {
-          console.error('Error finding driver by name:', err)
+        } catch (err: unknown) {
+          handleError(err, 'Error finding driver by name')
         }
       }
       
       // Still no driver ID
       if (!driverId) {
-        console.error('Driver ID not found. Auth user:', authStore.user)
+        handleError(new Error('Driver ID not found'), 'Auth user lookup')
         error.value = 'Driver ID not found. Please contact an administrator to link your account to a driver profile.'
         loading.value = false
         return
@@ -214,8 +217,8 @@ async function loadTrackData() {
 
     await nextTick()
     // Map is now handled by TrackMap component
-  } catch (err) {
-    console.error('Error loading track data:', err)
+  } catch (err: unknown) {
+    handleError(err, 'Error loading track data')
     error.value = 'Failed to load track data'
   } finally {
     loading.value = false

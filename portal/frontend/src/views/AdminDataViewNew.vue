@@ -162,17 +162,28 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import apiService from '@/services/api'
+import type { Session, Lap, Driver, Track } from '@/services/api'
+import { useErrorHandler, getErrorMessage } from '@/composables/useErrorHandler'
 import SessionsTable from '@/components/admin/SessionsTable.vue'
 import LapsTable from '@/components/admin/LapsTable.vue'
 
+const { handleError } = useErrorHandler()
+
+interface LapsQueryParams {
+  page: number
+  per_page: number
+  driver_id?: string
+  track_id?: string
+}
+
 // State
 const activeTab = ref('sessions')
-const sessions = ref<any[]>([])
-const laps = ref<any[]>([])
-const drivers = ref<any[]>([])
-const tracks = ref<any[]>([])
-const allDrivers = ref<any[]>([])
-const allTracks = ref<any[]>([])
+const sessions = ref<Session[]>([])
+const laps = ref<Lap[]>([])
+const drivers = ref<Driver[]>([])
+const tracks = ref<Track[]>([])
+const allDrivers = ref<Driver[]>([])
+const allTracks = ref<Track[]>([])
 
 // Loading states
 const sessionsLoading = ref(false)
@@ -224,8 +235,8 @@ const fetchSessions = async () => {
     sessions.value = response.data
     sessionTotalPages.value = response.last_page
     sessionTotal.value = response.total
-  } catch (error: any) {
-    sessionsError.value = error.response?.data?.message || 'Failed to load sessions'
+  } catch (error: unknown) {
+    sessionsError.value = getErrorMessage(error)
   } finally {
     sessionsLoading.value = false
   }
@@ -236,7 +247,7 @@ const fetchLaps = async () => {
   lapsError.value = ''
   
   try {
-    const params: any = { page: lapPage.value, per_page: 25 }
+    const params: LapsQueryParams = { page: lapPage.value, per_page: 25 }
     if (selectedDriver.value) params.driver_id = selectedDriver.value
     if (selectedTrack.value) params.track_id = selectedTrack.value
     
@@ -244,8 +255,8 @@ const fetchLaps = async () => {
     laps.value = response.data
     lapTotalPages.value = response.last_page
     lapTotal.value = response.total
-  } catch (error: any) {
-    lapsError.value = error.response?.data?.message || 'Failed to load laps'
+  } catch (error: unknown) {
+    lapsError.value = getErrorMessage(error)
   } finally {
     lapsLoading.value = false
   }
@@ -259,8 +270,8 @@ const fetchDrivers = async () => {
     const response = await apiService.getDrivers()
     drivers.value = response
     driverTotal.value = drivers.value.length
-  } catch (error: any) {
-    driversError.value = error.response?.data?.message || 'Failed to load drivers'
+  } catch (error: unknown) {
+    driversError.value = getErrorMessage(error)
   } finally {
     driversLoading.value = false
   }
@@ -274,8 +285,8 @@ const fetchTracks = async () => {
     const response = await apiService.getTracks()
     tracks.value = response
     trackTotal.value = tracks.value.length
-  } catch (error: any) {
-    tracksError.value = error.response?.data?.message || 'Failed to load tracks'
+  } catch (error: unknown) {
+    tracksError.value = getErrorMessage(error)
   } finally {
     tracksLoading.value = false
   }
@@ -289,8 +300,8 @@ const loadFilters = async () => {
     ])
     allDrivers.value = driversRes
     allTracks.value = tracksRes
-  } catch (error) {
-    console.error('Failed to load filters:', error)
+  } catch (error: unknown) {
+    handleError(error, 'loading filters')
   }
 }
 

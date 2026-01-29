@@ -147,7 +147,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import apiService from '@/services/api'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
+const { handleError } = useErrorHandler()
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
@@ -183,8 +185,8 @@ onMounted(async () => {
   try {
     const response = await apiService.getDatabaseMetrics()
     totalDataPoints.value = response.total_data_points || 0
-  } catch (error) {
-    console.error('Failed to fetch database metrics:', error)
+  } catch (error: unknown) {
+    handleError(error, 'Failed to fetch database metrics')
   }
 })
 

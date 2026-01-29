@@ -162,16 +162,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import apiService from '@/services/api'
+import type { Driver } from '@/services/api'
+import { getErrorMessage } from '@/composables/useErrorHandler'
 import { getDriverColor } from '@/utils/driverColors'
 
-const drivers = ref<any[]>([])
+const drivers = ref<Driver[]>([])
 const loading = ref(false)
 const error = ref('')
 const searchQuery = ref('')
 const showAddModal = ref(false)
 const showDeleteModal = ref(false)
-const editingDriver = ref<any>(null)
-const driverToDelete = ref<any>(null)
+const editingDriver = ref<Driver | null>(null)
+const driverToDelete = ref<Driver | null>(null)
 
 const driverForm = ref({
   name: '',
@@ -195,14 +197,14 @@ async function loadDrivers() {
     const response = await apiService.getDrivers()
     // apiService.getDrivers() returns Driver[] directly, not { data: Driver[] }
     drivers.value = Array.isArray(response) ? response : []
-  } catch (e: any) {
-    error.value = e.response?.data?.message || 'Failed to load drivers'
+  } catch (e: unknown) {
+    error.value = getErrorMessage(e)
   } finally {
     loading.value = false
   }
 }
 
-function editDriver(driver: any) {
+function editDriver(driver: Driver) {
   editingDriver.value = driver
   driverForm.value = { 
     name: driver.name,
@@ -217,7 +219,7 @@ function getDefaultColor(driverId: number): string {
   return getDriverColor(driverId)
 }
 
-function deleteDriver(driver: any) {
+function deleteDriver(driver: Driver) {
   driverToDelete.value = driver
   showDeleteModal.value = true
 }
@@ -231,19 +233,21 @@ async function saveDriver() {
     }
     await loadDrivers()
     closeAddModal()
-  } catch (e: any) {
-    alert(e.response?.data?.message || 'Failed to save driver')
+  } catch (e: unknown) {
+    alert(getErrorMessage(e))
   }
 }
 
 async function confirmDelete() {
   try {
-    await apiService.deleteDriver(driverToDelete.value.id)
+    if (driverToDelete.value) {
+      await apiService.deleteDriver(driverToDelete.value.id)
+    }
     await loadDrivers()
     showDeleteModal.value = false
     driverToDelete.value = null
-  } catch (e: any) {
-    alert(e.response?.data?.message || 'Failed to delete driver')
+  } catch (e: unknown) {
+    alert(getErrorMessage(e))
   }
 }
 

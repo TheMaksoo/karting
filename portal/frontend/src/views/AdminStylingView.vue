@@ -130,6 +130,20 @@
 import { ref, computed } from 'vue'
 import { useStyleVariables } from '@/composables/useStyleVariables'
 
+interface StyleVariable {
+  id: number
+  key: string
+  value: string
+  label: string
+  type: 'color' | 'size' | 'number' | 'string'
+  description?: string
+  metadata?: {
+    unit?: string
+    min?: number
+    max?: number
+  }
+}
+
 const { variables, loading, error, bulkUpdate, reset, applyStyles } = useStyleVariables()
 
 const activeCategory = ref('colors')
@@ -162,7 +176,7 @@ const getVariableValue = (id: number) => {
   
   for (const categoryVars of Object.values(variables.value)) {
     if (!Array.isArray(categoryVars)) continue
-    const variable = categoryVars.find((v: any) => v.id === id)
+    const variable = categoryVars.find((v: StyleVariable) => v.id === id)
     if (variable) return variable.value
   }
   
@@ -173,11 +187,14 @@ const updateLocalValue = (id: number, value: string) => {
   localChanges.value[id] = value
   
   // Apply immediately for live preview
-  let variable: any = null
+  let variable: StyleVariable | null = null
   for (const categoryVars of Object.values(variables.value)) {
     if (!Array.isArray(categoryVars)) continue
-    variable = categoryVars.find((v: any) => v.id === id)
-    if (variable) break
+    const found = categoryVars.find((v: StyleVariable) => v.id === id)
+    if (found) {
+      variable = found
+      break
+    }
   }
   
   if (variable) {

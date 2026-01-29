@@ -139,17 +139,24 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useChartConfig } from '@/composables/useChartConfig'
-import { useKartingAPI } from '@/composables/useKartingAPI'
+import { useKartingAPI, type TrackStat } from '@/composables/useKartingAPI'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
 // Register Chart.js components
 Chart.register(...registerables)
 
+const { handleError } = useErrorHandler()
 const { getColor } = useChartConfig()
 const { getTrackStats, loading, error } = useKartingAPI()
 
+interface Driver {
+  id: number
+  name: string
+}
+
 // State
-const trackStats = ref<any[]>([])
-const drivers = ref<any[]>([])
+const trackStats = ref<TrackStat[]>([])
+const drivers = ref<Driver[]>([])
 const selectedDriver = ref('')
 const sortBy = ref('total_laps')
 
@@ -204,8 +211,8 @@ async function loadDrivers() {
     })
     const data = await response.json()
     drivers.value = data.data || data || []
-  } catch (err) {
-    console.error('Failed to load drivers:', err)
+  } catch (err: unknown) {
+    handleError(err, 'Failed to load drivers')
   }
 }
 
