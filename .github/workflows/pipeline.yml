@@ -130,19 +130,6 @@ jobs:
     defaults:
       run:
         working-directory: portal/backend
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_DATABASE: karting_test
-          MYSQL_ROOT_PASSWORD: password
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -152,20 +139,7 @@ jobs:
       - run: composer install
       - run: cp .env.testing .env
       - run: php artisan key:generate
-      - run: php artisan migrate --seed
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_DATABASE: karting_test
-          DB_USERNAME: root
-          DB_PASSWORD: password
       - run: mkdir -p coverage && vendor/bin/pest --coverage-clover=coverage/clover.xml
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_DATABASE: karting_test
-          DB_USERNAME: root
-          DB_PASSWORD: password
       - uses: codecov/codecov-action@v4
         if: always()
         with:
