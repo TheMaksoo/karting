@@ -5,16 +5,15 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\UserTrackNickname;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class UserSettingsController extends Controller
 {
     /**
      * Get user settings including display name and track nicknames
      */
-    public function index()
+    public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
         $trackNicknames = UserTrackNickname::where('user_id', $user->id)
             ->with('track:id,name')
@@ -43,7 +42,7 @@ class UserSettingsController extends Controller
             'display_name' => 'required|string|max:255',
         ]);
 
-        $user = Auth::user();
+        $user = $request->user();
         $user->update(['display_name' => $request->display_name]);
 
         return response()->json([
@@ -62,7 +61,7 @@ class UserSettingsController extends Controller
             'nickname' => 'required|string|max:255',
         ]);
 
-        $user = Auth::user();
+        $user = $request->user();
 
         $trackNickname = UserTrackNickname::updateOrCreate(
             [
@@ -90,9 +89,9 @@ class UserSettingsController extends Controller
     /**
      * Delete track nickname
      */
-    public function deleteTrackNickname($id)
+    public function deleteTrackNickname(Request $request, $id)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
         $trackNickname = UserTrackNickname::where('user_id', $user->id)
             ->where('id', $id)

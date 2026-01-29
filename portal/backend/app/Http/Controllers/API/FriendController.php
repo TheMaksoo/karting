@@ -7,7 +7,6 @@ use App\Models\Driver;
 use App\Models\Friend;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -19,7 +18,7 @@ class FriendController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = Auth::user();
+            $user = $request->user();
 
             // Get pagination parameters
             $perPage = $request->input('per_page', 50);
@@ -103,7 +102,7 @@ class FriendController extends Controller
                 'driver_id' => 'required|integer|exists:drivers,id',
             ]);
 
-            $user = Auth::user();
+            $user = $request->user();
 
             // Check if trying to add self
             $userDriverIds = $user->drivers()->pluck('drivers.id')->toArray();
@@ -191,10 +190,10 @@ class FriendController extends Controller
     /**
      * Remove a friend
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
-            $user = Auth::user();
+            $user = $request->user();
 
             $friend = Friend::where('user_id', $user->id)
                 ->where('id', $id)
@@ -220,7 +219,7 @@ class FriendController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Error removing friend: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
+                'user_id' => $request->user()?->id,
                 'friend_id' => $id,
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -237,10 +236,10 @@ class FriendController extends Controller
     /**
      * Get friend IDs for filtering (including all user's connected drivers)
      */
-    public function getFriendDriverIds()
+    public function getFriendDriverIds(Request $request)
     {
         try {
-            $user = Auth::user();
+            $user = $request->user();
 
             $friendIds = Friend::where('user_id', $user->id)
                 ->where('friendship_status', 'active')
@@ -270,7 +269,7 @@ class FriendController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Error retrieving friend driver IDs: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
+                'user_id' => $request->user()?->id,
                 'trace' => $e->getTraceAsString(),
             ]);
 
