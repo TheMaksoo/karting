@@ -12,8 +12,12 @@ return new class() extends Migration
     public function up(): void
     {
         Schema::table('tracks', function (Blueprint $table) {
-            $table->decimal('latitude', 10, 8)->nullable()->after('region');
-            $table->decimal('longitude', 11, 8)->nullable()->after('latitude');
+            if (! Schema::hasColumn('tracks', 'latitude')) {
+                $table->decimal('latitude', 10, 8)->nullable()->after('region');
+            }
+            if (! Schema::hasColumn('tracks', 'longitude')) {
+                $table->decimal('longitude', 11, 8)->nullable()->after('latitude');
+            }
         });
     }
 
