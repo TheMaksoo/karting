@@ -228,9 +228,14 @@ class UploadController extends Controller
                 $lapsImported++;
             }
 
-            // Clean up temp file if provided
+            // Clean up temp file if provided (sanitize path to prevent path traversal)
             if ($request->has('temp_path')) {
-                Storage::delete($request->temp_path);
+                $tempPath = $request->temp_path;
+                // Only allow deletion within the uploads temp directory
+                $safePath = 'uploads/temp/' . basename($tempPath);
+                if (Storage::exists($safePath)) {
+                    Storage::delete($safePath);
+                }
             }
 
             DB::commit();
