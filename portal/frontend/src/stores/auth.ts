@@ -48,6 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchCurrentUser() {
     if (!apiService.isAuthenticated()) {
+      user.value = null
       return
     }
     
@@ -57,10 +58,14 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err: unknown) {
       console.error('Failed to fetch user:', err)
       const errObj = err as { response?: { status?: number } }
-      // If we get 401, clear auth and let user re-login
+      // If we get 401, clear auth and redirect to login
       if (errObj.response?.status === 401) {
         apiService.clearAuth()
         notifications.warning('Session expired. Please log in again.')
+        // Force redirect to login
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/karting/login'
+        }
       }
       user.value = null
     } finally {

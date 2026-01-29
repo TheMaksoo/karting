@@ -142,18 +142,23 @@ router.beforeEach(async (to, _from, next) => {
   // Re-check authentication status after potential user fetch
   const isAuthenticated = authStore.isAuthenticated
 
+  // Check if any matched route requires auth (including parent routes)
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+
   // Redirect authenticated users away from login
-  if (to.meta.requiresGuest && isAuthenticated) {
+  if (requiresGuest && isAuthenticated) {
     return next({ name: 'dashboard' })
   }
 
-  // Require authentication
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  // Require authentication - redirect to login if not authenticated
+  if (requiresAuth && !isAuthenticated) {
     return next({ name: 'login' })
   }
 
   // Require admin role
-  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+  if (requiresAdmin && !authStore.isAdmin) {
     return next({ name: 'dashboard' })
   }
 
