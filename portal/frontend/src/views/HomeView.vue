@@ -1497,7 +1497,7 @@ const loadUserDriverIds = async () => {
     if (authStore.user?.driver_id && !userDriverIds.value.includes(authStore.user.driver_id)) {
       userDriverIds.value.push(authStore.user.driver_id)
     }
-  } catch (error: unknown) {
+  } catch {
     // Fallback to legacy driver_id only
     if (authStore.user?.driver_id) {
       userDriverIds.value = [authStore.user.driver_id]
