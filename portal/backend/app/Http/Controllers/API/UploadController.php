@@ -233,6 +233,7 @@ class UploadController extends Controller
                 $tempPath = $request->temp_path;
                 // Only allow deletion within the uploads temp directory
                 $safePath = 'uploads/temp/' . basename($tempPath);
+
                 if (Storage::exists($safePath)) {
                     Storage::delete($safePath);
                 }
