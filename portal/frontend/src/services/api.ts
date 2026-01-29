@@ -207,13 +207,13 @@ class ApiService {
       (error: AxiosError) => {
         if (error.response?.status === 401) {
           const url = error.config?.url || ''
-          // Never clear auth on /auth/me or /auth/login requests
-          if (!url.includes('/auth/me') && !url.includes('/auth/login')) {
+          // Always clear auth on 401 except for login attempts
+          if (!url.includes('/auth/login')) {
             console.warn('401 unauthorized on:', url)
             this.clearAuth()
             // Only redirect if we're not already on login page
             if (!window.location.pathname.includes('/login')) {
-              window.location.href = '/login'
+              window.location.href = '/karting/login'
             }
           }
         }
@@ -643,6 +643,18 @@ class ApiService {
   async post(url: string, data?: unknown, config?: Record<string, unknown>) {
     const response = await this.api.post(url, data, config)
     return response
+  }
+
+  // Generic get method
+  async get(url: string, config?: Record<string, unknown>) {
+    const response = await this.api.get(url, config)
+    return response.data
+  }
+
+  // Generic delete method
+  async delete(url: string) {
+    const response = await this.api.delete(url)
+    return response.data
   }
 }
 

@@ -31,6 +31,9 @@ class User extends Authenticatable
         'must_change_password',
         'last_login_at',
         'last_login_ip',
+        'registration_status',
+        'approved_by',
+        'approved_at',
     ];
 
     /**
@@ -56,6 +59,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'must_change_password' => 'boolean',
             'last_login_at' => 'datetime',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -65,6 +69,14 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user registration is approved
+     */
+    public function isApproved(): bool
+    {
+        return $this->registration_status === 'approved';
     }
 
     /**

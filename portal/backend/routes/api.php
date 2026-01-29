@@ -7,6 +7,7 @@ use App\Http\Controllers\API\EmlUploadController;
 use App\Http\Controllers\API\FriendController;
 use App\Http\Controllers\API\KartingSessionController;
 use App\Http\Controllers\API\LapController;
+use App\Http\Controllers\API\RegistrationController;
 use App\Http\Controllers\API\SessionAnalyticsController;
 use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\StyleVariableController;
@@ -35,6 +36,7 @@ Route::prefix('health')->group(function () {
 // Public routes with brute-force protection
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/register', [RegistrationController::class, 'register']);
 });
 
 // Protected routes with rate limiting
@@ -121,5 +123,12 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
         Route::get('/admin/users/{userId}/available-drivers', [UserManagementController::class, 'availableDrivers']);
         Route::post('/admin/users/{userId}/drivers/{driverId}', [UserManagementController::class, 'connectDriver']);
         Route::delete('/admin/users/{userId}/drivers/{driverId}', [UserManagementController::class, 'disconnectDriver']);
+
+        // Registration Management
+        Route::get('/admin/registrations', [RegistrationController::class, 'index']);
+        Route::get('/admin/registrations/pending', [RegistrationController::class, 'pending']);
+        Route::post('/admin/registrations/{id}/approve', [RegistrationController::class, 'approve']);
+        Route::post('/admin/registrations/{id}/reject', [RegistrationController::class, 'reject']);
+        Route::delete('/admin/registrations/{id}', [RegistrationController::class, 'destroy']);
     });
 });

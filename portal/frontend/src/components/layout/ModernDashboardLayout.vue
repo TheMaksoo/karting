@@ -210,6 +210,7 @@ const adminMenu = [
   { path: '/admin/data', label: 'Database Overview', icon: '📊' },
   { path: '/admin/tracks', label: 'Track Management', icon: '🏁' },
   { path: '/admin/users', label: 'User Management', icon: '👥' },
+  { path: '/admin/registrations', label: 'Registrations', icon: '📝' },
   { path: '/admin/driver-management', label: 'Driver Management', icon: '🏎️' },
   { path: '/admin/eml-upload', label: 'EML Upload', icon: '📧' },
   { path: '/admin/styling', label: 'Styling', icon: '🎨' },

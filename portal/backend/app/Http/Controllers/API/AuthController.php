@@ -28,6 +28,21 @@ class AuthController extends Controller
             ]);
         }
 
+        // Check if registration is approved
+        $registrationStatus = $user->registration_status ?? 'approved';
+
+        if ($registrationStatus === 'pending') {
+            throw ValidationException::withMessages([
+                'email' => ['Your registration is pending approval. Please wait for an administrator to review your account.'],
+            ]);
+        }
+
+        if ($registrationStatus === 'rejected') {
+            throw ValidationException::withMessages([
+                'email' => ['Your registration has been rejected. Please contact an administrator.'],
+            ]);
+        }
+
         // Track login activity
         $user->update([
             'last_login_at' => now(),

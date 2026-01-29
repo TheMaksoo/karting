@@ -12,6 +12,12 @@ const router = createRouter({
       meta: { requiresGuest: true },
     },
     {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
+      meta: { requiresGuest: true },
+    },
+    {
       path: '/',
       name: 'dashboard',
       component: () => import('../views/DashboardView.vue'),
@@ -116,6 +122,12 @@ const router = createRouter({
               component: () => import('../views/AdminStylingView.vue'),
               meta: { requiresAdmin: true },
             },
+            {
+              path: 'registrations',
+              name: 'admin-registrations',
+              component: () => import('../views/AdminRegistrationsView.vue'),
+              meta: { requiresAdmin: true },
+            },
           ],
         },
       ],
@@ -134,13 +146,18 @@ router.beforeEach(async (to, _from, next) => {
       await authStore.fetchCurrentUser()
     } catch (error) {
       console.warn('Failed to fetch user in router guard:', error)
-      // Token might be expired, clear it
+      // Token is invalid/expired, clear it completely
       apiService.clearAuth()
+      // Force redirect to login for protected routes
+      if (to.matched.some(record => record.meta.requiresAuth)) {
+        return next({ name: 'login' })
+      }
     }
   }
 
   // Re-check authentication status after potential user fetch
-  const isAuthenticated = authStore.isAuthenticated
+  // IMPORTANT: Check both token AND user object exist
+  const isAuthenticated = authStore.isAuthenticated && apiService.isAuthenticated()
 
   // Check if any matched route requires auth (including parent routes)
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
@@ -154,6 +171,8 @@ router.beforeEach(async (to, _from, next) => {
 
   // Require authentication - redirect to login if not authenticated
   if (requiresAuth && !isAuthenticated) {
+    // Clear any stale auth state
+    apiService.clearAuth()
     return next({ name: 'login' })
   }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div class="register-container">
     <div class="racing-lines"></div>
     <div class="floating-shapes">
       <div class="shape shape-1"></div>
@@ -7,14 +7,55 @@
       <div class="shape shape-3"></div>
     </div>
     
-    <div class="login-card">
+    <div class="register-card">
       <div class="logo-section">
         <div class="logo-icon">🏎️</div>
-        <h1>Karting Dashboard</h1>
-        <p>Track your performance, beat your records</p>
+        <h1>Join Karting Dashboard</h1>
+        <p>Create an account to track your performance</p>
       </div>
 
-      <form @submit.prevent="handleLogin" class="login-form">
+      <!-- Success Message -->
+      <div v-if="registrationComplete" class="success-message">
+        <div class="success-icon">✅</div>
+        <h2>Registration Submitted!</h2>
+        <p>Your account is pending approval. An administrator will review your request shortly.</p>
+        <router-link to="/karting/login" class="back-to-login">
+          <span>← Back to Login</span>
+        </router-link>
+      </div>
+
+      <!-- Registration Form -->
+      <form v-else @submit.prevent="handleRegister" class="register-form">
+        <div class="form-group">
+          <label for="name">
+            <i class="icon">👤</i>
+            Full Name
+          </label>
+          <input
+            id="name"
+            v-model="form.name"
+            type="text"
+            placeholder="John Doe"
+            required
+            autocomplete="name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="display_name">
+            <i class="icon">🏷️</i>
+            Display Name (optional)
+          </label>
+          <input
+            id="display_name"
+            v-model="form.display_name"
+            type="text"
+            placeholder="JohnnyRacer"
+            autocomplete="nickname"
+          />
+          <span class="field-hint">How you want to appear on leaderboards</span>
+        </div>
+
         <div class="form-group">
           <label for="email">
             <i class="icon">📧</i>
@@ -22,7 +63,7 @@
           </label>
           <input
             id="email"
-            v-model="email"
+            v-model="form.email"
             type="email"
             placeholder="your@email.com"
             required
@@ -37,50 +78,103 @@
           </label>
           <input
             id="password"
-            v-model="password"
+            v-model="form.password"
             type="password"
             placeholder="••••••••"
             required
-            autocomplete="current-password"
+            minlength="8"
+            autocomplete="new-password"
+          />
+          <span class="field-hint">Minimum 8 characters</span>
+        </div>
+
+        <div class="form-group">
+          <label for="password_confirmation">
+            <i class="icon">🔐</i>
+            Confirm Password
+          </label>
+          <input
+            id="password_confirmation"
+            v-model="form.password_confirmation"
+            type="password"
+            placeholder="••••••••"
+            required
+            autocomplete="new-password"
           />
         </div>
 
-        <div v-if="authStore.error" class="error-message">
-          {{ authStore.error }}
+        <div v-if="error" class="error-message">
+          {{ error }}
         </div>
 
-        <button type="submit" class="login-button" :disabled="authStore.loading">
-          <span class="button-text">{{ authStore.loading ? 'Logging in...' : 'Login' }}</span>
+        <button type="submit" class="register-button" :disabled="loading">
+          <span class="button-text">{{ loading ? 'Registering...' : 'Create Account' }}</span>
           <span class="button-icon">→</span>
         </button>
       </form>
 
-      <div class="help-text">
-        <p>💡 Don't have an account? <router-link to="/karting/register">Register here</router-link></p>
+      <div v-if="!registrationComplete" class="help-text">
+        <p>Already have an account? <router-link to="/karting/login">Login here</router-link></p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { useErrorHandler } from '@/composables/useErrorHandler'
+import { ref, reactive } from 'vue'
+import apiService from '@/services/api'
 
-const router = useRouter()
-const authStore = useAuthStore()
-const { handleError } = useErrorHandler()
+const loading = ref(false)
+const error = ref('')
+const registrationComplete = ref(false)
 
-const email = ref('')
-const password = ref('')
+const form = reactive({
+  name: '',
+  display_name: '',
+  email: '',
+  password: '',
+  password_confirmation: ''
+})
 
-async function handleLogin() {
+async function handleRegister() {
+  error.value = ''
+  
+  if (form.password !== form.password_confirmation) {
+    error.value = 'Passwords do not match'
+    return
+  }
+
+  if (form.password.length < 8) {
+    error.value = 'Password must be at least 8 characters'
+    return
+  }
+
+  loading.value = true
+  
   try {
-    await authStore.login(email.value, password.value)
-    router.push({ name: 'dashboard' })
-  } catch (error: unknown) {
-    handleError(error, 'Login failed')
+    await apiService.post('/auth/register', {
+      name: form.name,
+      display_name: form.display_name || null,
+      email: form.email,
+      password: form.password,
+      password_confirmation: form.password_confirmation
+    })
+    
+    registrationComplete.value = true
+  } catch (err: unknown) {
+    if (err && typeof err === 'object' && 'response' in err) {
+      const response = (err as { response: { data: { message?: string; errors?: Record<string, string[]> } } }).response
+      if (response.data?.errors) {
+        const firstError = Object.values(response.data.errors)[0]
+        error.value = Array.isArray(firstError) && firstError[0] ? firstError[0] : 'Validation failed'
+      } else {
+        error.value = response.data?.message || 'Registration failed. Please try again.'
+      }
+    } else {
+      error.value = 'Registration failed. Please try again.'
+    }
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -111,7 +205,7 @@ async function handleLogin() {
   --transition-normal: 0.3s ease;
 }
 
-.login-container {
+.register-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -173,7 +267,7 @@ async function handleLogin() {
 .shape-1 {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, #58A6FF, transparent);
+  background: radial-gradient(circle, #10B981, transparent);
   top: -100px;
   left: -100px;
   animation-delay: 0s;
@@ -191,7 +285,7 @@ async function handleLogin() {
 .shape-3 {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, #10B981, transparent);
+  background: radial-gradient(circle, #58A6FF, transparent);
   top: 50%;
   left: 50%;
   animation-delay: 10s;
@@ -203,17 +297,17 @@ async function handleLogin() {
   66% { transform: translate(-20px, 20px) scale(0.9); }
 }
 
-.login-card {
+.register-card {
   background: rgba(28, 33, 40, 0.85);
-  border: 1px solid rgba(88, 166, 255, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: var(--radius-lg);
   box-shadow: 
     var(--shadow-lg),
-    0 0 80px rgba(88, 166, 255, 0.1),
+    0 0 80px rgba(16, 185, 129, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   padding: 1.875rem;
   width: 100%;
-  max-width: 315px;
+  max-width: 380px;
   position: relative;
   z-index: 1;
   backdrop-filter: blur(20px) saturate(180%);
@@ -241,7 +335,7 @@ async function handleLogin() {
   margin-bottom: 0.5rem;
   animation: bounce 2s ease-in-out infinite;
   display: inline-block;
-  filter: drop-shadow(0 4px 12px rgba(88, 166, 255, 0.3));
+  filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.3));
 }
 
 @keyframes bounce {
@@ -250,11 +344,11 @@ async function handleLogin() {
 }
 
 .logo-section h1 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   color: var(--text-primary);
   margin: 0 0 0.5rem 0;
   font-weight: 700;
-  background: linear-gradient(135deg, #58A6FF 0%, #F97316 50%, #10B981 100%);
+  background: linear-gradient(135deg, #10B981 0%, #58A6FF 50%, #F97316 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -275,21 +369,24 @@ async function handleLogin() {
   opacity: 0.8;
 }
 
-.login-form {
+.register-form {
   display: flex;
   flex-direction: column;
-  gap: 0.9375rem;
+  gap: 0.875rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
   animation: fadeIn 0.6s ease-out backwards;
 }
 
 .form-group:nth-child(1) { animation-delay: 0.1s; }
-.form-group:nth-child(2) { animation-delay: 0.2s; }
+.form-group:nth-child(2) { animation-delay: 0.15s; }
+.form-group:nth-child(3) { animation-delay: 0.2s; }
+.form-group:nth-child(4) { animation-delay: 0.25s; }
+.form-group:nth-child(5) { animation-delay: 0.3s; }
 
 @keyframes fadeIn {
   from {
@@ -305,22 +402,22 @@ async function handleLogin() {
 .form-group label {
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .form-group label .icon {
-  font-size: 1rem;
+  font-size: 0.9rem;
   opacity: 0.7;
 }
 
 .form-group input {
-  padding: 0.5625rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  font-size: 0.703125rem;
+  font-size: 0.75rem;
   background: rgba(22, 27, 34, 0.5);
   color: var(--text-primary);
   transition: all var(--transition-fast);
@@ -334,12 +431,18 @@ async function handleLogin() {
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: var(--success-color);
   box-shadow: 
-    0 0 0 3px rgba(88, 166, 255, 0.15),
-    0 0 20px rgba(88, 166, 255, 0.1);
+    0 0 0 3px rgba(16, 185, 129, 0.15),
+    0 0 20px rgba(16, 185, 129, 0.1);
   background: var(--bg-secondary);
   transform: translateY(-1px);
+}
+
+.field-hint {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
 }
 
 .error-message {
@@ -347,7 +450,7 @@ async function handleLogin() {
   color: var(--error-text);
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   border: 1px solid var(--error-border);
   display: flex;
   align-items: center;
@@ -366,8 +469,49 @@ async function handleLogin() {
   font-size: 1rem;
 }
 
-.login-button {
-  background: linear-gradient(135deg, #58A6FF, #F97316);
+.success-message {
+  text-align: center;
+  padding: 1.5rem 0;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.success-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.success-message h2 {
+  color: var(--success-color);
+  font-size: 1.25rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.success-message p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.back-to-login {
+  display: inline-block;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--primary-color);
+  transition: all var(--transition-fast);
+}
+
+.back-to-login:hover {
+  background: rgba(88, 166, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.register-button {
+  background: linear-gradient(135deg, #10B981, #58A6FF);
   color: white;
   border: none;
   padding: 0.65625rem 0.9375rem;
@@ -378,17 +522,18 @@ async function handleLogin() {
   transition: all var(--transition-fast);
   box-shadow: 
     var(--shadow-sm),
-    0 0 20px rgba(88, 166, 255, 0.2);
+    0 0 20px rgba(16, 185, 129, 0.2);
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  animation: fadeIn 0.6s ease-out 0.3s backwards;
+  margin-top: 0.5rem;
+  animation: fadeIn 0.6s ease-out 0.35s backwards;
 }
 
-.login-button::before {
+.register-button::before {
   content: '';
   position: absolute;
   top: 0;
@@ -399,23 +544,23 @@ async function handleLogin() {
   transition: left 0.5s ease;
 }
 
-.login-button:hover::before {
+.register-button:hover::before {
   left: 100%;
 }
 
-.login-button:hover:not(:disabled) {
+.register-button:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 
     var(--shadow-md),
-    0 0 30px rgba(88, 166, 255, 0.4);
+    0 0 30px rgba(16, 185, 129, 0.4);
   filter: brightness(1.1);
 }
 
-.login-button:active:not(:disabled) {
+.register-button:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.login-button:disabled {
+.register-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -431,14 +576,14 @@ async function handleLogin() {
   transition: transform 0.3s ease;
 }
 
-.login-button:hover:not(:disabled) .button-icon {
+.register-button:hover:not(:disabled) .button-icon {
   transform: translateX(5px);
 }
 
 .help-text {
-  margin-top: 0.9375rem;
+  margin-top: 0.875rem;
   text-align: center;
-  padding-top: 0.9375rem;
+  padding-top: 0.875rem;
   border-top: 1px solid var(--border-color);
   animation: fadeIn 0.6s ease-out 0.4s backwards;
 }
@@ -448,7 +593,6 @@ async function handleLogin() {
   font-size: 0.75rem;
   margin: 0;
   font-weight: 500;
-  opacity: 0.7;
 }
 
 .help-text a {
@@ -464,11 +608,11 @@ async function handleLogin() {
 
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
-  .login-container {
+  .register-container {
     padding: 1rem 0.75rem;
   }
   
-  .login-card {
+  .register-card {
     padding: 1.5rem 1.125rem;
     max-width: 100%;
   }
@@ -478,25 +622,25 @@ async function handleLogin() {
   }
   
   .logo-section h1 {
-    font-size: 1.3125rem;
+    font-size: 1.2rem;
   }
   
   .logo-section p {
-    font-size: 0.609375rem;
+    font-size: 0.75rem;
   }
   
-  .login-form {
-    gap: 0.75rem;
+  .register-form {
+    gap: 0.7rem;
   }
   
   .form-group input {
-    padding: 0.525rem 0.675rem;
-    font-size: 0.703125rem;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.7rem;
   }
   
-  .login-button {
+  .register-button {
     padding: 0.6rem 0.75rem;
-    font-size: 0.703125rem;
+    font-size: 0.7rem;
   }
   
   .shape {
@@ -505,13 +649,13 @@ async function handleLogin() {
 }
 
 @media (max-width: 480px) {
-  .login-card {
+  .register-card {
     padding: 1.125rem 0.75rem;
     border-radius: var(--radius-md);
   }
   
   .logo-section {
-    margin-bottom: 1.125rem;
+    margin-bottom: 1rem;
   }
   
   .logo-icon {
@@ -519,62 +663,38 @@ async function handleLogin() {
   }
   
   .logo-section h1 {
-    font-size: 1.125rem;
+    font-size: 1.1rem;
   }
   
   .logo-section p {
-    font-size: 0.5625rem;
+    font-size: 0.65rem;
   }
   
   .form-group label {
-    font-size: 0.609375rem;
+    font-size: 0.7rem;
   }
   
   .form-group input {
-    padding: 0.4875rem 0.6375rem;
-    font-size: 0.609375rem;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.65rem;
   }
   
-  .login-button {
-    padding: 0.5625rem 0.75rem;
-    font-size: 0.65625rem;
+  .register-button {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.65rem;
   }
   
   .error-message {
-    padding: 0.4875rem 0.6375rem;
-    font-size: 0.65625rem;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.65rem;
   }
   
   .help-text p {
-    font-size: 0.515625rem;
+    font-size: 0.6rem;
   }
   
   .shape {
     filter: blur(30px);
-  }
-}
-
-@media (max-width: 374px) {
-  .login-card {
-    padding: 0.9375rem 0.6375rem;
-  }
-  
-  .logo-icon {
-    font-size: 1.5rem;
-  }
-  
-  .logo-section h1 {
-    font-size: 1.03125rem;
-  }
-  
-  .form-group input {
-    padding: 0.45rem 0.5625rem;
-    font-size: 0.5625rem;
-  }
-  
-  .login-button {
-    padding: 0.525rem 0.675rem;
-    font-size: 0.609375rem;
   }
 }
 </style>
