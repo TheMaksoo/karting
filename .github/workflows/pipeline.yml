@@ -159,7 +159,7 @@ jobs:
           DB_DATABASE: karting_test
           DB_USERNAME: root
           DB_PASSWORD: password
-      - run: vendor/bin/pest --coverage-clover=coverage/clover.xml
+      - run: mkdir -p coverage && vendor/bin/pest --coverage-clover=coverage/clover.xml
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -169,12 +169,12 @@ jobs:
       - uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./portal/backend/coverage/clover.xml
+          files: coverage/clover.xml
           flags: php
       - uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
-          path: portal/backend/coverage/clover.xml
+          path: coverage/clover.xml
 
   test-frontend:
     name: 🧪 Frontend Tests
