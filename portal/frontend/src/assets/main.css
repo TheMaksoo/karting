@@ -433,3 +433,80 @@ button:disabled {
     --chart-min-height-mobile: 240px;
   }
 }
+
+/* ========== ACCESSIBILITY - FOCUS INDICATORS ========== */
+/* Visible focus indicators for keyboard navigation */
+
+/* Focus ring base style */
+:focus-visible {
+  outline: 2px solid var(--primary-color, #FF6B35);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Buttons */
+button:focus-visible,
+.btn:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--primary-color, #FF6B35);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.25);
+}
+
+/* Links */
+a:focus-visible {
+  outline: 2px solid var(--primary-color, #FF6B35);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Form inputs */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary-color, #FF6B35);
+  outline-offset: 0;
+  border-color: var(--primary-color, #FF6B35);
+}
+
+/* Checkboxes and radios */
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 2px solid var(--primary-color, #FF6B35);
+  outline-offset: 2px;
+}
+
+/* Cards and interactive elements */
+[tabindex="0"]:focus-visible,
+.card:focus-visible,
+.interactive:focus-visible {
+  outline: 2px solid var(--primary-color, #FF6B35);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.15);
+}
+
+/* Skip to content link (hidden until focused) */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary-color, #FF6B35);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 8px;
+  transition: top 0.2s ease;
+}
+
+.skip-to-content:focus {
+  top: 0;
+  outline: none;
+}
+
