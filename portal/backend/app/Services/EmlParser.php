@@ -567,16 +567,30 @@ class EmlParser
 
     /**
      * Parse De Voltage format
-     * Format: HTML table with columns: Pos, Kart, Name, Laps, Best, Gap
+     * Format: "Detailed results" table with driver names in headers and lap times in rows
+     * Fallback: "Heat overview" table with columns: Pos, Name, Best Score (3 columns)
      */
     private function parseDeVoltageFormat(string $html): array
     {
-        $laps = [];
         $sessionInfo = [];
 
-        // Extract session date from email
-        if (preg_match('/(\d{4}-\d{2}-\d{2})/', $html, $dateMatch)) {
-            $sessionInfo['date'] = $dateMatch[1];
+        // Extract session date from email Date: header (RFC 2822 format)
+        // Format: "Date: Sat, 19 Jul 2025 13:39:13 +0000"
+        if (preg_match('/Date:\s*\w+,\s*(\d+)\s+(\w+)\s+(\d{4})/i', $html, $dateMatch)) {
+            $months = [
+                'Jan' => '01', 'Feb' => '02', 'Mar' => '03', 'Apr' => '04',
+                'May' => '05', 'Jun' => '06', 'Jul' => '07', 'Aug' => '08',
+                'Sep' => '09', 'Oct' => '10', 'Nov' => '11', 'Dec' => '12',
+            ];
+            $month = $months[$dateMatch[2]] ?? '01';
+            $sessionInfo['date'] = $dateMatch[3] . '-' . $month . '-' . sprintf('%02d', $dateMatch[1]);
+        } elseif (preg_match('/(\d{4})-(\d{2})-(\d{2})/', $html, $dateMatch)) {
+            // Fallback: Only accept dates in reasonable year range (2000-2100)
+            $year = (int) $dateMatch[1];
+
+            if ($year >= 2000 && $year <= 2100) {
+                $sessionInfo['date'] = $dateMatch[0];
+            }
         }
 
         // Extract session number
@@ -584,7 +598,19 @@ class EmlParser
             $sessionInfo['session_number'] = $sessionMatch[1];
         }
 
-        // Parse table rows
+        // First try the detailed lap table (has all individual laps per driver)
+        $detailedLaps = $this->parseDetailedLapTable($html);
+
+        if (! empty($detailedLaps)) {
+            return [
+                'session_info' => $sessionInfo,
+                'laps' => $detailedLaps,
+            ];
+        }
+
+        // Fallback: Parse "Heat overview" table (3 columns: Pos, Name, Best Score)
+        $laps = [];
+
         if (preg_match_all('/<tr[^>]*>(.*?)<\/tr>/is', $html, $rows)) {
             foreach ($rows[1] as $row) {
                 // Extract cells
@@ -592,23 +618,26 @@ class EmlParser
                     $data = array_map('strip_tags', $cells[1]);
                     $data = array_map('trim', $data);
 
-                    // Skip header rows
-                    if (count($data) >= 4 && ! str_contains($data[0], 'Pos')) {
-                        $driverName = $data[2] ?? '';
-                        $bestLap = $data[4] ?? '';
+                    // Heat overview table has 3 columns: Pos (like "1."), Name, Best Score
+                    if (count($data) >= 3 && ! str_contains(strtolower($data[0]), 'pos')) {
+                        // Extract position (remove trailing dot like "1." -> 1)
+                        $position = (int) preg_replace('/\D/', '', $data[0]);
+                        $driverName = $data[1] ?? '';
+                        $bestLap = $data[2] ?? '';
 
-                        if ($driverName && $bestLap) {
-                            // Convert lap time to seconds
+                        // Validate: driver name should have letters, best lap should be numeric
+                        if ($driverName && preg_match('/[a-zA-Z]/', $driverName) && preg_match('/^\d+[\.:]\d+/', $bestLap)) {
                             $lapTime = $this->convertLapTimeToSeconds($bestLap);
 
-                            // Create a single lap entry with the best lap time
-                            $laps[] = [
-                                'driver_name' => $driverName,
-                                'kart_number' => $data[1] ?? null,
-                                'position' => (int) ($data[0] ?? 0),
-                                'lap_number' => 1, // Best lap as lap 1
-                                'lap_time' => $lapTime,
-                            ];
+                            if ($lapTime > 0) {
+                                $laps[] = [
+                                    'driver_name' => $driverName,
+                                    'kart_number' => null,
+                                    'position' => $position,
+                                    'lap_number' => 1, // Best lap as lap 1
+                                    'lap_time' => $lapTime,
+                                ];
+                            }
                         }
                     }
                 }
