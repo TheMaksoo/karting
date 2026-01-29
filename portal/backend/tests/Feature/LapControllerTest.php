@@ -147,6 +147,9 @@ class LapControllerTest extends TestCase
 
     public function test_overview_returns_aggregated_stats(): void
     {
+        // Connect driver to user to make stats visible
+        $this->user->drivers()->attach($this->driver->id);
+
         Lap::factory()->count(5)->create([
             'karting_session_id' => $this->session->id,
             'driver_id' => $this->driver->id,
@@ -156,7 +159,7 @@ class LapControllerTest extends TestCase
         $response = $this->actingAs($this->user)->getJson('/api/stats/overview');
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['total_laps', 'total_drivers', 'best_lap']);
+            ->assertJsonStructure(['total_laps', 'total_accounts', 'best_lap']);
     }
 
     public function test_lap_stores_sector_times(): void

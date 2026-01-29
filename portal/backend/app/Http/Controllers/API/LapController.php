@@ -214,39 +214,38 @@ class LapController extends Controller
 
     public function overview(Request $request)
     {
-        // Get driver_id from request (for logged-in driver filtering)
-        $driverId = $request->input('driver_id');
-
-        // Get allowed driver IDs for the user (user + friends)
+        // Get allowed driver IDs for the user (user + friends) - aggregated by account
         $user = $request->user();
         $allowedDriverIds = $this->getAllowedDriverIds($user);
+        $accounts = $this->getDriverIdsByAccount($user);
 
-        // Base query for laps
-        $lapQuery = Lap::query();
+        // Build driver_id to account mapping
+        $driverToAccount = [];
 
-        if ($driverId) {
-            $lapQuery->where('driver_id', $driverId);
-        } else {
-            // Filter to user + friends only
-            $lapQuery->whereIn('driver_id', $allowedDriverIds);
+        foreach ($accounts as $account) {
+            foreach ($account['driver_ids'] as $driverId) {
+                $driverToAccount[$driverId] = [
+                    'user_id' => $account['user_id'],
+                    'user_name' => $account['user_name'],
+                    'is_current_user' => $account['is_current_user'],
+                ];
+            }
         }
+
+        // Base query for laps - always filter to user + friends
+        $lapQuery = Lap::whereIn('driver_id', $allowedDriverIds);
 
         $totalLaps = $lapQuery->count();
 
-        // Count distinct drivers from allowed list only
-        $totalDrivers = $driverId
-            ? 1
-            : Lap::whereIn('driver_id', $allowedDriverIds)->distinct('driver_id')->count('driver_id');
+        // Count unique accounts instead of unique drivers
+        $totalAccounts = count($accounts);
 
-        // Best lap for this driver (or from allowed drivers)
-        $bestLapQuery = Lap::where('is_best_lap', true)->orderBy('lap_time')->with(['driver', 'kartingSession.track']);
-
-        if ($driverId) {
-            $bestLapQuery->where('driver_id', $driverId);
-        } else {
-            $bestLapQuery->whereIn('driver_id', $allowedDriverIds);
-        }
-        $bestLapGlobal = $bestLapQuery->first();
+        // Best lap from allowed drivers
+        $bestLapGlobal = Lap::where('is_best_lap', true)
+            ->whereIn('driver_id', $allowedDriverIds)
+            ->orderBy('lap_time')
+            ->with(['driver', 'kartingSession.track'])
+            ->first();
 
         // Average lap time and speed
         $avgLapTime = (clone $lapQuery)->avg('lap_time');
@@ -290,18 +289,10 @@ class LapController extends Controller
             ->selectRaw('SUM(tracks.corners) as total');
         $totalCorners = $totalCornersQuery->value('total');
 
-        // Get sessions for this driver
-        $sessionQuery = KartingSession::query();
-
-        if ($driverId) {
-            $sessionQuery->whereHas('laps', function ($q) use ($driverId) {
-                $q->where('driver_id', $driverId);
-            });
-        } else {
-            $sessionQuery->whereHas('laps', function ($q) use ($allowedDriverIds) {
-                $q->whereIn('driver_id', $allowedDriverIds);
-            });
-        }
+        // Get sessions for allowed drivers
+        $sessionQuery = KartingSession::whereHas('laps', function ($q) use ($allowedDriverIds) {
+            $q->whereIn('driver_id', $allowedDriverIds);
+        });
 
         // Calculate total cost (sum of heat_price from sessions)
         $totalCost = (clone $sessionQuery)->sum('heat_price');
@@ -328,10 +319,21 @@ class LapController extends Controller
             ->distinct('karting_sessions.track_id')
             ->count('karting_sessions.track_id');
 
+        // Add account info to best lap response
+        $bestLapWithAccount = null;
+
+        if ($bestLapGlobal) {
+            $bestLapData = $bestLapGlobal->toArray();
+            $accountInfo = $driverToAccount[$bestLapGlobal->driver_id] ?? null;
+            $bestLapData['account_name'] = $accountInfo['user_name'] ?? $bestLapGlobal->driver?->name;
+            $bestLapData['is_current_user'] = $accountInfo['is_current_user'] ?? false;
+            $bestLapWithAccount = $bestLapData;
+        }
+
         return response()->json([
             'total_laps' => $totalLaps,
-            'total_drivers' => $totalDrivers,
-            'best_lap' => $bestLapGlobal,
+            'total_accounts' => $totalAccounts,
+            'best_lap' => $bestLapWithAccount,
             'average_lap_time' => $avgLapTime,
             'median_lap_time' => $medianLapTime,
             'average_speed_kmh' => $avgSpeedKmh,

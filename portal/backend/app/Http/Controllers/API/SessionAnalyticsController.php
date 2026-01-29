@@ -15,76 +15,72 @@ class SessionAnalyticsController extends Controller
     use AllowedDriversTrait;
 
     /**
-     * Get cumulative lap count per driver over time (for activity chart)
-     * Returns cleaner format with just dates and driver data
+     * Get cumulative lap count per ACCOUNT over time (for activity chart)
+     * Aggregates all drivers in an account into one line
      */
     public function driverActivityOverTime(Request $request)
     {
-        $driverId = $request->input('driver_id');
-
-        // Get logged-in user's driver IDs (user's own + friends)
         $user = $request->user();
-        $allowedDriverIds = $this->getAllowedDriverIds($user);
+        $accounts = $this->getDriverIdsByAccount($user);
 
-        // Build query for all drivers or specific driver
-        $query = Lap::select(
-            'drivers.id as driver_id',
-            'drivers.name as driver_name',
-            'karting_sessions.session_date',
-            DB::raw('COUNT(laps.id) as laps_in_session'),
-            DB::raw('SUM(COUNT(laps.id)) OVER (PARTITION BY drivers.id ORDER BY karting_sessions.session_date) as cumulative_laps')
-        )
-            ->join('drivers', 'laps.driver_id', '=', 'drivers.id')
-            ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
-            ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
-            ->groupBy('drivers.id', 'drivers.name', 'karting_sessions.session_date', 'karting_sessions.id')
-            ->orderBy('karting_sessions.session_date')
-            ->orderBy('drivers.name');
+        $result = [];
 
-        // Filter by specific driver if requested
-        if ($driverId) {
-            $query->where('laps.driver_id', $driverId);
+        foreach ($accounts as $account) {
+            // Get laps grouped by session date for this account's drivers
+            $accountData = Lap::select(
+                'karting_sessions.session_date',
+                DB::raw('COUNT(laps.id) as laps_in_session')
+            )
+                ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+                ->whereIn('laps.driver_id', $account['driver_ids'])
+                ->groupBy('karting_sessions.session_date')
+                ->orderBy('karting_sessions.session_date')
+                ->get();
+
+            // Calculate cumulative laps
+            $cumulativeLaps = 0;
+
+            foreach ($accountData as $row) {
+                $cumulativeLaps += $row->laps_in_session;
+                $result[] = [
+                    'driver_id' => $account['user_id'], // Use user_id as identifier
+                    'driver_name' => $account['user_name'], // Use user name
+                    'session_date' => $row->session_date,
+                    'laps_added' => $row->laps_in_session,
+                    'cumulative_laps' => $cumulativeLaps,
+                ];
+            }
         }
 
-        $result = $query->get()->map(function ($item) {
-            return [
-                'driver_id' => $item->driver_id,
-                'driver_name' => $item->driver_name,
-                'session_date' => $item->session_date,
-                'laps_added' => $item->laps_in_session,
-                'cumulative_laps' => $item->cumulative_laps,
-            ];
+        // Sort by session_date, then by name
+        usort($result, function ($a, $b) {
+            $dateCompare = strcmp($a['session_date'], $b['session_date']);
+
+            return $dateCompare !== 0 ? $dateCompare : strcmp($a['driver_name'], $b['driver_name']);
         });
 
         return response()->json($result);
     }
 
     /**
-     * Get best lap per driver per track (for heatmap)
-     * Returns: tracks horizontal, drivers vertical
+     * Get best lap per ACCOUNT per track (for heatmap)
+     * Returns: tracks horizontal, accounts (users) vertical
+     * Aggregates all drivers in an account - shows best lap across all account's drivers
      */
     public function driverTrackHeatmap(Request $request)
     {
-        // Get logged-in user's driver IDs (user's own + friends)
         $user = $request->user();
+        $accounts = $this->getDriverIdsByAccount($user);
         $allowedDriverIds = $this->getAllowedDriverIds($user);
 
-        // Get all unique tracks and drivers (filtered by allowed drivers)
+        // Get all unique tracks (filtered by allowed drivers)
         $tracks = DB::table('tracks')
             ->join('karting_sessions', 'tracks.id', '=', 'karting_sessions.track_id')
             ->join('laps', 'karting_sessions.id', '=', 'laps.karting_session_id')
-            ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
+            ->whereIn('laps.driver_id', $allowedDriverIds)
             ->select('tracks.id', 'tracks.name')
             ->distinct()
             ->orderBy('tracks.name')
-            ->get();
-
-        $drivers = DB::table('drivers')
-            ->join('laps', 'drivers.id', '=', 'laps.driver_id')
-            ->whereIn('drivers.id', $allowedDriverIds) // Filter by user + friends
-            ->select('drivers.id', 'drivers.name')
-            ->distinct()
-            ->orderBy('drivers.name')
             ->get();
 
         // Get track records (filtered by allowed drivers)
@@ -94,48 +90,40 @@ class SessionAnalyticsController extends Controller
         )
             ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
             ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
-            ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
+            ->whereIn('laps.driver_id', $allowedDriverIds)
             ->groupBy('tracks.id')
             ->get()
             ->pluck('track_record', 'track_id');
 
-        // Get best laps per driver per track with additional stats (filtered by allowed drivers)
-        $driverTrackStats = Lap::select(
-            'laps.driver_id',
-            'tracks.id as track_id',
-            DB::raw('MIN(laps.lap_time) as best_lap_time'),
-            DB::raw('AVG(laps.lap_time) as avg_lap_time'),
-            DB::raw('MAX(laps.lap_time) as worst_lap_time'),
-            DB::raw('COUNT(*) as lap_count'),
-            DB::raw('MAX(laps.lap_time) - MIN(laps.lap_time) as consistency_range')
-        )
-            ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
-            ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
-            ->whereIn('laps.driver_id', $allowedDriverIds) // Filter by user + friends
-            ->groupBy('laps.driver_id', 'tracks.id')
-            ->get();
+        // Get stats per ACCOUNT per track (aggregate all drivers in account)
+        $accountTrackStats = [];
 
-        // Organize by driver and track
-        $bestLaps = [];
-        $lapStats = [];
+        foreach ($accounts as $account) {
+            $stats = Lap::select(
+                'tracks.id as track_id',
+                DB::raw('MIN(laps.lap_time) as best_lap_time'),
+                DB::raw('AVG(laps.lap_time) as avg_lap_time'),
+                DB::raw('MAX(laps.lap_time) as worst_lap_time'),
+                DB::raw('COUNT(*) as lap_count'),
+                DB::raw('MAX(laps.lap_time) - MIN(laps.lap_time) as consistency_range')
+            )
+                ->join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
+                ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
+                ->whereIn('laps.driver_id', $account['driver_ids'])
+                ->groupBy('tracks.id')
+                ->get();
 
-        foreach ($driverTrackStats as $stat) {
-            $bestLaps[$stat->driver_id][$stat->track_id] = $stat->best_lap_time;
-            $lapStats[$stat->driver_id][$stat->track_id] = [
-                'avg_lap_time' => $stat->avg_lap_time,
-                'worst_lap_time' => $stat->worst_lap_time,
-                'lap_count' => $stat->lap_count,
-                'consistency_range' => $stat->consistency_range,
-            ];
+            $accountTrackStats[$account['user_id']] = $stats->keyBy('track_id');
         }
 
-        // Calculate track average speeds (distance / avg lap time * 3.6 for km/h)
+        // Calculate track average speeds
         $trackAvgSpeeds = [];
 
         foreach ($tracks as $track) {
             $avgTime = Lap::join('karting_sessions', 'laps.karting_session_id', '=', 'karting_sessions.id')
                 ->join('tracks', 'karting_sessions.track_id', '=', 'tracks.id')
                 ->where('tracks.id', $track->id)
+                ->whereIn('laps.driver_id', $allowedDriverIds)
                 ->avg('laps.lap_time');
 
             $distance = DB::table('tracks')->where('id', $track->id)->value('distance');
@@ -145,19 +133,20 @@ class SessionAnalyticsController extends Controller
         // Find the maximum gap for percentage calculations
         $allGaps = [];
 
-        foreach ($drivers as $driver) {
+        foreach ($accounts as $account) {
             foreach ($tracks as $track) {
-                if (isset($bestLaps[$driver->id][$track->id])) {
-                    $bestLap = $bestLaps[$driver->id][$track->id];
-                    $trackRecord = $trackRecords[$track->id] ?? $bestLap;
-                    $gap = $bestLap - $trackRecord;
+                $stats = $accountTrackStats[$account['user_id']][$track->id] ?? null;
+
+                if ($stats) {
+                    $trackRecord = $trackRecords[$track->id] ?? $stats->best_lap_time;
+                    $gap = $stats->best_lap_time - $trackRecord;
                     $allGaps[] = $gap;
                 }
             }
         }
         $maxGap = ! empty($allGaps) ? max($allGaps) : 1;
 
-        // Build response
+        // Build response - use accounts instead of drivers
         $result = [
             'tracks' => $tracks->map(function ($track) use ($trackAvgSpeeds) {
                 return [
@@ -166,37 +155,38 @@ class SessionAnalyticsController extends Controller
                     'avg_speed_kmh' => $trackAvgSpeeds[$track->id] ?? 0,
                 ];
             })->values(),
-            'drivers' => $drivers->map(function ($driver) {
+            'drivers' => collect($accounts)->map(function ($account) {
                 return [
-                    'id' => $driver->id,
-                    'name' => $driver->name,
+                    'id' => $account['user_id'],
+                    'name' => $account['user_name'],
+                    'is_account' => true,
                 ];
             })->values(),
             'heatmap_data' => [],
             'max_gap' => $maxGap,
         ];
 
-        // Build heatmap matrix
-        foreach ($drivers as $driver) {
+        // Build heatmap matrix - one row per account
+        foreach ($accounts as $account) {
             $row = [];
 
             foreach ($tracks as $track) {
-                if (isset($bestLaps[$driver->id][$track->id])) {
-                    $bestLap = $bestLaps[$driver->id][$track->id];
-                    $trackRecord = $trackRecords[$track->id] ?? $bestLap;
-                    $gap = $bestLap - $trackRecord;
+                $stats = $accountTrackStats[$account['user_id']][$track->id] ?? null;
+
+                if ($stats) {
+                    $trackRecord = $trackRecords[$track->id] ?? $stats->best_lap_time;
+                    $gap = $stats->best_lap_time - $trackRecord;
                     $gapPercentage = $maxGap > 0 ? ($gap / $maxGap) * 100 : 0;
-                    $stats = $lapStats[$driver->id][$track->id] ?? [];
 
                     $row[] = [
-                        'best_lap_time' => (float) $bestLap,
+                        'best_lap_time' => (float) $stats->best_lap_time,
                         'gap' => (float) $gap,
                         'gap_percentage' => round($gapPercentage, 2),
                         'has_data' => true,
-                        'lap_count' => $stats['lap_count'] ?? 0,
-                        'avg_lap_time' => isset($stats['avg_lap_time']) ? (float) $stats['avg_lap_time'] : null,
-                        'worst_lap_time' => isset($stats['worst_lap_time']) ? (float) $stats['worst_lap_time'] : null,
-                        'consistency_range' => isset($stats['consistency_range']) ? (float) $stats['consistency_range'] : null,
+                        'lap_count' => $stats->lap_count,
+                        'avg_lap_time' => (float) $stats->avg_lap_time,
+                        'worst_lap_time' => (float) $stats->worst_lap_time,
+                        'consistency_range' => (float) $stats->consistency_range,
                         'track_record' => (float) $trackRecord,
                     ];
                 } else {

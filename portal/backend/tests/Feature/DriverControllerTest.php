@@ -151,22 +151,41 @@ class DriverControllerTest extends TestCase
             'lap_time' => 30.5,
         ]);
 
+        // Connect driver to user to make stats visible
+        $this->user->drivers()->attach($driver->id);
+
         $response = $this->actingAs($this->user)->getJson('/api/stats/drivers');
 
         $response->assertStatus(200)->assertJsonStructure([
-            '*' => ['driver_id', 'driver_name', 'total_laps', 'total_sessions'],
+            '*' => ['account_id', 'account_name', 'is_current_user', 'total_laps', 'total_sessions'],
         ]);
     }
 
-    public function test_stats_can_filter_by_driver_id(): void
+    public function test_stats_returns_account_level_aggregation(): void
     {
+        // Create two drivers for the same user (different tracks)
         $driver1 = Driver::factory()->create();
         $driver2 = Driver::factory()->create();
+        $this->user->drivers()->attach([$driver1->id, $driver2->id]);
 
-        $response = $this->actingAs($this->user)
-            ->getJson("/api/stats/drivers?driver_id={$driver1->id}");
+        $track = Track::factory()->create();
+        $session = KartingSession::factory()->create(['track_id' => $track->id]);
+        Lap::factory()->count(2)->create([
+            'driver_id' => $driver1->id,
+            'karting_session_id' => $session->id,
+        ]);
+        Lap::factory()->count(3)->create([
+            'driver_id' => $driver2->id,
+            'karting_session_id' => $session->id,
+        ]);
 
+        $response = $this->actingAs($this->user)->getJson('/api/stats/drivers');
+
+        // Should return 1 account with 5 total laps (2+3)
         $response->assertStatus(200)->assertJsonCount(1);
+        $data = $response->json();
+        $this->assertEquals(5, $data[0]['total_laps']);
+        $this->assertTrue($data[0]['is_current_user']);
     }
 
     public function test_unauthenticated_user_cannot_access_drivers(): void
