@@ -214,9 +214,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
-        run: |
-          pip install pytest pytest-cov
-          pip install requests python-dateutil || true
+        run: pip install -r requirements.txt
       - run: pytest tests/ --cov=. --cov-report=xml:coverage.xml -v
       - uses: codecov/codecov-action@v4
         with:
