@@ -1,8 +1,8 @@
 # 🏎️ Karting Dashboard - Improvement TODO List
 
-> Last updated: January 28, 2026
+> Last updated: January 30, 2026
 > Status: **87 improvements identified** across 10 categories  
-> **30 completed** ✅ | **57 remaining**
+> **35 completed** ✅ | **52 remaining**
 
 ## Summary
 
@@ -89,9 +89,9 @@
 - [ ] Define `$with` property on KartingSession for eager loading
 
 ### Frontend UX
-- [ ] Create `ErrorBoundary.vue` component for Vue error handling
+- [x] Create `ErrorBoundary.vue` component for Vue error handling ✅
 - [x] Add toast notifications (vue-toastification) for user feedback ✅
-- [ ] Add skeleton loaders for all data loading states
+- [x] Add skeleton loaders for all data loading states ✅
 - [ ] Add ARIA labels to all interactive elements
 - [ ] Add "Skip to content" link for accessibility
 - [ ] Verify color contrast ratios ≥ 4.5:1
@@ -102,10 +102,10 @@
 - [ ] Add optimistic updates to UI before API confirmation
 
 ### Validation
-- [ ] Validate `session_type` against enum in KartingSessionController
+- [x] Validate `session_type` against enum in KartingSessionController ✅
 - [ ] Validate `color` as hex format in DriverController
 - [ ] Add min/max bounds to `latitude`, `longitude`, `length` in TrackController
-- [ ] Add reasonable bounds (1-600 seconds) to `lap_time` in LapController
+- [x] Add reasonable bounds (1-600 seconds) to `lap_time` in LapController ✅
 - [ ] Add file content validation beyond MIME type in EmlUploadController
 
 ### Code Quality (Python)
@@ -186,6 +186,10 @@
 - [x] Fix Laravel Pint style issues (78 files)
 - [x] Update ESLint config for flat config format
 - [x] Fix frontend api.spec.ts tests
+- [x] Create ErrorBoundary.vue component with global error handling
+- [x] Add SkeletonLoader, SkeletonCard, SkeletonTable components
+- [x] Add global Vue error handler in main.ts
+- [x] Fix router guard to check parent route auth meta (security fix)
 
 ---
 

@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { useStyleVariables } from '@/composables/useStyleVariables'
+import ErrorBoundary from '@/components/ErrorBoundary.vue'
 
 // Load dynamic styles from database
 useStyleVariables()
+
+function handleGlobalError(error: Error, info: { message: string; component?: string }) {
+  // Could send to error tracking service (Sentry, etc.)
+  console.error('[App] Global error:', error.message, 'in', info.component)
+}
 </script>
 
 <template>
-  <RouterView />
+  <ErrorBoundary
+    fallback-message="The application encountered an error. Please try refreshing the page."
+    :show-details="true"
+    :on-error="handleGlobalError"
+  >
+    <RouterView />
+  </ErrorBoundary>
 </template>
 
 <style lang="scss">
