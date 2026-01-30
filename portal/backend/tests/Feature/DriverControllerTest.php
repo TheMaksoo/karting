@@ -194,4 +194,46 @@ class DriverControllerTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    public function test_store_with_optional_fields(): void
+    {
+        $data = [
+            'name' => 'Test Driver',
+            'email' => 'test@example.com',
+            'nickname' => 'TDriver',
+            'color' => '#00FF00',
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', $data);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('drivers', [
+            'nickname' => 'TDriver',
+            'color' => '#00FF00',
+        ]);
+    }
+
+    public function test_update_validates_email_uniqueness(): void
+    {
+        $driver1 = Driver::factory()->create(['email' => 'driver1@test.com']);
+        $driver2 = Driver::factory()->create(['email' => 'driver2@test.com']);
+
+        $response = $this->actingAs($this->user)->putJson("/api/drivers/{$driver1->id}", [
+            'name' => 'Driver 1',
+            'email' => 'driver2@test.com',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_driver_with_zero_laps(): void
+    {
+        $driver = Driver::factory()->create();
+
+        $response = $this->actingAs($this->user)->getJson("/api/drivers/{$driver->id}");
+
+        $response->assertStatus(200)
+            ->assertJson(['id' => $driver->id]);
+    }
 }

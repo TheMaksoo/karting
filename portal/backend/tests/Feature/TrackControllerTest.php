@@ -133,4 +133,69 @@ class TrackControllerTest extends TestCase
                 'longitude' => 4.9041,
             ]);
     }
+
+    public function test_store_validates_distance_is_numeric(): void
+    {
+        $data = [
+            'name' => 'Test Circuit',
+            'city' => 'Test City',
+            'country' => 'Test Country',
+            'distance' => 'not-a-number',
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['distance']);
+    }
+
+    public function test_store_validates_corners_is_integer(): void
+    {
+        $data = [
+            'name' => 'Test Circuit',
+            'city' => 'Test City',
+            'country' => 'Test Country',
+            'corners' => 'twelve',
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['corners']);
+    }
+
+    public function test_update_validates_data(): void
+    {
+        $track = Track::factory()->create();
+
+        $response = $this->actingAs($this->user)->putJson("/api/tracks/{$track->id}", [
+            'distance' => 'invalid',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['distance']);
+    }
+
+    public function test_unauthenticated_user_cannot_access_tracks(): void
+    {
+        $response = $this->getJson('/api/tracks');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_track_with_pricing_information(): void
+    {
+        $data = [
+            'name' => 'Premium Circuit',
+            'city' => 'Amsterdam',
+            'country' => 'Netherlands',
+            'pricing' => ['heat_price' => 25.00, 'membership_fee' => 100.00],
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
+
+        $response->assertStatus(201);
+        $track = Track::where('name', 'Premium Circuit')->first();
+        $this->assertEquals(25.00, $track->pricing['heat_price']);
+    }
 }

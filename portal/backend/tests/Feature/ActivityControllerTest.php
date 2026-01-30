@@ -211,4 +211,30 @@ class ActivityControllerTest extends TestCase
         $this->assertEquals(1, $results[0]['position']);
         $this->assertEquals(2, $results[1]['position']);
     }
+
+    public function test_unauthenticated_user_cannot_access_activity(): void
+    {
+        $response = $this->getJson('/api/activity/latest');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_latest_activity_with_default_limit(): void
+    {
+        // Create many sessions to test default limit
+        for ($i = 0; $i < 15; $i++) {
+            $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
+            Lap::factory()->create([
+                'karting_session_id' => $session->id,
+                'driver_id' => $this->userDriver->id,
+                'is_best_lap' => true,
+            ]);
+        }
+
+        $response = $this->actingAs($this->user)->getJson('/api/activity/latest');
+
+        $response->assertStatus(200);
+        // Default limit should be 10
+        $this->assertLessThanOrEqual(10, count($response->json()));
+    }
 }

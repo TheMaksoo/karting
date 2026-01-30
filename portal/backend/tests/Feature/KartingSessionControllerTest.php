@@ -154,4 +154,28 @@ class KartingSessionControllerTest extends TestCase
 
         $response->assertStatus(200)->assertJsonCount(5);
     }
+
+    public function test_store_with_heat_price(): void
+    {
+        $data = [
+            'track_id' => $this->track->id,
+            'session_date' => '2024-06-15',
+            'session_type' => 'heat',
+            'heat_price' => 25.50,
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/sessions', $data);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('karting_sessions', [
+            'heat_price' => 25.50,
+        ]);
+    }
+
+    public function test_unauthenticated_user_cannot_access_sessions(): void
+    {
+        $response = $this->getJson('/api/sessions');
+
+        $response->assertStatus(401);
+    }
 }
