@@ -248,4 +248,256 @@ class AuthTest extends TestCase
             ->assertJsonStructure(['token'])
             ->assertJsonPath('token', fn ($token) => ! empty($token));
     }
+
+    public function test_login_tracks_last_login_at(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => 'test@example.com',
+            'password' => 'password123',
+        ]);
+
+        $this->assertNotNull($user->fresh()->last_login_at);
+    }
+
+    public function test_login_tracks_last_login_ip(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'test@example.com',
+            'password' => 'password123',
+        ]);
+
+        $this->assertNotNull($user->fresh()->last_login_ip);
+    }
+
+    public function test_login_rejects_pending_registration(): void
+    {
+        User::factory()->create([
+            'email' => 'pending@example.com',
+            'password' => Hash::make('password123'),
+            'registration_status' => 'pending',
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'pending@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_login_rejects_rejected_registration(): void
+    {
+        User::factory()->create([
+            'email' => 'rejected@example.com',
+            'password' => Hash::make('password123'),
+            'registration_status' => 'rejected',
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'rejected@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_change_password_validates_lowercase_requirement(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'NOLETTERS123!',
+            'new_password_confirmation' => 'NOLETTERS123!',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['new_password']);
+    }
+
+    public function test_change_password_validates_uppercase_requirement(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'nouppercase123!',
+            'new_password_confirmation' => 'nouppercase123!',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['new_password']);
+    }
+
+    public function test_change_password_validates_digit_requirement(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'NoDigitsHere!',
+            'new_password_confirmation' => 'NoDigitsHere!',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['new_password']);
+    }
+
+    public function test_change_password_validates_special_char_requirement(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'NoSpecialChar123',
+            'new_password_confirmation' => 'NoSpecialChar123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['new_password']);
+    }
+
+    public function test_change_password_clears_temp_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+            'temp_password' => 'temppass123',
+        ]);
+
+        $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'NewPass123!',
+            'new_password_confirmation' => 'NewPass123!',
+        ]);
+
+        $this->assertNull($user->fresh()->temp_password);
+    }
+
+    public function test_me_includes_user_role(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/auth/me');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('user.role', 'admin');
+    }
+
+    public function test_login_validates_password_required(): void
+    {
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'test@example.com',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['password']);
+    }
+
+    public function test_login_validates_email_required(): void
+    {
+        $response = $this->postJson('/api/auth/login', [
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_change_password_with_empty_current_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => '',
+            'new_password' => 'NewPass123!',
+            'new_password_confirmation' => 'NewPass123!',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['current_password']);
+    }
+
+    public function test_change_password_with_empty_new_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => '',
+            'new_password_confirmation' => '',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['new_password']);
+    }
+
+    public function test_login_returns_must_change_password_flag(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+            'must_change_password' => true,
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'test@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('user.must_change_password', true);
+    }
+
+    public function test_login_with_empty_credentials(): void
+    {
+        $response = $this->postJson('/api/auth/login', [
+            'email' => '',
+            'password' => '',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email', 'password']);
+    }
+
+    public function test_login_case_sensitive_password(): void
+    {
+        User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('Password123'),
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'test@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
 }

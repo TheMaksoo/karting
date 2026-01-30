@@ -350,4 +350,261 @@ class KartingSessionControllerTest extends TestCase
         $session->refresh();
         $this->assertEquals('2024-06-15', $session->session_date->toDateString());
     }
+
+    public function test_index_returns_empty_results(): void
+    {
+        $response = $this->actingAs($this->user)->getJson('/api/sessions');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_store_validates_required_fields(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/sessions', []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['track_id', 'session_date']);
+    }
+
+    public function test_store_with_all_optional_fields(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/sessions', [
+            'track_id' => $this->track->id,
+            'session_date' => '2024-06-15',
+            'session_type' => 'heat',
+            'weather' => 'Sunny',
+            'temperature' => 25,
+            'notes' => 'Great session',
+            'heat' => 3,
+            'heat_price' => 30.00,
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('karting_sessions', [
+            'temperature' => 25,
+            'heat' => 3,
+        ]);
+    }
+
+    public function test_index_filters_by_multiple_criteria(): void
+    {
+        KartingSession::factory()->create([
+            'track_id' => $this->track->id,
+            'session_date' => '2024-06-15',
+            'session_type' => 'Race',
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson(
+            '/api/sessions?track_id=' . $this->track->id . '&session_type=Race'
+        );
+
+        $response->assertStatus(200);
+    }
+
+    public function test_destroy_cascades_to_laps(): void
+    {
+        $session = $this->createSessionWithLaps(3);
+        $lapIds = $session->laps->pluck('id');
+
+        $this->actingAs($this->user)->deleteJson("/api/sessions/{$session->id}");
+
+        foreach ($lapIds as $lapId) {
+            $this->assertSoftDeleted('laps', ['id' => $lapId]);
+        }
+    }
+
+    public function test_show_includes_track_relationship(): void
+    {
+        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
+
+        $response = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['track' => ['id', 'name']]);
+    }
+
+    public function test_store_with_future_date(): void
+    {
+        $futureDate = now()->addDays(10)->toDateString();
+
+        $response = $this->actingAs($this->user)->postJson('/api/sessions', [
+            'track_id' => $this->track->id,
+            'session_date' => $futureDate,
+            'session_type' => 'heat',
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_store_with_past_date(): void
+    {
+        $pastDate = now()->subYears(2)->toDateString();
+
+        $response = $this->actingAs($this->user)->postJson('/api/sessions', [
+            'track_id' => $this->track->id,
+            'session_date' => $pastDate,
+            'session_type' => 'heat',
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_update_track_id(): void
+    {
+        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
+        $newTrack = Track::factory()->create();
+
+        $response = $this->actingAs($this->user)->putJson("/api/sessions/{$session->id}", [
+            'track_id' => $newTrack->id,
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('karting_sessions', [
+            'id' => $session->id,
+            'track_id' => $newTrack->id,
+        ]);
+    }
+
+    public function test_index_filters_with_date_range_boundaries(): void
+    {
+        KartingSession::factory()->create([
+            'track_id' => $this->track->id,
+            'session_date' => '2024-01-01',
+        ]);
+        KartingSession::factory()->create([
+            'track_id' => $this->track->id,
+            'session_date' => '2024-03-31',
+        ]);
+        KartingSession::factory()->create([
+            'track_id' => $this->track->id,
+            'session_date' => '2024-04-01',
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson(
+            '/api/sessions?date_from=2024-01-01&date_to=2024-03-31'
+        );
+
+        $response->assertStatus(200);
+        $this->assertCount(2, $response->json('data'));
+    }
+
+    public function test_store_validates_temperature_is_numeric(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/sessions', [
+            'track_id' => $this->track->id,
+            'session_date' => '2024-06-15',
+            'session_type' => 'heat',
+            'temperature' => 'hot',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['temperature']);
+    }
+
+    public function test_store_with_negative_temperature(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/sessions', [
+            'track_id' => $this->track->id,
+            'session_date' => '2024-01-15',
+            'session_type' => 'heat',
+            'temperature' => -10,
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_laps_includes_driver_information(): void
+    {
+        $session = $this->createSessionWithLaps(2);
+
+        $response = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}/laps");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([['driver_id']]);
+    }
+
+    public function test_update_with_empty_notes(): void
+    {
+        $session = KartingSession::factory()->create([
+            'track_id' => $this->track->id,
+            'notes' => 'Old notes',
+        ]);
+
+        $response = $this->actingAs($this->user)->putJson("/api/sessions/{$session->id}", [
+            'notes' => '',
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_store_validates_heat_is_integer(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/sessions', [
+            'track_id' => $this->track->id,
+            'session_date' => '2024-06-15',
+            'session_type' => 'heat',
+            'heat' => 'first',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['heat']);
+    }
+
+    public function test_index_with_large_dataset(): void
+    {
+        KartingSession::factory()->count(100)->create(['track_id' => $this->track->id]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/sessions');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_show_with_multiple_drivers(): void
+    {
+        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
+        $driver1 = Driver::factory()->create();
+        $driver2 = Driver::factory()->create();
+        Lap::factory()->create(['karting_session_id' => $session->id, 'driver_id' => $driver1->id]);
+        Lap::factory()->create(['karting_session_id' => $session->id, 'driver_id' => $driver2->id]);
+
+        $response = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2, 'laps');
+    }
+
+    public function test_store_with_max_heat_number(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/sessions', [
+            'track_id' => $this->track->id,
+            'session_date' => '2024-06-15',
+            'session_type' => 'heat',
+            'heat' => 999,
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_update_validates_track_id_exists(): void
+    {
+        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
+
+        $response = $this->actingAs($this->user)->putJson("/api/sessions/{$session->id}", [
+            'track_id' => 99999,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['track_id']);
+    }
+
+    public function test_index_with_no_filters_returns_all(): void
+    {
+        KartingSession::factory()->count(5)->create(['track_id' => $this->track->id]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/sessions');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(5, 'data');
+    }
 }

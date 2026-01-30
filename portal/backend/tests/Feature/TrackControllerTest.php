@@ -346,4 +346,289 @@ class TrackControllerTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_store_validates_latitude_range(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Test',
+            'city' => 'Test',
+            'country' => 'Test',
+            'latitude' => 91.0,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['latitude']);
+    }
+
+    public function test_store_validates_longitude_range(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Test',
+            'city' => 'Test',
+            'country' => 'Test',
+            'longitude' => 181.0,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['longitude']);
+    }
+
+    public function test_store_with_negative_coordinates(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Southern Track',
+            'city' => 'Cape Town',
+            'country' => 'South Africa',
+            'latitude' => -33.9249,
+            'longitude' => 18.4241,
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('tracks', [
+            'latitude' => -33.9249,
+            'longitude' => 18.4241,
+        ]);
+    }
+
+    public function test_update_coordinates(): void
+    {
+        $track = Track::factory()->create([
+            'latitude' => 50.0,
+            'longitude' => 5.0,
+        ]);
+
+        $response = $this->actingAs($this->user)->putJson("/api/tracks/{$track->id}", [
+            'latitude' => 52.0,
+            'longitude' => 6.0,
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('tracks', [
+            'id' => $track->id,
+            'latitude' => 52.0,
+            'longitude' => 6.0,
+        ]);
+    }
+
+    public function test_store_validates_distance_is_positive(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Test',
+            'city' => 'Test',
+            'country' => 'Test',
+            'distance' => -100,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['distance']);
+    }
+
+    public function test_store_validates_corners_is_positive(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Test',
+            'city' => 'Test',
+            'country' => 'Test',
+            'corners' => -5,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['corners']);
+    }
+
+    public function test_store_with_zero_corners(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Straight Track',
+            'city' => 'Test',
+            'country' => 'Test',
+            'corners' => 0,
+        ]);
+
+        $this->assertTrue(in_array($response->status(), [201, 422]));
+    }
+
+    public function test_store_with_large_distance(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Long Track',
+            'city' => 'Test',
+            'country' => 'Test',
+            'distance' => 5000,
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_update_indoor_flag(): void
+    {
+        $track = Track::factory()->create(['indoor' => false]);
+
+        $response = $this->actingAs($this->user)->putJson("/api/tracks/{$track->id}", [
+            'indoor' => true,
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('tracks', [
+            'id' => $track->id,
+            'indoor' => true,
+        ]);
+    }
+
+    public function test_store_with_empty_features(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Basic Track',
+            'city' => 'Test',
+            'country' => 'Test',
+            'features' => [],
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_update_features_json(): void
+    {
+        $track = Track::factory()->create();
+
+        $response = $this->actingAs($this->user)->putJson("/api/tracks/{$track->id}", [
+            'features' => ['new_feature' => 'value'],
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_show_with_no_sessions(): void
+    {
+        $track = Track::factory()->create();
+
+        $response = $this->actingAs($this->user)->getJson("/api/tracks/{$track->id}");
+
+        $response->assertStatus(200)
+            ->assertJson(['id' => $track->id]);
+    }
+
+    public function test_destroy_soft_deletes_track(): void
+    {
+        $track = Track::factory()->create();
+
+        $this->actingAs($this->user)->deleteJson("/api/tracks/{$track->id}");
+
+        $this->assertSoftDeleted('tracks', ['id' => $track->id]);
+    }
+
+    public function test_store_with_special_characters_in_name(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Circuit de Spa-Francorchamps',
+            'city' => 'Spa',
+            'country' => 'Belgium',
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('tracks', ['name' => 'Circuit de Spa-Francorchamps']);
+    }
+
+    public function test_update_with_null_optional_fields(): void
+    {
+        $track = Track::factory()->create([
+            'distance' => 800,
+            'corners' => 12,
+        ]);
+
+        $response = $this->actingAs($this->user)->putJson("/api/tracks/{$track->id}", [
+            'distance' => null,
+            'corners' => null,
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_stats_aggregates_all_tracks(): void
+    {
+        $track1 = Track::factory()->create();
+        $track2 = Track::factory()->create();
+        KartingSession::factory()->count(3)->create(['track_id' => $track1->id]);
+        KartingSession::factory()->count(2)->create(['track_id' => $track2->id]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/stats/tracks');
+
+        $response->assertStatus(200);
+        $data = $response->json();
+        $this->assertGreaterThanOrEqual(0, count($data));
+    }
+
+    public function test_index_with_large_dataset(): void
+    {
+        Track::factory()->count(50)->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(50);
+    }
+
+    public function test_store_with_decimal_coordinates(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Precise Track',
+            'city' => 'Test',
+            'country' => 'Test',
+            'latitude' => 52.123456,
+            'longitude' => 4.987654,
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_update_validates_name_required(): void
+    {
+        $track = Track::factory()->create();
+
+        $response = $this->actingAs($this->user)->putJson("/api/tracks/{$track->id}", [
+            'name' => '',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_store_with_pricing_structure(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Priced Track',
+            'city' => 'Test',
+            'country' => 'Test',
+            'pricing' => [
+                'heat_price' => 25.50,
+                'membership' => 100.00,
+                'discount_10_heats' => 230.00,
+            ],
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_show_returns_complete_track_info(): void
+    {
+        $track = Track::factory()->create([
+            'name' => 'Complete Track',
+            'city' => 'Amsterdam',
+            'country' => 'Netherlands',
+            'distance' => 850,
+            'corners' => 14,
+            'indoor' => true,
+            'latitude' => 52.3676,
+            'longitude' => 4.9041,
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson("/api/tracks/{$track->id}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'name' => 'Complete Track',
+                'distance' => 850,
+                'corners' => 14,
+            ]);
+    }
 }

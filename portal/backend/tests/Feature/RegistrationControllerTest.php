@@ -248,4 +248,133 @@ class RegistrationControllerTest extends TestCase
 
         $response->assertStatus(404);
     }
+
+    public function test_approve_with_multiple_drivers(): void
+    {
+        $user = User::factory()->pending()->create();
+        $driver1 = Driver::factory()->create();
+        $driver2 = Driver::factory()->create();
+
+        $response = $this->actingAs($this->admin)
+            ->postJson("/api/admin/registrations/{$user->id}/approve", [
+                'role' => 'driver',
+                'driver_ids' => [$driver1->id, $driver2->id],
+            ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('driver_user', ['user_id' => $user->id, 'driver_id' => $driver1->id]);
+        $this->assertDatabaseHas('driver_user', ['user_id' => $user->id, 'driver_id' => $driver2->id]);
+    }
+
+    public function test_approve_without_drivers(): void
+    {
+        $user = User::factory()->pending()->create();
+
+        $response = $this->actingAs($this->admin)
+            ->postJson("/api/admin/registrations/{$user->id}/approve", [
+                'role' => 'driver',
+            ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_approve_validates_role_required(): void
+    {
+        $user = User::factory()->pending()->create();
+
+        $response = $this->actingAs($this->admin)
+            ->postJson("/api/admin/registrations/{$user->id}/approve", []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['role']);
+    }
+
+    public function test_registration_sets_correct_status(): void
+    {
+        $this->postJson('/api/auth/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'test@example.com',
+            'registration_status' => 'pending',
+        ]);
+    }
+
+    public function test_approve_sets_approved_by(): void
+    {
+        $user = User::factory()->pending()->create();
+
+        $this->actingAs($this->admin)
+            ->postJson("/api/admin/registrations/{$user->id}/approve", [
+                'role' => 'driver',
+            ]);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'approved_by' => $this->admin->id,
+        ]);
+    }
+
+    public function test_reject_sets_status(): void
+    {
+        $user = User::factory()->pending()->create();
+
+        $this->actingAs($this->admin)
+            ->postJson("/api/admin/registrations/{$user->id}/reject");
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'registration_status' => 'rejected',
+        ]);
+    }
+
+    public function test_pending_registrations_only_shows_pending(): void
+    {
+        User::factory()->pending()->count(2)->create();
+        User::factory()->create(['registration_status' => 'approved']);
+        User::factory()->rejected()->create();
+
+        $response = $this->actingAs($this->admin)->getJson('/api/admin/registrations/pending');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2);
+    }
+
+    public function test_registration_with_display_name(): void
+    {
+        $response = $this->postJson('/api/auth/register', [
+            'name' => 'John Doe',
+            'display_name' => 'JD123',
+            'email' => 'john@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('users', [
+            'email' => 'john@example.com',
+            'display_name' => 'JD123',
+        ]);
+    }
+
+    public function test_unauthenticated_cannot_view_registrations(): void
+    {
+        $response = $this->getJson('/api/admin/registrations');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_cannot_reject_already_approved(): void
+    {
+        $user = User::factory()->create(['registration_status' => 'approved']);
+
+        $response = $this->actingAs($this->admin)
+            ->postJson("/api/admin/registrations/{$user->id}/reject");
+
+        $response->assertStatus(400);
+    }
 }

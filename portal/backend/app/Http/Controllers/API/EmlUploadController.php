@@ -17,7 +17,7 @@ class EmlUploadController extends Controller
     public function parseEml(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|max:10240',
+            'file' => 'required|file|max:10240|mimes:eml,txt,pdf,html',
             'track_id' => 'nullable|exists:tracks,id',
         ]);
 
@@ -288,7 +288,7 @@ class EmlUploadController extends Controller
             'laps' => 'required|array',
             'laps.*.driver_name' => 'required|string',
             'laps.*.lap_number' => 'required|integer',
-            'laps.*.lap_time' => 'required|numeric',
+            'laps.*.lap_time' => 'required|numeric|gt:0',
             'laps.*.position' => 'nullable|integer',
             'laps.*.kart_number' => 'nullable|string',
             'file_name' => 'nullable|string',

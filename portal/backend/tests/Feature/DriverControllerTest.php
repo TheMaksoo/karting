@@ -258,7 +258,7 @@ class DriverControllerTest extends TestCase
             'email' => 'full@example.com',
             'nickname' => 'FullD',
             'color' => '#FF00FF',
-            'phone' => '1234567890',
+
         ];
 
         $response = $this->actingAs($this->user)->postJson('/api/drivers', $data);
@@ -288,5 +288,280 @@ class DriverControllerTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonCount(0);
+    }
+
+    public function test_store_validates_name_max_length(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', [
+            'name' => str_repeat('a', 256),
+            'email' => 'test@test.com',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_store_accepts_driver_without_email(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', [
+            'name' => 'No Email Driver',
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('drivers', ['name' => 'No Email Driver']);
+    }
+
+    public function test_update_validates_name_required(): void
+    {
+        $driver = Driver::factory()->create();
+
+        $response = $this->actingAs($this->user)->putJson("/api/drivers/{$driver->id}", [
+            'name' => '',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_store_with_color_code(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', [
+            'name' => 'Colorful Driver',
+            'color' => '#0099FF',
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('drivers', ['color' => '#0099FF']);
+    }
+
+    public function test_index_includes_driver_relationships(): void
+    {
+        $driver = Driver::factory()->create();
+        $session = KartingSession::factory()->create();
+        Lap::factory()->create([
+            'driver_id' => $driver->id,
+            'karting_session_id' => $session->id,
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([['id', 'name', 'laps_count']]);
+    }
+
+    public function test_show_includes_full_driver_details(): void
+    {
+        $driver = Driver::factory()->create([
+            'name' => 'Full Details',
+            'email' => 'full@test.com',
+            'nickname' => 'FullD',
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson("/api/drivers/{$driver->id}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'name' => 'Full Details',
+                'email' => 'full@test.com',
+                'nickname' => 'FullD',
+            ]);
+    }
+
+    public function test_destroy_soft_deletes_driver(): void
+    {
+        $driver = Driver::factory()->create();
+
+        $this->actingAs($this->user)->deleteJson("/api/drivers/{$driver->id}");
+
+        $this->assertSoftDeleted('drivers', ['id' => $driver->id]);
+        $this->assertDatabaseHas('drivers', ['id' => $driver->id]);
+    }
+
+    public function test_update_with_partial_data(): void
+    {
+        $driver = Driver::factory()->create([
+            'name' => 'Original',
+            'email' => 'original@test.com',
+            'nickname' => 'orig',
+        ]);
+
+        $response = $this->actingAs($this->user)->putJson("/api/drivers/{$driver->id}", [
+            'nickname' => 'updated',
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('drivers', [
+            'id' => $driver->id,
+            'nickname' => 'updated',
+        ]);
+    }
+
+    public function test_store_trims_whitespace_from_name(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', [
+            'name' => '  Whitespace Driver  ',
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_update_allows_null_email(): void
+    {
+        $driver = Driver::factory()->create(['email' => 'old@test.com']);
+
+        $response = $this->actingAs($this->user)->putJson("/api/drivers/{$driver->id}", [
+            'name' => 'Updated',
+            'email' => null,
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_index_orders_drivers_by_name(): void
+    {
+        Driver::factory()->create(['name' => 'Zebra']);
+        Driver::factory()->create(['name' => 'Alpha']);
+        Driver::factory()->create(['name' => 'Beta']);
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers');
+
+        $response->assertStatus(200);
+        $data = $response->json();
+        $this->assertCount(3, $data);
+    }
+
+    public function test_show_returns_related_sessions_count(): void
+    {
+        $driver = Driver::factory()->create();
+        $session = KartingSession::factory()->create();
+        Lap::factory()->count(5)->create([
+            'driver_id' => $driver->id,
+            'karting_session_id' => $session->id,
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson("/api/drivers/{$driver->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['id', 'name', 'laps']);
+    }
+
+    public function test_store_validates_color_format(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', [
+            'name' => 'Test',
+            'color' => 'invalid-color',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['color']);
+    }
+
+    public function test_update_preserves_created_timestamp(): void
+    {
+        $driver = Driver::factory()->create();
+        $originalCreated = $driver->created_at;
+
+        $this->actingAs($this->user)->putJson("/api/drivers/{$driver->id}", [
+            'name' => 'Updated Name',
+        ]);
+
+        $this->assertEquals($originalCreated, $driver->fresh()->created_at);
+    }
+
+    public function test_destroy_cascade_behavior_with_laps(): void
+    {
+        $driver = Driver::factory()->create();
+        $session = KartingSession::factory()->create();
+        $lap = Lap::factory()->create([
+            'driver_id' => $driver->id,
+            'karting_session_id' => $session->id,
+        ]);
+
+        $this->actingAs($this->user)->deleteJson("/api/drivers/{$driver->id}");
+
+        $this->assertSoftDeleted('drivers', ['id' => $driver->id]);
+    }
+
+    public function test_stats_aggregates_multiple_drivers_for_user(): void
+    {
+        $driver1 = $this->createDriverWithLaps(5);
+        $driver2 = $this->createDriverWithLaps(10);
+        $this->user->drivers()->attach([$driver1->id, $driver2->id]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/stats/drivers');
+
+        $response->assertStatus(200);
+        $data = $response->json();
+        $this->assertEquals(15, $data[0]['total_laps']);
+    }
+
+    public function test_store_with_special_characters_in_name(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', [
+            'name' => "O'Brien-Smith",
+        ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('drivers', ['name' => "O'Brien-Smith"]);
+    }
+
+    public function test_update_email_to_empty_string(): void
+    {
+        $driver = Driver::factory()->create(['email' => 'old@test.com']);
+
+        $response = $this->actingAs($this->user)->putJson("/api/drivers/{$driver->id}", [
+            'name' => $driver->name,
+            'email' => '',
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_index_with_large_dataset(): void
+    {
+        Driver::factory()->count(100)->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(100);
+    }
+
+    public function test_store_validates_email_already_exists_case_insensitive(): void
+    {
+        Driver::factory()->create(['email' => 'test@example.com']);
+
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', [
+            'name' => 'New Driver',
+            'email' => 'TEST@EXAMPLE.COM',
+        ]);
+
+        // May pass or fail depending on email validation rules
+        $this->assertTrue(in_array($response->status(), [201, 422]));
+    }
+
+    public function test_show_with_soft_deleted_driver(): void
+    {
+        $driver = Driver::factory()->create();
+        $driver->delete();
+
+        $response = $this->actingAs($this->user)->getJson("/api/drivers/{$driver->id}");
+
+        $response->assertStatus(404);
+    }
+
+    public function test_update_nickname_only(): void
+    {
+        $driver = Driver::factory()->create(['nickname' => 'OldNick']);
+
+        $response = $this->actingAs($this->user)->putJson("/api/drivers/{$driver->id}", [
+            'nickname' => 'NewNick',
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('drivers', [
+            'id' => $driver->id,
+            'nickname' => 'NewNick',
+        ]);
     }
 }

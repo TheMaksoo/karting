@@ -214,4 +214,109 @@ class SettingControllerTest extends TestCase
         $this->assertEquals('updated_value', $setting->value);
         $this->assertEquals('Updated description', $setting->description);
     }
+
+    public function test_update_setting_with_null_value(): void
+    {
+        $response = $this->actingAs($this->admin)->putJson('/api/settings/nullable_setting', [
+            'value' => null,
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'nullable_setting',
+            'value' => json_encode(null),
+        ]);
+    }
+
+    public function test_update_setting_with_object_value(): void
+    {
+        $response = $this->actingAs($this->admin)->putJson('/api/settings/complex_setting', [
+            'value' => ['key1' => 'value1', 'nested' => ['key2' => 'value2']],
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_list_settings_with_no_settings(): void
+    {
+        $response = $this->actingAs($this->user)->getJson('/api/settings');
+
+        $response->assertStatus(200)
+            ->assertJson([]);
+    }
+
+    public function test_update_setting_key_with_special_characters(): void
+    {
+        $response = $this->actingAs($this->admin)->putJson('/api/settings/setting-with_dots.and-dashes', [
+            'value' => 'test_value',
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_update_setting_with_empty_string_value(): void
+    {
+        $response = $this->actingAs($this->admin)->putJson('/api/settings/empty_setting', [
+            'value' => '',
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'empty_setting',
+            'value' => json_encode(''),
+        ]);
+    }
+
+    public function test_update_preserves_other_settings(): void
+    {
+        Setting::setValue('setting1', 'value1');
+        Setting::setValue('setting2', 'value2');
+
+        $this->actingAs($this->admin)->putJson('/api/settings/setting1', [
+            'value' => 'updated_value1',
+        ]);
+
+        $this->assertDatabaseHas('settings', [
+            'key' => 'setting2',
+            'value' => json_encode('value2'),
+        ]);
+    }
+
+    public function test_list_settings_returns_decoded_values(): void
+    {
+        Setting::setValue('bool_setting', true);
+        Setting::setValue('num_setting', 42);
+        Setting::setValue('str_setting', 'test');
+
+        $response = $this->actingAs($this->user)->getJson('/api/settings');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'bool_setting' => true,
+                'num_setting' => 42,
+                'str_setting' => 'test',
+            ]);
+    }
+
+    public function test_update_setting_with_large_string(): void
+    {
+        $largeString = str_repeat('a', 1000);
+
+        $response = $this->actingAs($this->admin)->putJson('/api/settings/large_setting', [
+            'value' => $largeString,
+        ]);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_update_setting_without_description(): void
+    {
+        Setting::setValue('test_key', 'old_value', 'Old description');
+
+        $response = $this->actingAs($this->admin)->putJson('/api/settings/test_key', [
+            'value' => 'new_value',
+        ]);
+
+        $response->assertStatus(200);
+    }
 }

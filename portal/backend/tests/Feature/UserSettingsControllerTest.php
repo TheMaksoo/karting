@@ -202,7 +202,8 @@ class UserSettingsControllerTest extends TestCase
             'nickname' => 'Test Nickname',
         ]);
 
-        $response = $this->actingAs($this->user)->deleteJson("/api/user/track-nickname/{$trackNickname->id}");
+        $response = $this->actingAs($this->user)
+            ->deleteJson("/api/user/track-nickname/{$this->track->id}");
 
         $response->assertStatus(200)
             ->assertJson(['success' => true]);
@@ -212,32 +213,86 @@ class UserSettingsControllerTest extends TestCase
         ]);
     }
 
-    public function test_user_cannot_delete_another_users_track_nickname(): void
+    public function test_delete_nonexistent_track_nickname_returns_404(): void
+    {
+        $response = $this->actingAs($this->user)
+            ->deleteJson("/api/user/track-nickname/{$this->track->id}");
+
+        $response->assertStatus(404);
+    }
+
+    public function test_user_cannot_delete_other_users_track_nickname(): void
     {
         $otherUser = User::factory()->create();
-        $trackNickname = UserTrackNickname::create([
+        UserTrackNickname::create([
             'user_id' => $otherUser->id,
             'track_id' => $this->track->id,
             'nickname' => 'Other User Nickname',
         ]);
 
-        $response = $this->actingAs($this->user)->deleteJson("/api/user/track-nickname/{$trackNickname->id}");
+        $response = $this->actingAs($this->user)
+            ->deleteJson("/api/user/track-nickname/{$this->track->id}");
 
         $response->assertStatus(404);
+    }
 
+    public function test_user_can_have_multiple_track_nicknames(): void
+    {
+        $track2 = Track::factory()->create();
+        $track3 = Track::factory()->create();
+
+        $this->actingAs($this->user)->postJson('/api/user/track-nickname', [
+            'track_id' => $this->track->id,
+            'nickname' => 'Track 1',
+        ]);
+
+        $this->actingAs($this->user)->postJson('/api/user/track-nickname', [
+            'track_id' => $track2->id,
+            'nickname' => 'Track 2',
+        ]);
+
+        $this->actingAs($this->user)->postJson('/api/user/track-nickname', [
+            'track_id' => $track3->id,
+            'nickname' => 'Track 3',
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/user/settings');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(3, 'track_nicknames');
+    }
+
+    public function test_update_display_name_with_empty_string(): void
+    {
+        $response = $this->actingAs($this->user)->putJson('/api/user/display-name', [
+            'display_name' => '',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['display_name']);
+    }
+
+    public function test_track_nickname_with_special_characters(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/user/track-nickname', [
+            'track_id' => $this->track->id,
+            'nickname' => "My Fav's Track! #1",
+        ]);
+
+        $response->assertStatus(200);
         $this->assertDatabaseHas('user_track_nicknames', [
-            'id' => $trackNickname->id,
+            'nickname' => "My Fav's Track! #1",
         ]);
     }
 
-    public function test_unauthenticated_user_cannot_access_settings(): void
+    public function test_settings_requires_authentication(): void
     {
         $response = $this->getJson('/api/user/settings');
 
         $response->assertStatus(401);
     }
 
-    public function test_unauthenticated_user_cannot_update_display_name(): void
+    public function test_update_display_name_requires_authentication(): void
     {
         $response = $this->putJson('/api/user/display-name', [
             'display_name' => 'Test',
@@ -246,12 +301,19 @@ class UserSettingsControllerTest extends TestCase
         $response->assertStatus(401);
     }
 
-    public function test_unauthenticated_user_cannot_set_track_nickname(): void
+    public function test_set_track_nickname_requires_authentication(): void
     {
         $response = $this->postJson('/api/user/track-nickname', [
             'track_id' => $this->track->id,
             'nickname' => 'Test',
         ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_delete_track_nickname_requires_authentication(): void
+    {
+        $response = $this->deleteJson("/api/user/track-nickname/{$this->track->id}");
 
         $response->assertStatus(401);
     }

@@ -200,4 +200,129 @@ class FriendControllerTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    public function test_store_friend_with_nickname(): void
+    {
+        $friend = Driver::factory()->create(['nickname' => 'Speedy']);
+
+        $response = $this->actingAs($this->user)->postJson('/api/friends', [
+            'driver_id' => $friend->id,
+        ]);
+
+        $response->assertStatus(201);
+    }
+
+    public function test_index_includes_driver_details(): void
+    {
+        $friend = Driver::factory()->create(['name' => 'Best Friend']);
+        Friend::create([
+            'user_id' => $this->user->id,
+            'friend_driver_id' => $friend->id,
+            'friendship_status' => 'active',
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/friends');
+
+        $response->assertStatus(200)
+            ->assertJsonFragment(['name' => 'Best Friend']);
+    }
+
+    public function test_destroy_returns_404_for_nonexistent_friendship(): void
+    {
+        $driver = Driver::factory()->create();
+
+        $response = $this->actingAs($this->user)->deleteJson("/api/friends/{$driver->id}");
+
+        $response->assertStatus(404);
+    }
+
+    public function test_store_multiple_friends(): void
+    {
+        $friend1 = Driver::factory()->create();
+        $friend2 = Driver::factory()->create();
+
+        $this->actingAs($this->user)->postJson('/api/friends', ['driver_id' => $friend1->id]);
+        $this->actingAs($this->user)->postJson('/api/friends', ['driver_id' => $friend2->id]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/friends');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(2);
+    }
+
+    public function test_destroy_only_removes_own_friendship(): void
+    {
+        $otherUser = User::factory()->create();
+        $friend = Driver::factory()->create();
+
+        Friend::create([
+            'user_id' => $otherUser->id,
+            'friend_driver_id' => $friend->id,
+            'friendship_status' => 'active',
+        ]);
+
+        $response = $this->actingAs($this->user)->deleteJson("/api/friends/{$friend->id}");
+
+        $response->assertStatus(404);
+        $this->assertDatabaseHas('friends', [
+            'user_id' => $otherUser->id,
+            'friend_driver_id' => $friend->id,
+        ]);
+    }
+
+    public function test_get_friend_driver_ids_returns_only_ids(): void
+    {
+        $friend1 = Driver::factory()->create();
+        $friend2 = Driver::factory()->create();
+
+        Friend::create(['user_id' => $this->user->id, 'friend_driver_id' => $friend1->id, 'friendship_status' => 'active']);
+        Friend::create(['user_id' => $this->user->id, 'friend_driver_id' => $friend2->id, 'friendship_status' => 'active']);
+
+        $response = $this->actingAs($this->user)->getJson('/api/friends/driver-ids');
+
+        $response->assertStatus(200);
+        $data = $response->json();
+        $this->assertContains($friend1->id, $data);
+        $this->assertContains($friend2->id, $data);
+    }
+
+    public function test_store_validates_driver_id_is_numeric(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/friends', [
+            'driver_id' => 'not-numeric',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['driver_id']);
+    }
+
+    public function test_index_does_not_include_soft_deleted_drivers(): void
+    {
+        $friend = Driver::factory()->create();
+        Friend::create([
+            'user_id' => $this->user->id,
+            'friend_driver_id' => $friend->id,
+            'friendship_status' => 'active',
+        ]);
+
+        $friend->delete();
+
+        $response = $this->actingAs($this->user)->getJson('/api/friends');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_destroy_soft_deletes_friendship(): void
+    {
+        $friend = Driver::factory()->create();
+        $friendship = Friend::create([
+            'user_id' => $this->user->id,
+            'friend_driver_id' => $friend->id,
+            'friendship_status' => 'active',
+        ]);
+
+        $this->actingAs($this->user)->deleteJson("/api/friends/{$friend->id}");
+
+        $this->assertSoftDeleted('friends', ['id' => $friendship->id]);
+    }
 }
