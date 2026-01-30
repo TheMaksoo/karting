@@ -126,4 +126,126 @@ class AuthTest extends TestCase
 
         $this->assertFalse($user->fresh()->must_change_password);
     }
+
+    public function test_login_validates_email_format(): void
+    {
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'not-an-email',
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_change_password_requires_password_confirmation(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'NewPass123!',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['new_password']);
+    }
+
+    public function test_change_password_requires_matching_confirmation(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'NewPass123!',
+            'new_password_confirmation' => 'DifferentPass123!',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['new_password']);
+    }
+
+    public function test_change_password_requires_minimum_length(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => '123',
+            'new_password_confirmation' => '123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['new_password']);
+    }
+
+    public function test_login_with_nonexistent_email(): void
+    {
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'nonexistent@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_me_returns_user_details(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/auth/me');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'user' => [
+                    'name' => 'Test User',
+                    'email' => 'test@example.com',
+                ],
+            ]);
+    }
+
+    public function test_logout_requires_authentication(): void
+    {
+        $response = $this->postJson('/api/auth/logout');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_change_password_requires_authentication(): void
+    {
+        $response = $this->postJson('/api/auth/change-password', [
+            'current_password' => 'oldpassword',
+            'new_password' => 'NewPass123!',
+            'new_password_confirmation' => 'NewPass123!',
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_login_returns_token(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'test@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['token'])
+            ->assertJsonPath('token', fn ($token) => ! empty($token));
+    }
 }

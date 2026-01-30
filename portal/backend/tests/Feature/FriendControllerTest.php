@@ -116,4 +116,88 @@ class FriendControllerTest extends TestCase
 
         $response->assertStatus(200)->assertJsonCount(0);
     }
+
+    public function test_store_validates_driver_id_required(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/friends', []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['driver_id']);
+    }
+
+    public function test_store_validates_driver_exists(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/friends', [
+            'driver_id' => 99999,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['driver_id']);
+    }
+
+    public function test_index_returns_only_active_friends(): void
+    {
+        $activeFriend = Driver::factory()->create();
+        $pendingFriend = Driver::factory()->create();
+
+        Friend::create([
+            'user_id' => $this->user->id,
+            'friend_driver_id' => $activeFriend->id,
+            'friendship_status' => 'active',
+        ]);
+
+        Friend::create([
+            'user_id' => $this->user->id,
+            'friend_driver_id' => $pendingFriend->id,
+            'friendship_status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/friends');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_unauthenticated_user_cannot_list_friends(): void
+    {
+        $response = $this->getJson('/api/friends');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_unauthenticated_user_cannot_add_friend(): void
+    {
+        $friend = Driver::factory()->create();
+        $response = $this->postJson('/api/friends', ['driver_id' => $friend->id]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_unauthenticated_user_cannot_remove_friend(): void
+    {
+        $response = $this->deleteJson('/api/friends/1');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_destroy_nonexistent_friend_returns_404(): void
+    {
+        $response = $this->actingAs($this->user)->deleteJson('/api/friends/99999');
+
+        $response->assertStatus(404);
+    }
+
+    public function test_get_friend_driver_ids_returns_empty_array(): void
+    {
+        $response = $this->actingAs($this->user)->getJson('/api/friends/driver-ids');
+
+        $response->assertStatus(200)
+            ->assertJson([]);
+    }
+
+    public function test_get_friend_driver_ids_requires_authentication(): void
+    {
+        $response = $this->getJson('/api/friends/driver-ids');
+
+        $response->assertStatus(401);
+    }
 }

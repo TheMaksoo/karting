@@ -108,4 +108,80 @@ EML;
         // Should return parsed data or error
         $this->assertContains($response->status(), [200, 400, 422]);
     }
+
+    public function test_preview_requires_authentication(): void
+    {
+        $response = $this->postJson('/api/upload/preview', [
+            'file_content' => base64_encode('test'),
+            'file_name' => 'test.eml',
+            'track_id' => $this->track->id,
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_preview_validates_track_id(): void
+    {
+        $response = $this->actingAs($this->admin)->postJson('/api/upload/preview', [
+            'file_content' => base64_encode('test content'),
+            'file_name' => 'test.eml',
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_manual_entry_requires_admin(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/upload/manual-entry', []);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_manual_entry_validates_track_exists(): void
+    {
+        $response = $this->actingAs($this->admin)->postJson('/api/upload/manual-entry', [
+            'track_id' => 99999,
+            'session_date' => '2024-06-15',
+            'drivers' => [],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['track_id']);
+    }
+
+    public function test_manual_entry_validates_session_date(): void
+    {
+        $response = $this->actingAs($this->admin)->postJson('/api/upload/manual-entry', [
+            'track_id' => $this->track->id,
+            'drivers' => [],
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_manual_entry_validates_drivers_array(): void
+    {
+        $response = $this->actingAs($this->admin)->postJson('/api/upload/manual-entry', [
+            'track_id' => $this->track->id,
+            'session_date' => '2024-06-15',
+        ]);
+
+        $response->assertStatus(422);
+    }
+
+    public function test_batch_upload_requires_admin(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/upload/batch', [
+            'files' => ['test.eml'],
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_batch_upload_requires_authentication(): void
+    {
+        $response = $this->postJson('/api/upload/batch');
+
+        $response->assertStatus(401);
+    }
 }

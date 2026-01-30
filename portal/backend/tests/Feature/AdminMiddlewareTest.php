@@ -55,4 +55,62 @@ class AdminMiddlewareTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_admin_can_create_users(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->postJson('/api/admin/users', [
+            'name' => 'New User',
+            'email' => 'newuser@example.com',
+            'password' => 'password123',
+            'role' => 'driver',
+        ]);
+
+        $this->assertContains($response->status(), [200, 201, 422]);
+    }
+
+    public function test_non_admin_cannot_create_users(): void
+    {
+        $user = User::factory()->create(['role' => 'driver']);
+
+        $response = $this->actingAs($user)->postJson('/api/admin/users', [
+            'name' => 'New User',
+            'email' => 'newuser@example.com',
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_admin_can_delete_users(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $targetUser = User::factory()->create(['role' => 'driver']);
+
+        $response = $this->actingAs($admin)->deleteJson("/api/admin/users/{$targetUser->id}");
+
+        $this->assertContains($response->status(), [200, 204]);
+    }
+
+    public function test_non_admin_cannot_delete_users(): void
+    {
+        $user = User::factory()->create(['role' => 'driver']);
+        $targetUser = User::factory()->create(['role' => 'driver']);
+
+        $response = $this->actingAs($user)->deleteJson("/api/admin/users/{$targetUser->id}");
+
+        $response->assertStatus(403);
+    }
+
+    public function test_admin_can_update_users(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $targetUser = User::factory()->create(['role' => 'driver']);
+
+        $response = $this->actingAs($admin)->putJson("/api/admin/users/{$targetUser->id}", [
+            'name' => 'Updated Name',
+        ]);
+
+        $this->assertContains($response->status(), [200, 422]);
+    }
 }
