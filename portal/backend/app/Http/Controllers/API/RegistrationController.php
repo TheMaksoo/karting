@@ -79,7 +79,7 @@ class RegistrationController extends Controller
         }
 
         $validated = $request->validate([
-            'role' => ['nullable', 'string', 'in:driver,admin'],
+            'role' => ['required', 'string', 'in:driver,admin'],
             'driver_ids' => ['nullable', 'array'],
             'driver_ids.*' => ['integer', 'exists:drivers,id'],
         ]);

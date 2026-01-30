@@ -17,7 +17,7 @@ class EmlUploadController extends Controller
     public function parseEml(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|max:10240|mimes:eml,txt,pdf,html',
+            'file' => 'required|file|max:10240|mimes:eml,txt,pdf,html,csv',
             'track_id' => 'nullable|exists:tracks,id',
         ]);
 
@@ -284,7 +284,10 @@ class EmlUploadController extends Controller
         $request->validate([
             'track_id' => 'required|exists:tracks,id',
             'session_date' => 'required|date',
+            'heat' => 'nullable|integer',
             'heat_price' => 'nullable|numeric',
+            'weather' => 'nullable|string',
+            'notes' => 'nullable|string',
             'laps' => 'required|array',
             'laps.*.driver_name' => 'required|string',
             'laps.*.lap_number' => 'required|integer',
@@ -317,7 +320,10 @@ class EmlUploadController extends Controller
             $session = KartingSession::create([
                 'track_id' => $request->track_id,
                 'session_date' => $request->session_date,
+                'heat' => $request->heat,
                 'heat_price' => $request->heat_price ?? 0,
+                'weather' => $request->weather,
+                'notes' => $request->notes,
                 'session_type' => $request->session_type ?? 'race',
                 'session_number' => $request->session_number,
             ]);
@@ -329,10 +335,10 @@ class EmlUploadController extends Controller
             $newDriversCreated = [];
 
             foreach ($driverLaps as $driverName => $laps) {
-                // Find or create driver (unique per track)
+                // Find or create driver by name only
                 $driver = Driver::firstOrCreate(
-                    ['name' => $driverName, 'track_id' => $session->track_id],
-                    ['email' => null]
+                    ['name' => $driverName],
+                    ['email' => null, 'track_id' => $session->track_id]
                 );
 
                 // Track if this is a new driver

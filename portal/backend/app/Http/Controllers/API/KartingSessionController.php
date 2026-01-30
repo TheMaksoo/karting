@@ -46,6 +46,7 @@ class KartingSessionController extends Controller
             'session_type' => 'required|string',
             'heat' => 'sometimes|integer',
             'weather' => 'nullable|string',
+            'temperature' => 'nullable|numeric',
             'source' => 'nullable|string',
             'heat_price' => 'nullable|numeric',
             'notes' => 'nullable|string',
@@ -68,11 +69,13 @@ class KartingSessionController extends Controller
         $session = KartingSession::findOrFail($id);
 
         $validated = $request->validate([
+            'track_id' => 'sometimes|exists:tracks,id',
             'session_date' => 'sometimes|date_format:Y-m-d',
             'session_time' => 'nullable|date_format:H:i',
             'session_type' => 'sometimes|string',
             'heat' => 'sometimes|integer',
             'weather' => 'nullable|string',
+            'temperature' => 'nullable|numeric',
             'notes' => 'nullable|string',
         ]);
 
@@ -84,6 +87,11 @@ class KartingSessionController extends Controller
     public function destroy(string $id)
     {
         $session = KartingSession::findOrFail($id);
+
+        // Soft delete all associated laps first
+        $session->laps()->delete();
+
+        // Then delete the session
         $session->delete();
 
         return response()->json(['message' => 'Session deleted successfully']);

@@ -255,6 +255,38 @@ class FriendController extends Controller
             }
 
             // Merge and remove duplicates
+            $allExcludedIds = array_values(array_unique(array_merge($friendIds, $userDriverIds)));
+
+            return response()->json($allExcludedIds);
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve friend driver IDs', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(['error' => 'Failed to retrieve friend driver IDs'], 500);
+        }
+    }
+
+    private function oldGetFriendDriverIds(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            $friendIds = Friend::where('user_id', $user->id)
+                ->where('friendship_status', 'active')
+                ->pluck('friend_driver_id')
+                ->toArray();
+
+            // Include ALL user's connected drivers from driver_user pivot table
+            $userDriverIds = $user->drivers()->pluck('drivers.id')->toArray();
+
+            // Also include legacy driver_id if exists
+            if ($user->driver_id) {
+                $userDriverIds[] = $user->driver_id;
+            }
+
+            // Merge and remove duplicates
             $allExcludedIds = array_unique(array_merge($friendIds, $userDriverIds));
 
             Log::debug("Retrieved friend driver IDs for user {$user->id}", [

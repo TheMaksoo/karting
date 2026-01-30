@@ -20,7 +20,7 @@ class SettingController extends Controller
     public function update(Request $request, string $key)
     {
         $validated = $request->validate([
-            'value' => 'required',
+            'value' => 'present',
             'description' => 'nullable|string',
         ]);
 

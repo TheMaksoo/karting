@@ -25,6 +25,7 @@ class KartingSession extends Model
         'session_number',
         'heat',
         'weather',
+        'temperature',
         'source',
         'heat_price',
         'notes',
