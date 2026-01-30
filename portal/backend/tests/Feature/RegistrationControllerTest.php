@@ -200,4 +200,52 @@ class RegistrationControllerTest extends TestCase
         $response->assertStatus(400)
             ->assertJson(['success' => false]);
     }
+
+    public function test_registration_validates_name_required(): void
+    {
+        $response = $this->postJson('/api/auth/register', [
+            'email' => 'test@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_registration_validates_password_min_length(): void
+    {
+        $response = $this->postJson('/api/auth/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => '123',
+            'password_confirmation' => '123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['password']);
+    }
+
+    public function test_approve_nonexistent_registration(): void
+    {
+        $response = $this->actingAs($this->admin)->postJson('/api/admin/registrations/99999/approve', [
+            'role' => 'driver',
+        ]);
+
+        $response->assertStatus(404);
+    }
+
+    public function test_reject_nonexistent_registration(): void
+    {
+        $response = $this->actingAs($this->admin)->postJson('/api/admin/registrations/99999/reject');
+
+        $response->assertStatus(404);
+    }
+
+    public function test_delete_nonexistent_registration(): void
+    {
+        $response = $this->actingAs($this->admin)->deleteJson('/api/admin/registrations/99999');
+
+        $response->assertStatus(404);
+    }
 }

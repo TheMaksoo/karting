@@ -68,7 +68,7 @@ class KartingSessionController extends Controller
         $session = KartingSession::findOrFail($id);
 
         $validated = $request->validate([
-            'session_date' => 'sometimes|date',
+            'session_date' => 'sometimes|date_format:Y-m-d',
             'session_time' => 'nullable|date_format:H:i',
             'session_type' => 'sometimes|string',
             'heat' => 'sometimes|integer',

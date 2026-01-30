@@ -24,8 +24,8 @@ class StoreTrackRequest extends FormRequest
         return [
             'track_id' => ['nullable', 'string', 'max:255', 'unique:tracks,track_id'],
             'name' => ['required', 'string', 'max:255'],
-            'city' => ['nullable', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'country' => ['required', 'string', 'max:255'],
             'region' => ['nullable', 'string', 'max:255'],
             'latitude' => ['nullable', 'numeric', 'min:-90', 'max:90'],
             'longitude' => ['nullable', 'numeric', 'min:-180', 'max:180'],

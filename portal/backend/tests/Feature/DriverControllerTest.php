@@ -215,4 +215,78 @@ class DriverControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJson(['id' => $driver->id]);
     }
+
+    public function test_store_validates_email_format(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', [
+            'name' => 'Test Driver',
+            'email' => 'not-an-email',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_update_returns_404_for_nonexistent_driver(): void
+    {
+        $response = $this->actingAs($this->user)->putJson('/api/drivers/99999', [
+            'name' => 'Updated',
+        ]);
+
+        $response->assertStatus(404);
+    }
+
+    public function test_destroy_returns_404_for_nonexistent_driver(): void
+    {
+        $response = $this->actingAs($this->user)->deleteJson('/api/drivers/99999');
+
+        $response->assertStatus(404);
+    }
+
+    public function test_index_returns_empty_array(): void
+    {
+        $response = $this->actingAs($this->user)->getJson('/api/drivers');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(0);
+    }
+
+    public function test_store_with_all_fields(): void
+    {
+        $data = [
+            'name' => 'Full Driver',
+            'email' => 'full@example.com',
+            'nickname' => 'FullD',
+            'color' => '#FF00FF',
+            'phone' => '1234567890',
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/drivers', $data);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('drivers', [
+            'name' => 'Full Driver',
+            'nickname' => 'FullD',
+        ]);
+    }
+
+    public function test_update_validates_email_format(): void
+    {
+        $driver = Driver::factory()->create();
+
+        $response = $this->actingAs($this->user)->putJson("/api/drivers/{$driver->id}", [
+            'email' => 'invalid-email',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_stats_returns_empty_for_user_without_drivers(): void
+    {
+        $response = $this->actingAs($this->user)->getJson('/api/stats/drivers');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(0);
+    }
 }

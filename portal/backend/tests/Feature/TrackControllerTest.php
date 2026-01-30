@@ -191,4 +191,159 @@ class TrackControllerTest extends TestCase
         $track = Track::where('name', 'Premium Circuit')->first();
         $this->assertEquals(25.00, $track->pricing['heat_price']);
     }
+
+    public function test_store_validates_name_max_length(): void
+    {
+        $data = [
+            'name' => str_repeat('A', 300),
+            'city' => 'Test',
+            'country' => 'Test',
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_update_allows_partial_updates(): void
+    {
+        $track = Track::factory()->create(['name' => 'Original', 'city' => 'City']);
+
+        $response = $this->actingAs($this->user)->putJson("/api/tracks/{$track->id}", [
+            'name' => 'Updated',
+        ]);
+
+        $response->assertStatus(200);
+        $track->refresh();
+        $this->assertEquals('Updated', $track->name);
+        $this->assertEquals('City', $track->city);
+    }
+
+    public function test_store_with_indoor_flag(): void
+    {
+        $data = [
+            'name' => 'Indoor Circuit',
+            'city' => 'Brussels',
+            'country' => 'Belgium',
+            'indoor' => true,
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('tracks', [
+            'name' => 'Indoor Circuit',
+            'indoor' => true,
+        ]);
+    }
+
+    public function test_index_returns_empty_array(): void
+    {
+        $response = $this->actingAs($this->user)->getJson('/api/tracks');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(0);
+    }
+
+    public function test_destroy_prevents_deletion_with_sessions(): void
+    {
+        $track = Track::factory()->create();
+        KartingSession::factory()->create(['track_id' => $track->id]);
+
+        $response = $this->actingAs($this->user)->deleteJson("/api/tracks/{$track->id}");
+
+        $this->assertContains($response->status(), [200, 409]);
+    }
+
+    public function test_show_includes_sessions_count(): void
+    {
+        $track = Track::factory()->create();
+        KartingSession::factory()->count(3)->create(['track_id' => $track->id]);
+
+        $response = $this->actingAs($this->user)->getJson("/api/tracks/{$track->id}");
+
+        $response->assertStatus(200);
+    }
+
+    public function test_stats_with_no_sessions(): void
+    {
+        Track::factory()->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/stats/tracks');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_update_returns_404_for_nonexistent_track(): void
+    {
+        $response = $this->actingAs($this->user)->putJson('/api/tracks/99999', [
+            'name' => 'Updated',
+        ]);
+
+        $response->assertStatus(404);
+    }
+
+    public function test_destroy_returns_404_for_nonexistent_track(): void
+    {
+        $response = $this->actingAs($this->user)->deleteJson('/api/tracks/99999');
+
+        $response->assertStatus(404);
+    }
+
+    public function test_store_validates_city_required(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Test Circuit',
+            'country' => 'Netherlands',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['city']);
+    }
+
+    public function test_store_validates_country_required(): void
+    {
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', [
+            'name' => 'Test Circuit',
+            'city' => 'Amsterdam',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['country']);
+    }
+
+    public function test_store_with_all_optional_fields(): void
+    {
+        $data = [
+            'name' => 'Complete Circuit',
+            'city' => 'Amsterdam',
+            'country' => 'Netherlands',
+            'distance' => 850,
+            'corners' => 15,
+            'indoor' => false,
+            'latitude' => 52.3676,
+            'longitude' => 4.9041,
+            'features' => ['timing' => 'AMB', 'cafe' => true],
+            'pricing' => ['heat_price' => 25.00],
+        ];
+
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('tracks', [
+            'name' => 'Complete Circuit',
+            'distance' => 850,
+        ]);
+    }
+
+    public function test_index_returns_tracks_with_session_count(): void
+    {
+        $track = Track::factory()->create();
+        KartingSession::factory()->count(5)->create(['track_id' => $track->id]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks');
+
+        $response->assertStatus(200);
+    }
 }
