@@ -21,7 +21,7 @@
     </div>
 
       <!-- Empty State -->
-      <div v-else-if="statCategories.length === 0" class="empty-state">
+      <div v-else-if="totalLaps === 0" class="empty-state">
         <h2>📭 No Data Available</h2>
         <p>Your database is empty. Upload some session data to see analytics!</p>
         <p class="hint">Navigate to Admin → Upload Data to import your karting sessions.</p>
@@ -644,6 +644,7 @@ interface HeatmapCell {
 }
 
 const statCategories = ref<StatCategory[]>([])
+const totalLaps = ref<number>(0)
 const trophyCase = ref<{ emblems: number; gold: number; silver: number; bronze: number; coal: number }>({
   emblems: 0,
   gold: 0,
@@ -868,6 +869,9 @@ const loadRealData = async () => {
       dataError.value = 'Failed to load data. Please try logging out and logging back in.'
       return
     }
+
+    // Store total laps for empty state check
+    totalLaps.value = overviewData.total_laps || 0
 
     // Set trophy case data
     if (trophyData) {
