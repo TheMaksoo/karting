@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class StyleVariable extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'key',
         'value',
