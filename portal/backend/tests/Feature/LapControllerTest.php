@@ -29,12 +29,17 @@ class LapControllerTest extends TestCase
         $this->driver = Driver::factory()->create();
     }
 
-    public function test_index_returns_laps(): void
+    private function createLaps(int $count = 1, array $attributes = []): void
     {
-        Lap::factory()->count(5)->create([
+        Lap::factory()->count($count)->create(array_merge([
             'karting_session_id' => $this->session->id,
             'driver_id' => $this->driver->id,
-        ]);
+        ], $attributes));
+    }
+
+    public function test_index_returns_laps(): void
+    {
+        $this->createLaps(5);
 
         $response = $this->actingAs($this->user)->getJson('/api/laps');
 
@@ -44,10 +49,7 @@ class LapControllerTest extends TestCase
     public function test_index_can_filter_by_session(): void
     {
         $session2 = KartingSession::factory()->create();
-        Lap::factory()->count(3)->create([
-            'karting_session_id' => $this->session->id,
-            'driver_id' => $this->driver->id,
-        ]);
+        $this->createLaps(3);
         Lap::factory()->create([
             'karting_session_id' => $session2->id,
             'driver_id' => $this->driver->id,
@@ -130,10 +132,7 @@ class LapControllerTest extends TestCase
     public function test_by_driver_returns_driver_laps(): void
     {
         $driver2 = Driver::factory()->create();
-        Lap::factory()->count(3)->create([
-            'karting_session_id' => $this->session->id,
-            'driver_id' => $this->driver->id,
-        ]);
+        $this->createLaps(3);
         Lap::factory()->create([
             'karting_session_id' => $this->session->id,
             'driver_id' => $driver2->id,
@@ -147,14 +146,8 @@ class LapControllerTest extends TestCase
 
     public function test_overview_returns_aggregated_stats(): void
     {
-        // Connect driver to user to make stats visible
         $this->user->drivers()->attach($this->driver->id);
-
-        Lap::factory()->count(5)->create([
-            'karting_session_id' => $this->session->id,
-            'driver_id' => $this->driver->id,
-            'lap_time' => 30.0,
-        ]);
+        $this->createLaps(5, ['lap_time' => 30.0]);
 
         $response = $this->actingAs($this->user)->getJson('/api/stats/overview');
 
@@ -186,10 +179,7 @@ class LapControllerTest extends TestCase
 
     public function test_count_returns_total_laps(): void
     {
-        Lap::factory()->count(15)->create([
-            'karting_session_id' => $this->session->id,
-            'driver_id' => $this->driver->id,
-        ]);
+        $this->createLaps(15);
 
         $response = $this->actingAs($this->user)->getJson('/api/laps/count');
 
@@ -219,11 +209,7 @@ class LapControllerTest extends TestCase
         $track2 = Track::factory()->create();
         $session2 = KartingSession::factory()->create(['track_id' => $track2->id]);
 
-        Lap::factory()->count(3)->create([
-            'karting_session_id' => $this->session->id,
-            'driver_id' => $this->driver->id,
-        ]);
-
+        $this->createLaps(3);
         Lap::factory()->count(2)->create([
             'karting_session_id' => $session2->id,
             'driver_id' => $this->driver->id,
@@ -238,12 +224,7 @@ class LapControllerTest extends TestCase
     public function test_index_can_filter_by_driver(): void
     {
         $driver2 = Driver::factory()->create();
-
-        Lap::factory()->count(3)->create([
-            'karting_session_id' => $this->session->id,
-            'driver_id' => $this->driver->id,
-        ]);
-
+        $this->createLaps(3);
         Lap::factory()->count(2)->create([
             'karting_session_id' => $this->session->id,
             'driver_id' => $driver2->id,
@@ -255,34 +236,29 @@ class LapControllerTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_store_validates_session_exists(): void
-    {
-        $data = [
-            'karting_session_id' => 99999,
-            'driver_id' => $this->driver->id,
-            'lap_number' => 1,
-            'lap_time' => 30.0,
-        ];
-
-        $response = $this->actingAs($this->user)->postJson('/api/laps', $data);
-
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['karting_session_id']);
-    }
-
-    public function test_store_validates_driver_exists(): void
+    #[\PHPUnit\Framework\Attributes\DataProvider('invalidForeignKeyProvider')]
+    public function test_store_validates_foreign_keys(string $field, int $invalidId): void
     {
         $data = [
             'karting_session_id' => $this->session->id,
-            'driver_id' => 99999,
+            'driver_id' => $this->driver->id,
             'lap_number' => 1,
             'lap_time' => 30.0,
+            $field => $invalidId,
         ];
 
         $response = $this->actingAs($this->user)->postJson('/api/laps', $data);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['driver_id']);
+            ->assertJsonValidationErrors([$field]);
+    }
+
+    public static function invalidForeignKeyProvider(): array
+    {
+        return [
+            'invalid session' => ['karting_session_id', 99999],
+            'invalid driver' => ['driver_id', 99999],
+        ];
     }
 
     public function test_unauthenticated_user_cannot_access_laps(): void

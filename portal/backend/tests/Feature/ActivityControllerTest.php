@@ -29,16 +29,37 @@ class ActivityControllerTest extends TestCase
         $this->user = User::factory()->create(['driver_id' => $this->userDriver->id]);
     }
 
+    private function createSessionForDriver(Driver $driver, array $lapAttributes = []): KartingSession
+    {
+        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
+        Lap::factory()->create(array_merge([
+            'karting_session_id' => $session->id,
+            'driver_id' => $driver->id,
+            'is_best_lap' => true,
+        ], $lapAttributes));
+
+        return $session;
+    }
+
+    private function createFriendWithSession(string $status = 'active'): array
+    {
+        $friendDriver = Driver::factory()->create();
+        $friendUser = User::factory()->create(['driver_id' => $friendDriver->id]);
+
+        Friend::create([
+            'user_id' => $this->user->id,
+            'friend_driver_id' => $friendDriver->id,
+            'friendship_status' => $status,
+        ]);
+
+        $session = $this->createSessionForDriver($friendDriver);
+
+        return ['driver' => $friendDriver, 'user' => $friendUser, 'session' => $session];
+    }
+
     public function test_latest_activity_returns_user_sessions(): void
     {
-        // Create session with user's driver
-        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
-        Lap::factory()->create([
-            'karting_session_id' => $session->id,
-            'driver_id' => $this->userDriver->id,
-            'is_best_lap' => true,
-            'position' => 1,
-        ]);
+        $this->createSessionForDriver($this->userDriver, ['position' => 1]);
 
         $response = $this->actingAs($this->user)->getJson('/api/activity/latest');
 
@@ -64,7 +85,6 @@ class ActivityControllerTest extends TestCase
         $driver2 = Driver::factory()->create();
         $user->drivers()->attach([$driver1->id, $driver2->id]);
 
-        // Create sessions for both drivers
         $session1 = KartingSession::factory()->create(['track_id' => $this->track->id]);
         Lap::factory()->create([
             'karting_session_id' => $session1->id,
@@ -81,35 +101,18 @@ class ActivityControllerTest extends TestCase
 
         $response = $this->actingAs($user)->getJson('/api/activity/latest');
 
-        $response->assertStatus(200);
-        $response->assertJsonCount(2);
+        $response->assertStatus(200)->assertJsonCount(2);
     }
 
     public function test_latest_activity_includes_friend_sessions_when_friends_only(): void
     {
-        // Create a friend with their own driver and session
-        $friendDriver = Driver::factory()->create();
-        $friendUser = User::factory()->create(['driver_id' => $friendDriver->id]);
-
-        Friend::create([
-            'user_id' => $this->user->id,
-            'friend_driver_id' => $friendDriver->id,
-            'friendship_status' => 'active',
-        ]);
-
-        $friendSession = KartingSession::factory()->create(['track_id' => $this->track->id]);
-        Lap::factory()->create([
-            'karting_session_id' => $friendSession->id,
-            'driver_id' => $friendDriver->id,
-            'is_best_lap' => true,
-        ]);
+        $friend = $this->createFriendWithSession('active');
 
         $response = $this->actingAs($this->user)->getJson('/api/activity/latest?friends_only=1');
 
         $response->assertStatus(200);
-        // Should include the friend's session
         $sessionIds = collect($response->json())->pluck('session_id')->toArray();
-        $this->assertContains($friendSession->id, $sessionIds);
+        $this->assertContains($friend['session']->id, $sessionIds);
     }
 
     public function test_latest_activity_expands_friend_account_to_all_drivers(): void
@@ -144,43 +147,24 @@ class ActivityControllerTest extends TestCase
 
     public function test_latest_activity_excludes_pending_friends(): void
     {
-        $friendDriver = Driver::factory()->create();
-        Friend::create([
-            'user_id' => $this->user->id,
-            'friend_driver_id' => $friendDriver->id,
-            'friendship_status' => 'pending',
-        ]);
-
-        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
-        Lap::factory()->create([
-            'karting_session_id' => $session->id,
-            'driver_id' => $friendDriver->id,
-            'is_best_lap' => true,
-        ]);
+        $friend = $this->createFriendWithSession('pending');
 
         $response = $this->actingAs($this->user)->getJson('/api/activity/latest');
 
         $response->assertStatus(200);
         $sessionIds = collect($response->json())->pluck('session_id')->toArray();
-        $this->assertNotContains($session->id, $sessionIds);
+        $this->assertNotContains($friend['session']->id, $sessionIds);
     }
 
     public function test_latest_activity_respects_limit_parameter(): void
     {
-        // Create multiple sessions
         for ($i = 0; $i < 5; $i++) {
-            $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
-            Lap::factory()->create([
-                'karting_session_id' => $session->id,
-                'driver_id' => $this->userDriver->id,
-                'is_best_lap' => true,
-            ]);
+            $this->createSessionForDriver($this->userDriver);
         }
 
         $response = $this->actingAs($this->user)->getJson('/api/activity/latest?limit=3');
 
-        $response->assertStatus(200);
-        $response->assertJsonCount(3);
+        $response->assertStatus(200)->assertJsonCount(3);
     }
 
     public function test_latest_activity_returns_results_ordered_by_position(): void

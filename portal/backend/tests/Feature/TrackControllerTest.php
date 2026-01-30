@@ -134,34 +134,27 @@ class TrackControllerTest extends TestCase
             ]);
     }
 
-    public function test_store_validates_distance_is_numeric(): void
+    #[\PHPUnit\Framework\Attributes\DataProvider('invalidTrackDataProvider')]
+    public function test_store_validates_data_types(array $data, string $expectedError): void
     {
-        $data = [
+        $validData = [
             'name' => 'Test Circuit',
             'city' => 'Test City',
             'country' => 'Test Country',
-            'distance' => 'not-a-number',
         ];
 
-        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
+        $response = $this->actingAs($this->user)->postJson('/api/tracks', array_merge($validData, $data));
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['distance']);
+            ->assertJsonValidationErrors([$expectedError]);
     }
 
-    public function test_store_validates_corners_is_integer(): void
+    public static function invalidTrackDataProvider(): array
     {
-        $data = [
-            'name' => 'Test Circuit',
-            'city' => 'Test City',
-            'country' => 'Test Country',
-            'corners' => 'twelve',
+        return [
+            'non-numeric distance' => [['distance' => 'not-a-number'], 'distance'],
+            'non-integer corners' => [['corners' => 'twelve'], 'corners'],
         ];
-
-        $response = $this->actingAs($this->user)->postJson('/api/tracks', $data);
-
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['corners']);
     }
 
     public function test_update_validates_data(): void

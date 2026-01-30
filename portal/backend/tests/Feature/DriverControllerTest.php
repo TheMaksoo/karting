@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Driver;
 use App\Models\KartingSession;
 use App\Models\Lap;
-use App\Models\Track;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -22,6 +21,18 @@ class DriverControllerTest extends TestCase
         $this->user = User::factory()->create();
     }
 
+    private function createDriverWithLaps(int $lapCount = 5): Driver
+    {
+        $driver = Driver::factory()->create();
+        $session = KartingSession::factory()->create();
+        Lap::factory()->count($lapCount)->create([
+            'driver_id' => $driver->id,
+            'karting_session_id' => $session->id,
+        ]);
+
+        return $driver;
+    }
+
     public function test_index_returns_all_drivers(): void
     {
         Driver::factory()->count(3)->create();
@@ -33,12 +44,7 @@ class DriverControllerTest extends TestCase
 
     public function test_index_includes_lap_count(): void
     {
-        $driver = Driver::factory()->create();
-        $session = KartingSession::factory()->create();
-        Lap::factory()->count(5)->create([
-            'driver_id' => $driver->id,
-            'karting_session_id' => $session->id,
-        ]);
+        $driver = $this->createDriverWithLaps(5);
 
         $response = $this->actingAs($this->user)->getJson('/api/drivers');
 
@@ -85,12 +91,7 @@ class DriverControllerTest extends TestCase
 
     public function test_show_returns_driver_with_laps(): void
     {
-        $driver = Driver::factory()->create();
-        $session = KartingSession::factory()->create();
-        Lap::factory()->create([
-            'driver_id' => $driver->id,
-            'karting_session_id' => $session->id,
-        ]);
+        $driver = $this->createDriverWithLaps(1);
 
         $response = $this->actingAs($this->user)->getJson("/api/drivers/{$driver->id}");
 
@@ -142,16 +143,7 @@ class DriverControllerTest extends TestCase
 
     public function test_stats_returns_driver_statistics(): void
     {
-        $driver = Driver::factory()->create();
-        $track = Track::factory()->create();
-        $session = KartingSession::factory()->create(['track_id' => $track->id]);
-        Lap::factory()->count(3)->create([
-            'driver_id' => $driver->id,
-            'karting_session_id' => $session->id,
-            'lap_time' => 30.5,
-        ]);
-
-        // Connect driver to user to make stats visible
+        $driver = $this->createDriverWithLaps(3);
         $this->user->drivers()->attach($driver->id);
 
         $response = $this->actingAs($this->user)->getJson('/api/stats/drivers');
@@ -163,25 +155,12 @@ class DriverControllerTest extends TestCase
 
     public function test_stats_returns_account_level_aggregation(): void
     {
-        // Create two drivers for the same user (different tracks)
-        $driver1 = Driver::factory()->create();
-        $driver2 = Driver::factory()->create();
+        $driver1 = $this->createDriverWithLaps(2);
+        $driver2 = $this->createDriverWithLaps(3);
         $this->user->drivers()->attach([$driver1->id, $driver2->id]);
-
-        $track = Track::factory()->create();
-        $session = KartingSession::factory()->create(['track_id' => $track->id]);
-        Lap::factory()->count(2)->create([
-            'driver_id' => $driver1->id,
-            'karting_session_id' => $session->id,
-        ]);
-        Lap::factory()->count(3)->create([
-            'driver_id' => $driver2->id,
-            'karting_session_id' => $session->id,
-        ]);
 
         $response = $this->actingAs($this->user)->getJson('/api/stats/drivers');
 
-        // Should return 1 account with 5 total laps (2+3)
         $response->assertStatus(200)->assertJsonCount(1);
         $data = $response->json();
         $this->assertEquals(5, $data[0]['total_laps']);

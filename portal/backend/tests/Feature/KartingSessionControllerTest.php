@@ -25,6 +25,22 @@ class KartingSessionControllerTest extends TestCase
         $this->track = Track::factory()->create();
     }
 
+    private function createSessionWithLaps(int $lapCount = 3, array $sessionAttributes = []): KartingSession
+    {
+        $session = KartingSession::factory()->create(array_merge(
+            ['track_id' => $this->track->id],
+            $sessionAttributes
+        ));
+
+        $driver = Driver::factory()->create();
+        Lap::factory()->count($lapCount)->create([
+            'karting_session_id' => $session->id,
+            'driver_id' => $driver->id,
+        ]);
+
+        return $session;
+    }
+
     public function test_index_returns_sessions(): void
     {
         KartingSession::factory()->count(3)->create(['track_id' => $this->track->id]);
@@ -94,12 +110,7 @@ class KartingSessionControllerTest extends TestCase
 
     public function test_show_returns_session_with_laps(): void
     {
-        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
-        $driver = Driver::factory()->create();
-        Lap::factory()->count(3)->create([
-            'karting_session_id' => $session->id,
-            'driver_id' => $driver->id,
-        ]);
+        $session = $this->createSessionWithLaps(3);
 
         $response = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}");
 
@@ -127,28 +138,17 @@ class KartingSessionControllerTest extends TestCase
 
     public function test_destroy_deletes_session_and_laps(): void
     {
-        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
-        $driver = Driver::factory()->create();
-        Lap::factory()->create([
-            'karting_session_id' => $session->id,
-            'driver_id' => $driver->id,
-        ]);
+        $session = $this->createSessionWithLaps(1);
 
         $response = $this->actingAs($this->user)->deleteJson("/api/sessions/{$session->id}");
 
         $response->assertStatus(200);
         $this->assertSoftDeleted('karting_sessions', ['id' => $session->id]);
-        // Note: Laps might still exist but cascade delete depends on implementation
     }
 
     public function test_laps_returns_session_laps(): void
     {
-        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
-        $driver = Driver::factory()->create();
-        Lap::factory()->count(5)->create([
-            'karting_session_id' => $session->id,
-            'driver_id' => $driver->id,
-        ]);
+        $session = $this->createSessionWithLaps(5);
 
         $response = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}/laps");
 
