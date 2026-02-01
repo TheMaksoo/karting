@@ -18,7 +18,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{vue,ts,js,json,css,scss}\"",
     "format:check": "prettier --check \"src/**/*.{vue,ts,js,json,css,scss}\"",
-    "test": "vitest",
+    "test": "vitest run",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
   },

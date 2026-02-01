@@ -34,7 +34,7 @@ if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
       'ResizeObserver loop limit exceeded',
       'Non-Error promise rejection captured',
     ],
-    beforeSend(event, hint) {
+    beforeSend(event, _hint) {
       // Add user context if authenticated
       const userStore = app.config.globalProperties.$pinia?.state?.value?.auth?.user
       if (userStore) {
