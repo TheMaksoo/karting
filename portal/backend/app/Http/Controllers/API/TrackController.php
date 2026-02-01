@@ -24,22 +24,49 @@ class TrackController extends Controller
     #[OA\Get(
         path: '/tracks',
         summary: 'List all tracks',
-        description: 'Retrieve all tracks with their session counts',
+        description: 'Retrieve all tracks with their session counts. Supports pagination.',
         tags: ['Tracks'],
         security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
+            new OA\Parameter(name: 'per_page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 50, maximum: 100)),
+            new OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'country', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+        ],
         responses: [
-            new OA\Response(response: 200, description: 'List of tracks'),
+            new OA\Response(response: 200, description: 'Paginated list of tracks'),
             new OA\Response(response: 401, description: 'Unauthorized'),
         ]
     )]
-    public function index()
+    public function index(Request $request)
     {
-        // Return all tracks without pagination for dropdown/list usage
-        $tracks = Track::with('kartingSessions')
-            ->withCount('kartingSessions')
-            ->get();
+        $query = Track::with('kartingSessions')
+            ->withCount('kartingSessions');
 
-        return response()->json($tracks);
+        // Search filter
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('country', 'like', "%{$search}%");
+            });
+        }
+
+        // Country filter
+        if ($request->has('country')) {
+            $query->where('country', $request->input('country'));
+        }
+
+        // Pagination
+        $perPage = min($request->input('per_page', 50), 100); // Max 100 items per page
+
+        if ($request->has('page') || $request->has('per_page')) {
+            return response()->json($query->orderBy('name')->paginate($perPage));
+        }
+
+        // Return all if no pagination params (backward compatibility)
+        return response()->json($query->orderBy('name')->get());
     }
 
     /**
