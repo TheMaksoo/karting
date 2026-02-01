@@ -80,7 +80,7 @@ jobs:
       run:
         working-directory: portal/backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
@@ -94,7 +94,7 @@ jobs:
       run:
         working-directory: portal/frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -110,7 +110,7 @@ jobs:
       run:
         working-directory: portal/frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -131,7 +131,7 @@ jobs:
       run:
         working-directory: portal/backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
@@ -161,7 +161,7 @@ jobs:
       run:
         working-directory: portal/frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -183,7 +183,7 @@ jobs:
     name: 🐍 Python Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -221,7 +221,7 @@ jobs:
       run:
         working-directory: portal/frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -246,7 +246,7 @@ jobs:
     needs: [test-backend, test-frontend, test-python]
     if: always() && !cancelled()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - uses: actions/download-artifact@v4
@@ -335,7 +335,7 @@ jobs:
     needs: [quality-gate]
     if: needs.quality-gate.outputs.passed == 'false' && github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
@@ -448,7 +448,7 @@ jobs:
     if: needs.quality-gate.outputs.passed == 'true' && github.ref == 'refs/heads/develop' && github.event_name == 'push'
     environment: production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - uses: actions/download-artifact@v4
         with:
