@@ -1,0 +1,126 @@
+name: Auto Create Pull Request
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  create-pull-request:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract branch info
+        id: branch-info
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          # Extract type (feature/bugfix/hotfix)
+          TYPE=$(echo "$BRANCH_NAME" | cut -d'/' -f1)
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+          
+          # Extract feature name
+          FEATURE=$(echo "$BRANCH_NAME" | cut -d'/' -f2- | sed 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
+          echo "feature=$FEATURE" >> $GITHUB_OUTPUT
+
+      - name: Check if PR already exists
+        id: check-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_EXISTS=$(gh pr list --head "${{ steps.branch-info.outputs.branch_name }}" --base develop --json number --jq 'length')
+          echo "exists=$PR_EXISTS" >> $GITHUB_OUTPUT
+
+      - name: Get commit messages
+        id: commits
+        if: steps.check-pr.outputs.exists == '0'
+        run: |
+          # Get commit messages from this branch (not in develop)
+          COMMITS=$(git log develop..${{ steps.branch-info.outputs.branch_name }} --pretty=format:"- %s" | head -10)
+          
+          # Escape for GitHub Actions
+          COMMITS="${COMMITS//'%'/'%25'}"
+          COMMITS="${COMMITS//$'\n'/'%0A'}"
+          COMMITS="${COMMITS//$'\r'/'%0D'}"
+          
+          echo "messages=$COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check-pr.outputs.exists == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Determine PR title based on type
+          case "${{ steps.branch-info.outputs.type }}" in
+            feature)
+              PREFIX="feat"
+              ;;
+            bugfix)
+              PREFIX="fix"
+              ;;
+            hotfix)
+              PREFIX="hotfix"
+              ;;
+            *)
+              PREFIX="chore"
+              ;;
+          esac
+          
+          TITLE="${PREFIX}: ${{ steps.branch-info.outputs.feature }}"
+          
+          # Create PR body
+          cat << EOF > pr_body.md
+          ## 🚀 Auto-generated Pull Request
+          
+          This PR was automatically created when the branch was pushed.
+          
+          **Branch**: \`${{ steps.branch-info.outputs.branch_name }}\`  
+          **Type**: ${{ steps.branch-info.outputs.type }}
+          
+          ### 📝 Recent Commits
+          ${{ steps.commits.outputs.messages }}
+          
+          ### ✅ Checklist
+          - [ ] Code follows project style guidelines
+          - [ ] Tests added/updated and passing
+          - [ ] Documentation updated if needed
+          - [ ] No breaking changes (or documented)
+          - [ ] Reviewed own code changes
+          
+          ### 🔍 Related Issues
+          Closes #
+          
+          ---
+          
+          **⚠️ Note**: Please update this PR description with detailed information about your changes.
+          EOF
+          
+          gh pr create \
+            --base develop \
+            --head "${{ steps.branch-info.outputs.branch_name }}" \
+            --title "$TITLE" \
+            --body-file pr_body.md \
+            --label "auto-created"
+
+      - name: Add comment to existing PR
+        if: steps.check-pr.outputs.exists != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=$(gh pr list --head "${{ steps.branch-info.outputs.branch_name }}" --base develop --json number --jq '.[0].number')
+          
+          gh pr comment "$PR_NUMBER" --body "🔄 New commits pushed to this branch:
+          ${{ steps.commits.outputs.messages }}"
