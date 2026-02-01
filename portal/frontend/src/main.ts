@@ -65,8 +65,6 @@ const toastOptions: PluginOptions = {
   rtl: false,
 }
 
-const app = createApp(App)
-
 // Global error handler for uncaught Vue errors
 app.config.errorHandler = (err, instance, info) => {
   console.error('[Vue Error]', err)
