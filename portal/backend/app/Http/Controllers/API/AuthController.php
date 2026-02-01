@@ -7,12 +7,33 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
     /**
      * Login user and create token
      */
+    #[OA\Post(
+        path: '/auth/login',
+        summary: 'User login',
+        description: 'Authenticate user and return access token',
+        tags: ['Authentication'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'password'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Login successful'),
+            new OA\Response(response: 422, description: 'Invalid credentials'),
+        ]
+    )]
     public function login(Request $request)
     {
         $request->validate([
@@ -68,6 +89,17 @@ class AuthController extends Controller
     /**
      * Logout user (revoke token)
      */
+    #[OA\Post(
+        path: '/auth/logout',
+        summary: 'User logout',
+        description: 'Revoke the current access token',
+        tags: ['Authentication'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Logged out successfully'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+        ]
+    )]
     public function logout(Request $request)
     {
         $token = $request->user()->currentAccessToken();
@@ -83,6 +115,17 @@ class AuthController extends Controller
     /**
      * Get current authenticated user
      */
+    #[OA\Get(
+        path: '/auth/me',
+        summary: 'Get current user',
+        description: 'Retrieve the currently authenticated user',
+        tags: ['Authentication'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Current user data'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+        ]
+    )]
     public function me(Request $request)
     {
         return response()->json([
@@ -93,6 +136,29 @@ class AuthController extends Controller
     /**
      * Change password
      */
+    #[OA\Post(
+        path: '/auth/change-password',
+        summary: 'Change password',
+        description: 'Change the current user password',
+        tags: ['Authentication'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['current_password', 'new_password', 'new_password_confirmation'],
+                properties: [
+                    new OA\Property(property: 'current_password', type: 'string'),
+                    new OA\Property(property: 'new_password', type: 'string', minLength: 8),
+                    new OA\Property(property: 'new_password_confirmation', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Password changed'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function changePassword(Request $request)
     {
         $request->validate([

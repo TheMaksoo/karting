@@ -7,12 +7,22 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use OpenApi\Attributes as OA;
 
 class HealthController extends Controller
 {
     /**
      * Basic health check endpoint for load balancers and monitoring
      */
+    #[OA\Get(
+        path: '/health',
+        summary: 'Basic health check',
+        description: 'Simple health status for load balancers',
+        tags: ['Health'],
+        responses: [
+            new OA\Response(response: 200, description: 'System is healthy'),
+        ]
+    )]
     public function check(): JsonResponse
     {
         return response()->json([
@@ -24,6 +34,16 @@ class HealthController extends Controller
     /**
      * Detailed health check with system component status
      */
+    #[OA\Get(
+        path: '/health/detailed',
+        summary: 'Detailed health check',
+        description: 'Comprehensive health status with component details',
+        tags: ['Health'],
+        responses: [
+            new OA\Response(response: 200, description: 'System is healthy'),
+            new OA\Response(response: 503, description: 'System is degraded'),
+        ]
+    )]
     public function detailed(): JsonResponse
     {
         $checks = [
@@ -47,6 +67,16 @@ class HealthController extends Controller
     /**
      * Readiness probe for Kubernetes/container orchestration
      */
+    #[OA\Get(
+        path: '/health/ready',
+        summary: 'Readiness probe',
+        description: 'Kubernetes readiness probe endpoint',
+        tags: ['Health'],
+        responses: [
+            new OA\Response(response: 200, description: 'System is ready'),
+            new OA\Response(response: 503, description: 'System is not ready'),
+        ]
+    )]
     public function ready(): JsonResponse
     {
         $dbCheck = $this->checkDatabase();
@@ -67,6 +97,15 @@ class HealthController extends Controller
     /**
      * Liveness probe for Kubernetes/container orchestration
      */
+    #[OA\Get(
+        path: '/health/live',
+        summary: 'Liveness probe',
+        description: 'Kubernetes liveness probe endpoint',
+        tags: ['Health'],
+        responses: [
+            new OA\Response(response: 200, description: 'System is alive'),
+        ]
+    )]
     public function live(): JsonResponse
     {
         return response()->json([

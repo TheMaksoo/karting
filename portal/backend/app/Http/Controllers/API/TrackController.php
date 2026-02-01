@@ -12,11 +12,26 @@ use App\Models\Track;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class TrackController extends Controller
 {
     use AllowedDriversTrait;
 
+    /**
+     * Get all tracks with session counts.
+     */
+    #[OA\Get(
+        path: '/tracks',
+        summary: 'List all tracks',
+        description: 'Retrieve all tracks with their session counts',
+        tags: ['Tracks'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'List of tracks'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+        ]
+    )]
     public function index()
     {
         // Return all tracks without pagination for dropdown/list usage
@@ -27,6 +42,34 @@ class TrackController extends Controller
         return response()->json($tracks);
     }
 
+    /**
+     * Create a new track.
+     */
+    #[OA\Post(
+        path: '/tracks',
+        summary: 'Create a new track',
+        description: 'Create a new karting track',
+        tags: ['Tracks'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'city', 'country', 'distance'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', maxLength: 255),
+                    new OA\Property(property: 'city', type: 'string', maxLength: 255),
+                    new OA\Property(property: 'country', type: 'string', maxLength: 255),
+                    new OA\Property(property: 'distance', type: 'number'),
+                    new OA\Property(property: 'corners', type: 'integer', nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Track created'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function store(StoreTrackRequest $request)
     {
         $validated = $request->validated();
@@ -41,6 +84,24 @@ class TrackController extends Controller
         return response()->json($track, 201);
     }
 
+    /**
+     * Get a specific track by ID.
+     */
+    #[OA\Get(
+        path: '/tracks/{id}',
+        summary: 'Get track details',
+        description: 'Retrieve a track with its sessions and laps',
+        tags: ['Tracks'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Track details'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Track not found'),
+        ]
+    )]
     public function show(string $id)
     {
         $track = Track::with(['kartingSessions.laps'])->findOrFail($id);
@@ -48,6 +109,25 @@ class TrackController extends Controller
         return response()->json($track);
     }
 
+    /**
+     * Update an existing track.
+     */
+    #[OA\Put(
+        path: '/tracks/{id}',
+        summary: 'Update a track',
+        description: 'Update an existing track record',
+        tags: ['Tracks'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Track updated'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Track not found'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function update(UpdateTrackRequest $request, string $id)
     {
         $track = Track::findOrFail($id);
@@ -59,6 +139,24 @@ class TrackController extends Controller
         return response()->json($track);
     }
 
+    /**
+     * Delete a track.
+     */
+    #[OA\Delete(
+        path: '/tracks/{id}',
+        summary: 'Delete a track',
+        description: 'Remove a track from the system',
+        tags: ['Tracks'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Track deleted'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Track not found'),
+        ]
+    )]
     public function destroy(string $id)
     {
         $track = Track::findOrFail($id);
@@ -67,6 +165,20 @@ class TrackController extends Controller
         return response()->json(['message' => 'Track deleted successfully']);
     }
 
+    /**
+     * Get track statistics aggregated by account.
+     */
+    #[OA\Get(
+        path: '/stats/tracks',
+        summary: 'Get track statistics',
+        description: 'Retrieve aggregated statistics for all tracks',
+        tags: ['Stats'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Track statistics'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+        ]
+    )]
     public function stats(Request $request)
     {
         $user = $request->user();

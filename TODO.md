@@ -1,8 +1,8 @@
 # 🏎️ Karting Dashboard - Improvement TODO List
 
-> Last updated: January 30, 2026
+> Last updated: January 31, 2026
 > Status: **87 improvements identified** across 10 categories  
-> **41 completed** ✅ | **46 remaining**
+> **60 completed** ✅ | **27 remaining**
 
 ## Summary
 
@@ -38,7 +38,7 @@
 ## 🟠 High Priority
 
 ### Security
-- [ ] Add input sanitization for HTML/XSS in EML upload controller
+- [x] Add input sanitization for HTML/XSS in EML upload controller ✅ (InputSanitizer service)
 - [ ] Consider moving token storage from localStorage to httpOnly cookies
 
 ### Performance
@@ -56,18 +56,19 @@
 - [ ] Add API versioning (`/api/v1/`) for future compatibility
 
 ### Code Quality
-- [ ] **Split EmlUploadController** (879 lines) into:
+- [x] **Split EmlUploadController** - Created services: ✅
   - `EmlParser` service
-  - `TrackDetector` service  
-  - `LapExtractor` service
+  - `TrackDetectorService`  
+  - `SessionCalculatorService`
+  - `InputSanitizer`
 - [ ] Split `DriverDetailedView.vue` (1521 lines) into smaller components
 - [ ] Split `EmlUploadView.vue` (1335 lines) - extract FileDropzone, BatchProgress
-- [ ] Split `api.ts` (567 lines) by domain (AuthApi, DriversApi, TracksApi)
-- [ ] Move stats logic from controllers to dedicated service classes
+- [x] Split `api.ts` by domain (AuthApi, DriversApi, TracksApi etc.) ✅
+- [x] Move stats logic to service classes (SessionCalculatorService) ✅
 - [ ] Extract TimeConverter utility for shared time parsing logic
 
 ### Documentation
-- [ ] Add OpenAPI/Swagger API documentation using L5-Swagger
+- [x] Add OpenAPI/Swagger API documentation using L5-Swagger ✅
 - [ ] Write project-specific backend README
 - [ ] Add detailed production deployment guide
 
@@ -78,12 +79,12 @@
 ### Security
 - [x] Add HTTPS enforcement in production ✅
 - [x] Add Content-Security-Policy headers via middleware ✅
-- [ ] Add frontend input validation (vuelidate or zod)
+- [x] Add frontend input validation with Zod ✅ (useFormValidation composable)
 
 ### Database
 - [x] Add `deleted_at` column for soft deletes on all main tables ✅
 - [x] Add `last_login_at` and `last_login_ip` to users table ✅
-- [ ] Add `uploaded_from` IP address to uploads table
+- [x] Add `uploaded_from` IP address to uploads table ✅ (migration created)
 - [x] Add SoftDeletes trait to all models ✅
 - [x] Add model scopes: `scopeBestLaps()`, `scopeActive()` ✅
 - [x] Define `$with` property on KartingSession for eager loading ✅
@@ -92,21 +93,21 @@
 - [x] Create `ErrorBoundary.vue` component for Vue error handling ✅
 - [x] Add toast notifications (vue-toastification) for user feedback ✅
 - [x] Add skeleton loaders for all data loading states ✅
-- [ ] Add ARIA labels to all interactive elements
-- [ ] Add "Skip to content" link for accessibility
+- [x] Add ARIA labels to all interactive elements ✅ (AccessibleDropdown)
+- [x] Add "Skip to content" link for accessibility ✅ (SkipLink.vue)
 - [ ] Verify color contrast ratios ≥ 4.5:1
 - [x] Add visible focus indicators to all focusable elements ✅
 - [ ] Ensure all form inputs have associated labels
-- [ ] Add keyboard navigation to modals and dropdowns
+- [x] Add keyboard navigation to modals and dropdowns ✅ (useKeyboardNavigation)
 - [x] Add debounced search to filter inputs ✅
-- [ ] Add optimistic updates to UI before API confirmation
+- [x] Add optimistic updates to UI before API confirmation ✅ (useOptimisticUpdate)
 
 ### Validation
 - [x] Validate `session_type` against enum in KartingSessionController ✅
 - [x] Validate `color` as hex format in DriverController ✅
 - [x] Add min/max bounds to `latitude`, `longitude`, `length` in TrackController ✅
 - [x] Add reasonable bounds (1-600 seconds) to `lap_time` in LapController ✅
-- [ ] Add file content validation beyond MIME type in EmlUploadController
+- [x] Add file content validation beyond MIME type in EmlUploadController ✅
 
 ### Code Quality (Python)
 - [ ] Split `process_karting_sessions.py` (1358 lines) into modules
@@ -118,36 +119,36 @@
 - [ ] Document all custom environment variables
 - [ ] Add PHPDoc/JSDoc to all public methods
 - [ ] Create Architecture Decision Records (ADR)
-- [ ] Add CONTRIBUTING.md
-- [ ] Add CHANGELOG.md
+- [x] Add CONTRIBUTING.md ✅
+- [x] Add CHANGELOG.md ✅
 
 ---
 
 ## 🟢 Nice to Have (Lower Priority)
 
 ### API Features
-- [ ] Add response compression (gzip via nginx or middleware)
+- [x] Add response compression (gzip via middleware) ✅ (CompressResponseMiddleware)
 - [ ] Add pagination to `/api/drivers` and `/api/tracks` for large datasets
 
 ### Frontend
-- [ ] Add dark/light mode toggle
+- [x] Add dark/light mode toggle ✅ (ThemeToggle.vue, useDarkMode)
 - [ ] Add service worker for offline support
 - [ ] Consider infinite scroll for large lists
 - [ ] Remove/merge duplicate StatsView.vue functionality
 
 ### Logging & Monitoring
-- [ ] Add `LogRequestsMiddleware` for request logging
+- [x] Add `LogRequestsMiddleware` for request logging ✅
 - [ ] Log slow queries (>1s)
 - [ ] Integrate Sentry or Bugsnag for error tracking
 - [ ] Remove debug emoji logs from TrophyCaseView
-- [ ] Add audit logging for user CRUD actions
+- [x] Add audit logging for user CRUD actions ✅ (AuditMiddleware)
 
 ### Testing
-- [ ] Add EmlUploadController tests
-- [ ] Add SessionAnalyticsController tests
+- [x] Add EmlUploadController tests ✅
+- [x] Add SessionAnalyticsController tests ✅
 - [ ] Add batch upload edge case tests
-- [ ] Add rate limiting tests (after implementation)
-- [ ] Add caching tests (after implementation)
+- [x] Add rate limiting tests ✅
+- [x] Add caching tests ✅
 - [ ] Add frontend component tests
 - [ ] Add Cypress E2E tests
 - [ ] Expand Python test coverage
@@ -190,6 +191,25 @@
 - [x] Add SkeletonLoader, SkeletonCard, SkeletonTable components
 - [x] Add global Vue error handler in main.ts
 - [x] Fix router guard to check parent route auth meta (security fix)
+- [x] Add OpenAPI/Swagger documentation with L5-Swagger
+- [x] Create InputSanitizer service for XSS protection
+- [x] Create TrackDetectorService for track detection
+- [x] Create SessionCalculatorService for stats calculations
+- [x] Create LogRequestsMiddleware for request logging
+- [x] Create CompressResponseMiddleware for gzip compression
+- [x] Create AuditMiddleware for CRUD action logging
+- [x] Split api.ts into modular domain files (auth, drivers, tracks, etc.)
+- [x] Add useFormValidation composable with Zod
+- [x] Add useDarkMode composable and ThemeToggle component
+- [x] Add useKeyboardNavigation composable
+- [x] Add useOptimisticUpdate composable
+- [x] Add SkipLink.vue accessibility component
+- [x] Add AccessibleDropdown.vue component
+- [x] Add CONTRIBUTING.md documentation
+- [x] Add CHANGELOG.md documentation
+- [x] Add RateLimitingTest.php
+- [x] Add CachingTest.php
+- [x] Add InputSanitizerTest.php and other service tests
 
 ---
 
@@ -204,14 +224,14 @@
 
 ## Quick Wins (< 30 min each)
 
-1. Add `throttle:60,1` middleware to API routes
-2. Add `throttle:5,1` to login route
-3. Add index migration for `laps.lap_time`
-4. Set token expiration in Sanctum config
-5. Add SoftDeletes trait to models
-6. Create basic FormRequest for DriverController
-7. Add ARIA labels to major buttons
-8. Add toast notification package
+1. ~~Add `throttle:60,1` middleware to API routes~~ ✅
+2. ~~Add `throttle:5,1` to login route~~ ✅
+3. ~~Add index migration for `laps.lap_time`~~ ✅
+4. ~~Set token expiration in Sanctum config~~ ✅
+5. ~~Add SoftDeletes trait to models~~ ✅
+6. ~~Create basic FormRequest for DriverController~~ ✅
+7. ~~Add ARIA labels to major buttons~~ ✅
+8. ~~Add toast notification package~~ ✅
 
 ---
 

@@ -1,0 +1,720 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Karting Dashboard API",
+        "description": "API for managing karting sessions, laps, drivers, and tracks",
+        "contact": {
+            "email": "support@karting-dashboard.local"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "API Server"
+        }
+    ],
+    "paths": {
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User login",
+                "description": "Authenticate user and return access token",
+                "operationId": "1ff9c65c5cd1a8e0786e318eed856972",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    },
+                    "422": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User logout",
+                "description": "Revoke the current access token",
+                "operationId": "eae6a8251a6469bbabe454860f64cf37",
+                "responses": {
+                    "200": {
+                        "description": "Logged out successfully"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get current user",
+                "description": "Retrieve the currently authenticated user",
+                "operationId": "257a57ee6760f86fb4b11ff94dba1f38",
+                "responses": {
+                    "200": {
+                        "description": "Current user data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/auth/change-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Change password",
+                "description": "Change the current user password",
+                "operationId": "6e69871a4fd61a5cb4367e704fe43c65",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password",
+                                    "new_password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password": {
+                                        "type": "string",
+                                        "minLength": 8
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password changed"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/drivers": {
+            "get": {
+                "tags": [
+                    "Drivers"
+                ],
+                "summary": "List all drivers",
+                "description": "Retrieve all drivers with their lap and session counts",
+                "operationId": "558703a10247375755a77421384d8e38",
+                "responses": {
+                    "200": {
+                        "description": "List of drivers"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Drivers"
+                ],
+                "summary": "Create a new driver",
+                "description": "Create a new driver record",
+                "operationId": "7f08894e03c5c4d6e18b957b1646c4f8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "nullable": true
+                                    },
+                                    "nickname": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "nullable": true
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "maxLength": 7,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Driver created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/drivers/{id}": {
+            "get": {
+                "tags": [
+                    "Drivers"
+                ],
+                "summary": "Get driver details",
+                "description": "Retrieve a driver with their laps and sessions",
+                "operationId": "a31ab5afdce240854701ebd879eadc37",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Driver details"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Driver not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Drivers"
+                ],
+                "summary": "Update a driver",
+                "description": "Update an existing driver record",
+                "operationId": "f39ca416707da5fd1421fdd820c9d0db",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "nullable": true
+                                    },
+                                    "nickname": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "nullable": true
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "maxLength": 7,
+                                        "nullable": true
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Driver updated"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Driver not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Drivers"
+                ],
+                "summary": "Delete a driver",
+                "description": "Remove a driver from the system",
+                "operationId": "ff52ff62cc419864c51498a2a39672e7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Driver deleted"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Driver not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stats/drivers": {
+            "get": {
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Get driver statistics by account",
+                "description": "Retrieve aggregated statistics for all drivers, grouped by user account",
+                "operationId": "85a8432ff46862dcf910f82308356633",
+                "responses": {
+                    "200": {
+                        "description": "Driver statistics"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/tracks": {
+            "get": {
+                "tags": [
+                    "Tracks"
+                ],
+                "summary": "List all tracks",
+                "description": "Retrieve all tracks with their session counts",
+                "operationId": "1a5aeaa66a942ddf11670313c5e107d2",
+                "responses": {
+                    "200": {
+                        "description": "List of tracks"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tracks"
+                ],
+                "summary": "Create a new track",
+                "description": "Create a new karting track",
+                "operationId": "a5379c7108d5509a31c095a490fec9df",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "city",
+                                    "country",
+                                    "distance"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "country": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "distance": {
+                                        "type": "number"
+                                    },
+                                    "corners": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Track created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/tracks/{id}": {
+            "get": {
+                "tags": [
+                    "Tracks"
+                ],
+                "summary": "Get track details",
+                "description": "Retrieve a track with its sessions and laps",
+                "operationId": "6e64d972925d5378792a7dc01cb1b78a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Track details"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Track not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Tracks"
+                ],
+                "summary": "Update a track",
+                "description": "Update an existing track record",
+                "operationId": "67cbfff9e245d6ba4d1064cc48773063",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Track updated"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Track not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tracks"
+                ],
+                "summary": "Delete a track",
+                "description": "Remove a track from the system",
+                "operationId": "9a46e485a6c166337897dd9e8c0734c1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Track deleted"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Track not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stats/tracks": {
+            "get": {
+                "tags": [
+                    "Stats"
+                ],
+                "summary": "Get track statistics",
+                "description": "Retrieve aggregated statistics for all tracks",
+                "operationId": "eb69ccd7bc09a811eb6d5045f3f57e95",
+                "responses": {
+                    "200": {
+                        "description": "Track statistics"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Basic health check",
+                "description": "Simple health status for load balancers",
+                "operationId": "3df294c08511d852c4f7faffe2cbcb44",
+                "responses": {
+                    "200": {
+                        "description": "System is healthy"
+                    }
+                }
+            }
+        },
+        "/health/detailed": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Detailed health check",
+                "description": "Comprehensive health status with component details",
+                "operationId": "b36b735ad2903eb6838ade9f8a060f2f",
+                "responses": {
+                    "200": {
+                        "description": "System is healthy"
+                    },
+                    "503": {
+                        "description": "System is degraded"
+                    }
+                }
+            }
+        },
+        "/health/ready": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Readiness probe",
+                "description": "Kubernetes readiness probe endpoint",
+                "operationId": "3bb0adae13d9c4ec902545f321a1bc9c",
+                "responses": {
+                    "200": {
+                        "description": "System is ready"
+                    },
+                    "503": {
+                        "description": "System is not ready"
+                    }
+                }
+            }
+        },
+        "/health/live": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Liveness probe",
+                "description": "Kubernetes liveness probe endpoint",
+                "operationId": "bffc21e8abf745bce912cdf7d1e26075",
+                "responses": {
+                    "200": {
+                        "description": "System is alive"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Enter your Sanctum token",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Login, logout, and user authentication"
+        },
+        {
+            "name": "Drivers",
+            "description": "Driver management"
+        },
+        {
+            "name": "Tracks",
+            "description": "Track management"
+        },
+        {
+            "name": "Stats",
+            "description": "Statistics and analytics"
+        },
+        {
+            "name": "Health",
+            "description": "Health check endpoints"
+        }
+    ]
+}

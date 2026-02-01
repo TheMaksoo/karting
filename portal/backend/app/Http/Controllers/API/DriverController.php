@@ -9,11 +9,26 @@ use App\Models\Lap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class DriverController extends Controller
 {
     use AllowedDriversTrait;
 
+    /**
+     * Get all drivers with lap and session counts.
+     */
+    #[OA\Get(
+        path: '/drivers',
+        summary: 'List all drivers',
+        description: 'Retrieve all drivers with their lap and session counts',
+        tags: ['Drivers'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'List of drivers'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+        ]
+    )]
     public function index()
     {
         // Use single efficient query with subquery for session counts
@@ -26,6 +41,33 @@ class DriverController extends Controller
         return response()->json($drivers);
     }
 
+    /**
+     * Create a new driver.
+     */
+    #[OA\Post(
+        path: '/drivers',
+        summary: 'Create a new driver',
+        description: 'Create a new driver record',
+        tags: ['Drivers'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', maxLength: 255),
+                    new OA\Property(property: 'email', type: 'string', format: 'email', nullable: true),
+                    new OA\Property(property: 'nickname', type: 'string', maxLength: 255, nullable: true),
+                    new OA\Property(property: 'color', type: 'string', maxLength: 7, nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Driver created'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -40,6 +82,24 @@ class DriverController extends Controller
         return response()->json($driver, 201);
     }
 
+    /**
+     * Get a specific driver by ID.
+     */
+    #[OA\Get(
+        path: '/drivers/{id}',
+        summary: 'Get driver details',
+        description: 'Retrieve a driver with their laps and sessions',
+        tags: ['Drivers'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Driver details'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Driver not found'),
+        ]
+    )]
     public function show(string $id)
     {
         $driver = Driver::with(['laps.kartingSession.track'])->findOrFail($id);
@@ -47,6 +107,36 @@ class DriverController extends Controller
         return response()->json($driver);
     }
 
+    /**
+     * Update an existing driver.
+     */
+    #[OA\Put(
+        path: '/drivers/{id}',
+        summary: 'Update a driver',
+        description: 'Update an existing driver record',
+        tags: ['Drivers'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', maxLength: 255),
+                    new OA\Property(property: 'email', type: 'string', format: 'email', nullable: true),
+                    new OA\Property(property: 'nickname', type: 'string', maxLength: 255, nullable: true),
+                    new OA\Property(property: 'color', type: 'string', maxLength: 7, nullable: true),
+                    new OA\Property(property: 'is_active', type: 'boolean'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Driver updated'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Driver not found'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function update(Request $request, string $id)
     {
         $driver = Driver::findOrFail($id);
@@ -63,6 +153,24 @@ class DriverController extends Controller
         return response()->json($driver);
     }
 
+    /**
+     * Delete a driver.
+     */
+    #[OA\Delete(
+        path: '/drivers/{id}',
+        summary: 'Delete a driver',
+        description: 'Remove a driver from the system',
+        tags: ['Drivers'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Driver deleted'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+            new OA\Response(response: 404, description: 'Driver not found'),
+        ]
+    )]
     public function destroy(string $id)
     {
         $driver = Driver::findOrFail($id);
@@ -75,6 +183,17 @@ class DriverController extends Controller
      * Get stats aggregated by ACCOUNT (all drivers combined per user)
      * Returns one stat block per account, not per individual driver
      */
+    #[OA\Get(
+        path: '/stats/drivers',
+        summary: 'Get driver statistics by account',
+        description: 'Retrieve aggregated statistics for all drivers, grouped by user account',
+        tags: ['Stats'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Driver statistics'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+        ]
+    )]
     public function stats(Request $request)
     {
         $user = $request->user();
