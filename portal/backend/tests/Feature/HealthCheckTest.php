@@ -132,4 +132,12 @@ describe('Health Check Metrics', function () {
         expect($data['metrics']['laravel_version'])->toBeString();
     });
 
+    test('version matches configured app version', function () {
+        $response = $this->getJson(HEALTH_DETAILED_ENDPOINT);
+
+        $data = $response->json();
+
+        expect($data['version'])->toBe(config('app.version'));
+    });
+
 });

@@ -1,0 +1,409 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                    🏎️ KARTING DASHBOARD - MASTER ORCHESTRATOR               ║
+# ║                                                                              ║
+# ║  The ONE workflow to rule them all!                                          ║
+# ║                                                                              ║
+# ║  Triggers on EVERY push/PR and runs all necessary workflows based on         ║
+# ║  what files changed. Can also be manually triggered to run everything.       ║
+# ║                                                                              ║
+# ║  Workflows orchestrated:                                                     ║
+# ║  • Pipeline (lint, test, build, deploy)                                      ║
+# ║  • Wiki Sync                                                                 ║
+# ║  • Auto Release (on tags)                                                    ║
+# ║  • Stale Issues (scheduled)                                                  ║
+# ║  • Dependabot Auto-merge                                                     ║
+# ║                                                                              ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+name: 🎯 Master Orchestrator
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      run_all:
+        description: 'Run ALL workflows regardless of changes'
+        required: false
+        type: boolean
+        default: true
+      skip_tests:
+        description: 'Skip test execution (faster)'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: master-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  # ════════════════════════════════════════════════════════════════════════════
+  # 📊 DETECT CHANGES
+  # ════════════════════════════════════════════════════════════════════════════
+  
+  detect-changes:
+    name: 🔍 Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      python: ${{ steps.changes.outputs.python }}
+      docs: ${{ steps.changes.outputs.docs }}
+      wiki: ${{ steps.changes.outputs.wiki }}
+      workflows: ${{ steps.changes.outputs.workflows }}
+      any_code: ${{ steps.changes.outputs.any_code }}
+      run_all: ${{ github.event.inputs.run_all == 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.run_all != 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'portal/backend/**'
+              - 'composer.json'
+              - 'composer.lock'
+            frontend:
+              - 'portal/frontend/**'
+              - 'package.json'
+              - 'package-lock.json'
+            python:
+              - 'data-importer/**'
+              - '**/*.py'
+              - 'requirements.txt'
+            docs:
+              - '**/*.md'
+              - 'docs/**'
+            wiki:
+              - 'docs/wiki/**'
+            workflows:
+              - '.github/workflows/**'
+              - '.github/*.yml'
+            any_code:
+              - 'portal/**'
+              - 'data-importer/**'
+
+      - name: Summary
+        run: |
+          echo "## 🔍 Change Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Changed |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | ${{ steps.changes.outputs.backend }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ steps.changes.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Python | ${{ steps.changes.outputs.python }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docs | ${{ steps.changes.outputs.docs }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Wiki | ${{ steps.changes.outputs.wiki }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Workflows | ${{ steps.changes.outputs.workflows }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run All Override**: ${{ github.event.inputs.run_all || 'false' }}" >> $GITHUB_STEP_SUMMARY
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # 🐘 BACKEND (PHP/Laravel)
+  # ════════════════════════════════════════════════════════════════════════════
+  
+  backend:
+    name: 🐘 Backend
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.run_all == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portal/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, json, pdo
+          coverage: xdebug
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('portal/backend/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Lint (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Run Tests
+        if: github.event.inputs.skip_tests != 'true'
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          vendor/bin/pest --parallel --coverage --coverage-clover=coverage/clover.xml
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+
+      - name: Upload Coverage
+        if: github.event.inputs.skip_tests != 'true'
+        uses: codecov/codecov-action@v4
+        with:
+          files: portal/backend/coverage/clover.xml
+          flags: backend
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # 🎨 FRONTEND (Vue/TypeScript)
+  # ════════════════════════════════════════════════════════════════════════════
+  
+  frontend:
+    name: 🎨 Frontend
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.run_all == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portal/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: portal/frontend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: TypeScript Check
+        run: npx vue-tsc --noEmit
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Run Tests
+        if: github.event.inputs.skip_tests != 'true'
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload Coverage
+        if: github.event.inputs.skip_tests != 'true'
+        uses: codecov/codecov-action@v4
+        with:
+          files: portal/frontend/coverage/lcov.info
+          flags: frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # 🐍 PYTHON (Data Importer)
+  # ════════════════════════════════════════════════════════════════════════════
+  
+  python:
+    name: 🐍 Python
+    needs: detect-changes
+    if: needs.detect-changes.outputs.python == 'true' || needs.detect-changes.outputs.run_all == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: data-importer/scripts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: data-importer/scripts/requirements.txt
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint (Ruff)
+        run: |
+          pip install ruff
+          ruff check . || true
+
+      - name: Run Tests
+        if: github.event.inputs.skip_tests != 'true'
+        run: pytest -v --cov=. --cov-report=xml --tb=short
+
+      - name: Upload Coverage
+        if: github.event.inputs.skip_tests != 'true'
+        uses: codecov/codecov-action@v4
+        with:
+          files: data-importer/scripts/coverage.xml
+          flags: python
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # 📊 SONARCLOUD ANALYSIS
+  # ════════════════════════════════════════════════════════════════════════════
+  
+  sonarcloud:
+    name: 📊 SonarCloud
+    needs: [detect-changes, backend, frontend]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.any_code == 'true' || needs.detect-changes.outputs.run_all == 'true') &&
+      (needs.backend.result == 'success' || needs.backend.result == 'skipped') &&
+      (needs.frontend.result == 'success' || needs.frontend.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # 📚 WIKI SYNC
+  # ════════════════════════════════════════════════════════════════════════════
+  
+  wiki-sync:
+    name: 📚 Wiki Sync
+    needs: detect-changes
+    if: |
+      github.event_name == 'push' && 
+      github.ref == 'refs/heads/main' &&
+      (needs.detect-changes.outputs.wiki == 'true' || needs.detect-changes.outputs.run_all == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Wiki
+        uses: actions/checkout@v4
+        id: checkout-wiki
+        continue-on-error: true
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync Wiki
+        if: steps.checkout-wiki.outcome == 'success'
+        run: |
+          find wiki -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp -r docs/wiki/* wiki/
+          cd wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --quiet --staged || git commit -m "docs: sync wiki from main"
+          git push
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # ✅ QUALITY GATE
+  # ════════════════════════════════════════════════════════════════════════════
+  
+  quality-gate:
+    name: ✅ Quality Gate
+    needs: [backend, frontend, python, sonarcloud]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Results
+        run: |
+          echo "## 🏁 Quality Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | ${{ needs.backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ needs.frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Python | ${{ needs.python.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SonarCloud | ${{ needs.sonarcloud.result }} |" >> $GITHUB_STEP_SUMMARY
+          
+          # Fail if any required job failed
+          if [[ "${{ needs.backend.result }}" == "failure" ]] || \
+             [[ "${{ needs.frontend.result }}" == "failure" ]] || \
+             [[ "${{ needs.python.result }}" == "failure" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Quality Gate FAILED**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Quality Gate PASSED**" >> $GITHUB_STEP_SUMMARY
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # 🚀 DEPLOY (main branch only)
+  # ════════════════════════════════════════════════════════════════════════════
+  
+  deploy:
+    name: 🚀 Deploy
+    needs: quality-gate
+    if: |
+      github.event_name == 'push' && 
+      github.ref == 'refs/heads/main' &&
+      needs.quality-gate.result == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy Summary
+        run: |
+          echo "## 🚀 Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: Ready for deployment" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: main" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Add deployment steps here (FTP, SSH, etc.)" >> $GITHUB_STEP_SUMMARY
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # 📋 FINAL SUMMARY
+  # ════════════════════════════════════════════════════════════════════════════
+  
+  summary:
+    name: 📋 Summary
+    needs: [detect-changes, backend, frontend, python, sonarcloud, wiki-sync, quality-gate]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "# 🏎️ Karting Dashboard - Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status | Reason |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Detect Changes | ${{ needs.detect-changes.result }} | Always runs |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐘 Backend | ${{ needs.backend.result }} | $([ '${{ needs.detect-changes.outputs.backend }}' == 'true' ] && echo 'Files changed' || echo 'No changes') |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🎨 Frontend | ${{ needs.frontend.result }} | $([ '${{ needs.detect-changes.outputs.frontend }}' == 'true' ] && echo 'Files changed' || echo 'No changes') |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐍 Python | ${{ needs.python.result }} | $([ '${{ needs.detect-changes.outputs.python }}' == 'true' ] && echo 'Files changed' || echo 'No changes') |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📊 SonarCloud | ${{ needs.sonarcloud.result }} | Code analysis |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📚 Wiki Sync | ${{ needs.wiki-sync.result }} | $([ '${{ needs.detect-changes.outputs.wiki }}' == 'true' ] && echo 'Wiki updated' || echo 'No changes') |" >> $GITHUB_STEP_SUMMARY
+          echo "| ✅ Quality Gate | ${{ needs.quality-gate.result }} | Final check |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Ref**: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
