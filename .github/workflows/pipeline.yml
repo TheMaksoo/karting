@@ -80,7 +80,7 @@ jobs:
       run:
         working-directory: portal/backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
@@ -94,8 +94,8 @@ jobs:
       run:
         working-directory: portal/frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -110,8 +110,8 @@ jobs:
       run:
         working-directory: portal/frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -131,7 +131,7 @@ jobs:
       run:
         working-directory: portal/backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
@@ -146,7 +146,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: portal/backend/coverage/clover.xml
           flags: php
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: backend-coverage
@@ -161,8 +161,8 @@ jobs:
       run:
         working-directory: portal/frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -174,7 +174,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./portal/frontend/coverage/lcov.info
           flags: typescript
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: frontend-coverage
           path: portal/frontend/coverage/lcov.info
@@ -183,8 +183,8 @@ jobs:
     name: 🐍 Python Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install dependencies
@@ -204,7 +204,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: data-importer/scripts/coverage.xml
           flags: python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: python-coverage
           path: data-importer/scripts/coverage.xml
@@ -221,8 +221,8 @@ jobs:
       run:
         working-directory: portal/frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -231,7 +231,7 @@ jobs:
       - run: npm run build
         env:
           VITE_API_BASE_URL: https://solyx.gg/karting/api/public/api
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: frontend-dist
           path: portal/frontend/dist/
@@ -246,20 +246,20 @@ jobs:
     needs: [test-backend, test-frontend, test-python]
     if: always() && !cancelled()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: backend-coverage
           path: portal/backend/coverage/
         continue-on-error: true
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: frontend-coverage
           path: portal/frontend/coverage/
         continue-on-error: true
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: python-coverage
           path: data-importer/scripts/
@@ -335,7 +335,7 @@ jobs:
     needs: [quality-gate]
     if: needs.quality-gate.outputs.passed == 'false' && github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
@@ -448,9 +448,9 @@ jobs:
     if: needs.quality-gate.outputs.passed == 'true' && github.ref == 'refs/heads/develop' && github.event_name == 'push'
     environment: production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: frontend-dist
           path: portal/frontend/dist/
@@ -474,7 +474,7 @@ jobs:
           rm -rf deploy/api/.env deploy/api/.git* deploy/api/tests
 
       - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
