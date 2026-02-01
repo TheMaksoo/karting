@@ -20,6 +20,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Slow Query Logging
+    |--------------------------------------------------------------------------
+    |
+    | Enable logging of slow database queries for performance monitoring.
+    | Queries exceeding the threshold will be logged with details.
+    |
+    */
+
+    'log_slow_queries' => env('DB_LOG_SLOW_QUERIES', false),
+    'slow_query_threshold' => env('DB_SLOW_QUERY_THRESHOLD', 1000), // milliseconds
+
+    /*
+    |--------------------------------------------------------------------------
     | Database Connections
     |--------------------------------------------------------------------------
     |

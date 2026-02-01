@@ -53,9 +53,9 @@ name: 🏎️ Karting Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [develop]
   pull_request:
-    branches: [main, develop]
+    branches: [develop]
   workflow_dispatch:
 
 concurrency:
@@ -438,14 +438,14 @@ jobs:
             }
 
   # ════════════════════════════════════════════════════════════════════════════
-  # 🚀 DEPLOY (ONLY on success + main branch)
+  # 🚀 DEPLOY (ONLY on success + develop branch)
   # ════════════════════════════════════════════════════════════════════════════
   
   deploy:
     name: 🚀 Deploy to Production
     runs-on: ubuntu-latest
     needs: [quality-gate, build-frontend]
-    if: needs.quality-gate.outputs.passed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: needs.quality-gate.outputs.passed == 'true' && github.ref == 'refs/heads/develop' && github.event_name == 'push'
     environment: production
     steps:
       - uses: actions/checkout@v4

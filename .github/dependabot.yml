@@ -1,0 +1,99 @@
+version: 2
+updates:
+  # Backend PHP dependencies
+  - package-ecosystem: "composer"
+    directory: "/portal/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "backend"
+      - "php"
+    reviewers:
+      - "TheMaksoo"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    versioning-strategy: increase-if-necessary
+    groups:
+      laravel:
+        patterns:
+          - "laravel/*"
+          - "illuminate/*"
+      security:
+        dependency-type: "production"
+        update-types:
+          - "patch"
+          - "minor"
+
+  # Frontend JavaScript dependencies
+  - package-ecosystem: "npm"
+    directory: "/portal/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "javascript"
+    reviewers:
+      - "TheMaksoo"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    versioning-strategy: increase-if-necessary
+    groups:
+      vue:
+        patterns:
+          - "vue"
+          - "@vue/*"
+          - "vue-*"
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "happy-dom"
+
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/data-importer/scripts"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+    reviewers:
+      - "TheMaksoo"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+    reviewers:
+      - "TheMaksoo"
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"

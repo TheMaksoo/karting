@@ -70,8 +70,9 @@ class AuthController extends Controller
             'last_login_ip' => $request->ip(),
         ]);
 
-        // Create token
-        $token = $user->createToken('auth-token')->plainTextToken;
+        // For SPA authentication, use session-based auth with cookies
+        // This provides better security than localStorage tokens
+        auth()->guard('web')->login($user);
 
         return response()->json([
             'user' => [
@@ -82,7 +83,7 @@ class AuthController extends Controller
                 'must_change_password' => $user->must_change_password,
                 'last_login_at' => $user->last_login_at,
             ],
-            'token' => $token,
+            'message' => 'Logged in successfully',
         ]);
     }
 
@@ -102,12 +103,11 @@ class AuthController extends Controller
     )]
     public function logout(Request $request)
     {
-        $token = $request->user()->currentAccessToken();
+        // Logout from web guard (session-based)
+        auth()->guard('web')->logout();
 
-        // Only delete if it's a real PersonalAccessToken (not TransientToken from tests)
-        if (method_exists($token, 'delete')) {
-            $token->delete();
-        }
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Logged out successfully']);
     }

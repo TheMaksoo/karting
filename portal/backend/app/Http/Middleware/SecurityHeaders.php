@@ -56,6 +56,12 @@ class SecurityHeaders
             "form-action 'self'",
         ];
 
+        // Add CSP violation reporting in production
+        if (app()->environment('production') && $reportUri = env('CSP_REPORT_URI')) {
+            $policies[] = "report-uri {$reportUri}";
+            $policies[] = 'report-to csp-endpoint';
+        }
+
         return implode('; ', $policies);
     }
 }
