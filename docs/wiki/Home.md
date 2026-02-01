@@ -23,6 +23,7 @@ Welcome to the comprehensive documentation for the Karting Dashboard - a full-st
 - **[Security Best Practices](Security)** - Authentication, authorization, and security guidelines
 - **[Troubleshooting Guide](Troubleshooting)** - Common issues and solutions
 - **[Features & Roadmap](Features-Roadmap)** - Current features and future plans
+- **[Architecture Decisions](Architecture-Decisions)** - ADRs documenting key technical decisions
 
 ## 🎯 What is Karting Dashboard?
 

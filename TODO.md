@@ -1,8 +1,8 @@
 # 🏎️ Karting Dashboard - Improvement TODO List
 
-> Last updated: February 1, 2026
+> Last updated: February 2, 2026
 > Status: **87 improvements identified** across 10 categories  
-> **62 completed** ✅ | **25 remaining**
+> **64 completed** ✅ | **23 remaining**
 
 ## Summary
 
@@ -118,7 +118,7 @@
 ### Documentation
 - [ ] Document all custom environment variables
 - [ ] Add PHPDoc/JSDoc to all public methods
-- [ ] Create Architecture Decision Records (ADR)
+- [x] Create Architecture Decision Records (ADR) ✅ (docs/adr/)
 - [x] Add CONTRIBUTING.md ✅
 - [x] Add CHANGELOG.md ✅
 
@@ -128,7 +128,7 @@
 
 ### API Features
 - [x] Add response compression (gzip via middleware) ✅ (CompressResponseMiddleware)
-- [ ] Add pagination to `/api/drivers` and `/api/tracks` for large datasets
+- [x] Add pagination to `/api/drivers` and `/api/tracks` for large datasets ✅
 
 ### Frontend
 - [x] Add dark/light mode toggle ✅ (ThemeToggle.vue, useDarkMode)
