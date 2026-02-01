@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, type AxiosError } from 'axios'
+import { API_CONFIG, getApiUrl } from '../config/api'
 
 // Types for API responses
 export interface User {
@@ -176,7 +177,8 @@ class ApiService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api',
+      baseURL: API_CONFIG.baseURL,
+      timeout: API_CONFIG.timeout,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -189,9 +191,19 @@ class ApiService {
       this.setAuthToken(this.token)
     }
 
-    // Request interceptor
+    // Request interceptor - adds version prefix to requests
     this.api.interceptors.request.use(
       (config) => {
+        // Add version prefix if enabled and not already present
+        if (API_CONFIG.useVersioning && API_CONFIG.version && config.url) {
+          // Don't add version to health endpoints
+          if (!config.url.startsWith('health/') && !config.url.includes('/health/')) {
+            // Only add version if it's not already in the URL
+            if (!config.url.startsWith(`${API_CONFIG.version}/`)) {
+              config.url = `${API_CONFIG.version}/${config.url}`
+            }
+          }
+        }
         return config
       },
       (error) => {

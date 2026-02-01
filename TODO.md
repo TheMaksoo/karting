@@ -1,8 +1,8 @@
 # 🏎️ Karting Dashboard - Improvement TODO List
 
-> Last updated: January 31, 2026
+> Last updated: February 1, 2026
 > Status: **87 improvements identified** across 10 categories  
-> **60 completed** ✅ | **27 remaining**
+> **61 completed** ✅ | **26 remaining**
 
 ## Summary
 
@@ -53,7 +53,7 @@
 - [x] Add rate limiting middleware to all API routes ✅
 - [x] Add soft deletes to Driver, Track, Session models ✅
 - [x] Create FormRequest classes for all controller validations ✅
-- [ ] Add API versioning (`/api/v1/`) for future compatibility
+- [x] Add API versioning (`/api/v1/`) for future compatibility ✅
 
 ### Code Quality
 - [x] **Split EmlUploadController** - Created services: ✅
