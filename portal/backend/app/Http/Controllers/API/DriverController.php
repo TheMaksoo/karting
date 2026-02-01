@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\AllowedDriversTrait;
 use App\Models\Driver;
 use App\Models\Lap;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,7 @@ class DriverController extends Controller
             new OA\Response(response: 401, description: 'Unauthorized'),
         ]
     )]
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $query = Driver::withCount('laps')
             ->withCount(['laps as sessions_count' => function ($query) {
@@ -95,7 +96,7 @@ class DriverController extends Controller
             new OA\Response(response: 422, description: 'Validation error'),
         ]
     )]
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -127,7 +128,7 @@ class DriverController extends Controller
             new OA\Response(response: 404, description: 'Driver not found'),
         ]
     )]
-    public function show(string $id)
+    public function show(string $id): JsonResponse
     {
         $driver = Driver::with(['laps.kartingSession.track'])->findOrFail($id);
 
@@ -164,7 +165,7 @@ class DriverController extends Controller
             new OA\Response(response: 422, description: 'Validation error'),
         ]
     )]
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id): JsonResponse
     {
         $driver = Driver::findOrFail($id);
         $validated = $request->validate([
@@ -198,7 +199,7 @@ class DriverController extends Controller
             new OA\Response(response: 404, description: 'Driver not found'),
         ]
     )]
-    public function destroy(string $id)
+    public function destroy(string $id): JsonResponse
     {
         $driver = Driver::findOrFail($id);
         $driver->delete();
@@ -221,7 +222,7 @@ class DriverController extends Controller
             new OA\Response(response: 401, description: 'Unauthorized'),
         ]
     )]
-    public function stats(Request $request)
+    public function stats(Request $request): JsonResponse
     {
         $user = $request->user();
 
