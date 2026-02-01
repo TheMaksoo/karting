@@ -1,0 +1,43 @@
+---
+name: ✨ Feature Request
+about: Suggest a new feature or enhancement
+title: '[FEATURE] '
+labels: ['enhancement', 'needs-triage']
+assignees: ''
+---
+
+## ✨ Feature Description
+<!-- A clear and concise description of the feature you'd like. -->
+
+## 💡 Motivation
+<!-- Why is this feature needed? What problem does it solve? -->
+
+## 📋 Proposed Solution
+<!-- How would you like this feature to work? -->
+
+## 🎨 UI/UX Mockups
+<!-- If applicable, add mockups or wireframes. -->
+
+## 🔄 Alternatives Considered
+<!-- What other solutions did you consider? -->
+
+## 📊 Impact
+<!-- Who will benefit from this feature? How many users? -->
+
+## 🧩 Additional Context
+<!-- Add any other context or screenshots about the feature request. -->
+
+## ✅ Acceptance Criteria
+<!-- What needs to be done for this feature to be considered complete? -->
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+
+## 📚 Resources
+<!-- Links to related issues, documentation, or examples. -->
+
+## ✅ Checklist
+- [ ] I have searched for existing feature requests
+- [ ] I have clearly described the problem
+- [ ] I have provided a proposed solution
+- [ ] I have considered alternatives

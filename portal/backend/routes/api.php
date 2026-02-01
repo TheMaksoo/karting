@@ -39,8 +39,8 @@ Route::middleware('throttle:5,1')->group(function () {
     Route::post('/auth/register', [RegistrationController::class, 'register']);
 });
 
-// Protected routes with rate limiting
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+// Protected routes with rate limiting (IP + per-user)
+Route::middleware(['auth:sanctum', 'throttle:60,1', 'per.user.rate.limit:120,1'])->group(function () {
     // Auth
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);

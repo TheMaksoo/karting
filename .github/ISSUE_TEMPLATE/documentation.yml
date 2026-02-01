@@ -1,0 +1,28 @@
+---
+name: 📚 Documentation Issue
+about: Report documentation errors or improvements
+title: '[DOCS] '
+labels: ['documentation', 'needs-triage']
+assignees: ''
+---
+
+## 📚 Documentation Issue
+
+### 📄 Affected Documentation
+<!-- Which file(s) need updates? -->
+- File: [e.g., README.md, SETUP.md, API docs]
+- Section: [e.g., "Installation", "API Endpoints"]
+
+### ❌ Current State
+<!-- What's currently documented (if incorrect)? -->
+
+### ✅ Proposed Change
+<!-- What should it say instead? -->
+
+### 📋 Additional Information
+<!-- Any context, examples, or references that would help. -->
+
+### ✅ Checklist
+- [ ] I have checked the documentation is up-to-date
+- [ ] I have verified the issue exists
+- [ ] I have provided clear correction/improvement
