@@ -836,6 +836,8 @@ def check_duplicate_session(session_data, csv_file, track_name):
     except (FileNotFoundError, ValueError, IndexError):
         # File doesn't exist or has invalid format - not a duplicate
         return False
+    
+    return False
 
 def get_heat_number(session_data, track_name, date, existing_csv_file):
     """Determine heat number based on session data, track, and date
@@ -853,8 +855,8 @@ def get_heat_number(session_data, track_name, date, existing_csv_file):
                         row.get('Heat')):
                         existing_heats.add(int(row['Heat']))
         except (FileNotFoundError, KeyError, ValueError):
-            # If file doesn't exist or has issues, start from heat 1
-            pass
+            # If file doesn't exist or has issues, existing_heats remains empty
+            existing_heats = set()
         
         # Get the next heat number for this day
         if existing_heats:
@@ -881,8 +883,8 @@ def get_heat_number(session_data, track_name, date, existing_csv_file):
                                 # This session already exists, return its heat number
                                 return int(row.get('Heat', 1))
                 except (FileNotFoundError, KeyError, ValueError):
-                    # File doesn't exist or has issues - continue with next heat calculation
-                    next_heat = max(existing_heats) + 1 if existing_heats else 1
+                    # File doesn't exist or has issues - use previously calculated next_heat
+                    print(f"DEBUG: Could not read existing sessions for lot66, using heat {next_heat}")
         
         return next_heat
         

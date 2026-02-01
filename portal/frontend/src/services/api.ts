@@ -227,7 +227,6 @@ class ApiService {
     this.token = token
     this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`
     // Use sessionStorage for better security (cleared on browser close)
-    // lgtm[js/clear-text-storage-of-sensitive-data]
     sessionStorage.setItem('api_token', token)
   }
 
