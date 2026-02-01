@@ -21,7 +21,8 @@ def load_config():
                     secrets = json.load(f)
                     config.update(secrets)  # Load all secrets
             except (json.JSONDecodeError, FileNotFoundError):
-                pass
+                # Secrets file is invalid or doesn't exist - use defaults
+                config['openweather_api_key'] = None
     
     # Set defaults for any missing configuration
     if not config.get('openweather_api_key'):

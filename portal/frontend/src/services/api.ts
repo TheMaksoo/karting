@@ -183,8 +183,8 @@ class ApiService {
       },
     })
 
-    // Load token from localStorage
-    this.token = localStorage.getItem('api_token')
+    // Load token from sessionStorage
+    this.token = sessionStorage.getItem('api_token')
     if (this.token) {
       this.setAuthToken(this.token)
     }
@@ -226,15 +226,14 @@ class ApiService {
   setAuthToken(token: string) {
     this.token = token
     this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    // Store in sessionStorage for better security (cleared on browser close)
-    // Note: localStorage used for persistence across sessions - acceptable for auth tokens
-    localStorage.setItem('api_token', token)
+    // Use sessionStorage for better security (cleared on browser close)
+    sessionStorage.setItem('api_token', token)
   }
 
   clearAuth() {
     this.token = null
     delete this.api.defaults.headers.common['Authorization']
-    localStorage.removeItem('api_token')
+    sessionStorage.removeItem('api_token')
   }
 
   isAuthenticated(): boolean {
