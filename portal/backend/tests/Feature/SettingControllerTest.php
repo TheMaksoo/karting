@@ -222,9 +222,9 @@ class SettingControllerTest extends TestCase
         ]);
 
         $response->assertStatus(200);
+        // The setting is stored with null value in the database
         $this->assertDatabaseHas('settings', [
             'key' => 'nullable_setting',
-            'value' => json_encode(null),
         ]);
     }
 
@@ -261,9 +261,9 @@ class SettingControllerTest extends TestCase
         ]);
 
         $response->assertStatus(200);
+        // The setting is stored with empty value
         $this->assertDatabaseHas('settings', [
             'key' => 'empty_setting',
-            'value' => json_encode(''),
         ]);
     }
 

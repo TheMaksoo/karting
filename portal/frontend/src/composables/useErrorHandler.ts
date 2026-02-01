@@ -54,7 +54,7 @@ export function getErrorMessage(error: unknown): string {
  * Reduces code duplication and fixes 'any' type usage
  */
 export function useErrorHandler() {
-  const { showError } = useNotifications()
+  const notifications = useNotifications()
 
   /**
    * Handle API errors with proper typing
@@ -75,7 +75,7 @@ export function useErrorHandler() {
     const fullMessage = context ? `${context}: ${message}` : message
     
     // Use the notification system instead of console.error
-    showError(fullMessage)
+    notifications.error(fullMessage)
     
     return message
   }

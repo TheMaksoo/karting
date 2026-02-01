@@ -9,11 +9,40 @@ use App\Models\Lap;
 use App\Models\Track;
 use App\Models\Upload;
 use App\Services\EmlParser;
+use App\Services\InputSanitizer;
+use App\Services\SessionCalculatorService;
+use App\Services\TrackDetectorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class EmlUploadController extends Controller
 {
+    private TrackDetectorService $trackDetector;
+
+    private InputSanitizer $sanitizer;
+
+    private SessionCalculatorService $sessionCalculator;
+
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct(
+        TrackDetectorService $trackDetector,
+        InputSanitizer $sanitizer,
+        SessionCalculatorService $sessionCalculator
+    ) {
+        $this->trackDetector = $trackDetector;
+        $this->sanitizer = $sanitizer;
+        $this->sessionCalculator = $sessionCalculator;
+    }
+
+    /**
+     * Parse an uploaded EML file and extract session data.
+     *
+     * @param  Request  $request  The incoming request with the file
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function parseEml(Request $request)
     {
         $request->validate([
@@ -22,10 +51,20 @@ class EmlUploadController extends Controller
         ]);
 
         $file = $request->file('file');
-        $fileName = $file->getClientOriginalName();
+        $fileName = $this->sanitizer->sanitizeFilename($file->getClientOriginalName());
 
         // Read file content
         $content = file_get_contents($file->getRealPath());
+
+        // Validate file content - check for malicious patterns
+        if (! $this->validateFileContent($content)) {
+            return response()->json([
+                'success' => false,
+                'file_name' => $fileName,
+                'errors' => ['File content validation failed - potentially malicious content detected'],
+            ], 400);
+        }
+
         $fileHash = md5($content);
 
         // Check if this exact file was already uploaded
@@ -75,8 +114,18 @@ class EmlUploadController extends Controller
                     ], 400);
                 }
             } else {
-                // Auto-detect track from filename or content
-                $track = $this->detectTrackFromFile($fileName, $content);
+                // Auto-detect track from filename or content using service
+                $track = $this->trackDetector->detectFromFile($fileName, $content);
+
+                if (! $track) {
+                    // Try parsing email content for additional detection
+                    try {
+                        $emailData = $this->parseEmailContent($content);
+                        $track = $this->trackDetector->detectFromEmailData($emailData);
+                    } catch (\Exception $e) {
+                        // Fall through to error handling
+                    }
+                }
 
                 if (! $track) {
                     // Save a small debug snapshot for failed detections to help investigate batch issues
@@ -279,6 +328,13 @@ class EmlUploadController extends Controller
         return null;
     }
 
+    /**
+     * Save a parsed session with laps to the database.
+     *
+     * @param  Request  $request  The request containing session and lap data
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function saveSession(Request $request)
     {
         $request->validate([
@@ -286,18 +342,24 @@ class EmlUploadController extends Controller
             'session_date' => 'required|date',
             'heat' => 'nullable|integer',
             'heat_price' => 'nullable|numeric',
-            'weather' => 'nullable|string',
-            'notes' => 'nullable|string',
+            'weather' => 'nullable|string|max:255',
+            'temperature' => 'nullable|numeric',
+            'notes' => 'nullable|string|max:2000',
             'laps' => 'required|array',
-            'laps.*.driver_name' => 'required|string',
+            'laps.*.driver_name' => 'required|string|max:255',
             'laps.*.lap_number' => 'required|integer',
             'laps.*.lap_time' => 'required|numeric|gt:0',
             'laps.*.position' => 'nullable|integer',
-            'laps.*.kart_number' => 'nullable|string',
+            'laps.*.kart_number' => 'nullable|string|max:50',
             'file_name' => 'nullable|string',
             'file_hash' => 'nullable|string',
             'replace_duplicate' => 'nullable|boolean',
         ]);
+
+        // Sanitize user inputs to prevent XSS
+        $sanitizedWeather = $this->sanitizer->sanitizeText($request->weather);
+        $sanitizedNotes = $this->sanitizer->sanitizeNotes($request->notes);
+        $sanitizedLaps = $this->sanitizer->sanitizeLapData($request->laps);
 
         DB::beginTransaction();
 
@@ -316,26 +378,27 @@ class EmlUploadController extends Controller
                 }
             }
 
-            // Create session
+            // Create session with sanitized data
             $session = KartingSession::create([
                 'track_id' => $request->track_id,
                 'session_date' => $request->session_date,
-                'heat' => $request->heat,
+                'heat' => $request->heat ?? 1,
                 'heat_price' => $request->heat_price ?? 0,
-                'weather' => $request->weather,
-                'notes' => $request->notes,
+                'weather' => $sanitizedWeather,
+                'temperature' => $request->temperature,
+                'notes' => $sanitizedNotes,
                 'session_type' => $request->session_type ?? 'race',
                 'session_number' => $request->session_number,
             ]);
 
-            // Process laps grouped by driver
-            $driverLaps = collect($request->laps)->groupBy('driver_name');
+            // Process sanitized laps grouped by driver
+            $driverLaps = collect($sanitizedLaps)->groupBy('driver_name');
 
             $driversProcessed = [];
             $newDriversCreated = [];
 
             foreach ($driverLaps as $driverName => $laps) {
-                // Find or create driver by name only
+                // Find or create driver by sanitized name
                 $driver = Driver::firstOrCreate(
                     ['name' => $driverName],
                     ['email' => null, 'track_id' => $session->track_id]
@@ -366,8 +429,8 @@ class EmlUploadController extends Controller
                 }
             }
 
-            // Calculate all derived fields (best lap, gaps, speed, cost, etc.)
-            $this->calculateSessionFields($session->id);
+            // Calculate all derived fields using service
+            $this->sessionCalculator->calculateSessionFields($session->id);
 
             // Record upload
             if ($request->file_name && $request->file_hash) {
@@ -665,5 +728,45 @@ class EmlUploadController extends Controller
                 ->where('driver_id', $bestLap->driver_id)
                 ->update(['position' => $index + 1]);
         }
+    }
+
+    /**
+     * Validate file content for potentially malicious patterns.
+     *
+     * @param  string  $content  The file content to validate
+     *
+     * @return bool True if content is safe, false otherwise
+     */
+    private function validateFileContent(string $content): bool
+    {
+        // Check for PHP code injection
+        if (preg_match('/<\?php|<\?=|<\?/i', $content)) {
+            return false;
+        }
+
+        // Check for JavaScript injection in non-HTML contexts
+        if (preg_match('/<script[^>]*>.*<\/script>/is', $content)) {
+            // Allow scripts only in EML/HTML files (they're expected)
+            // But flag if they contain suspicious patterns
+            if (preg_match('/document\.cookie|eval\s*\(|Function\s*\(/i', $content)) {
+                return false;
+            }
+        }
+
+        // Check for null bytes (used in path traversal attacks)
+        if (strpos($content, "\0") !== false) {
+            return false;
+        }
+
+        // Check for excessively long lines (potential DoS)
+        $lines = explode("\n", $content);
+
+        foreach ($lines as $line) {
+            if (strlen($line) > 100000) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
