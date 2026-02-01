@@ -155,8 +155,12 @@ npm run type-check
 
 ### 📚 Documentation
 - 📖 **OpenAPI Docs**: Interactive Swagger UI at `/api/documentation`
-- 📋 **Complete Guides**: Setup, deployment, contributing, security
-- 🎯 **Project Overview**: Full transparency (990 tests, 73 endpoints, 530 functions)
+- 📋 **Setup Guide**: [SETUP.md](SETUP.md) - Complete installation instructions
+- 🚀 **Deployment**: [DEPLOYMENT.md](DEPLOYMENT.md) - Docker, K8s, cloud platforms
+- 🤝 **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md) - Development workflow
+- 🛡️ **Branch Protection**: [BRANCH_PROTECTION.md](BRANCH_PROTECTION.md) - PR workflow
+- 🔒 **Security**: [SECURITY.md](SECURITY.md) - Vulnerability reporting
+- 🎯 **Project Overview**: [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) - Full transparency
 
 ---
 

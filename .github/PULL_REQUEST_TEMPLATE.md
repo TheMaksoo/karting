@@ -1,6 +1,12 @@
 ## 📝 Description
 <!-- Clearly describe what this PR does and why. -->
 
+## 🌿 Branch Strategy
+<!-- This project uses a PR-based workflow with branch protection. -->
+**Base Branch**: `develop` (all PRs should target this branch)  
+**Protected**: Direct pushes to `develop` are blocked - all changes via PR  
+**Deployment**: Merges to `develop` auto-deploy to production after passing all checks
+
 ## 🔗 Related Issues
 <!-- Link to related issues (e.g., Closes #123, Fixes #456) -->
 Closes #
@@ -81,6 +87,12 @@ npm run lint
 - [ ] This PR introduces breaking changes
 - [ ] I have documented migration steps (if breaking)
 - [ ] I have updated version numbers appropriately
+
+### CI/CD Pipeline
+- [ ] All CI/CD checks are passing
+- [ ] No auto-fix commits were needed
+- [ ] SonarCloud quality gate passed
+- [ ] Code coverage is maintained or improved
 
 ## 📋 Additional Notes
 <!-- Any additional information that reviewers should know. -->
