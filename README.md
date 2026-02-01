@@ -29,6 +29,19 @@
 
 ---
 
+## 📚 Documentation
+
+**[📖 View Complete Wiki Documentation](docs/wiki/Home.md)**
+
+Quick Links:
+- **[🚀 Getting Started](docs/wiki/Getting-Started.md)** - Installation and setup guide
+- **[🏗️ Architecture Overview](docs/wiki/Architecture.md)** - System design and tech stack
+- **[📡 API Reference](docs/wiki/API-Reference.md)** - Complete API documentation
+- **[🎨 Frontend Guide](docs/wiki/Frontend-Guide.md)** - Vue 3 development guide
+- **[🔧 Backend Guide](docs/wiki/Backend-Guide.md)** - Laravel development guide
+- **[🔒 Security Guide](docs/wiki/Security.md)** - Security best practices
+- **[🐛 Troubleshooting](docs/wiki/Troubleshooting.md)** - Common issues and solutions
+
 ## 🚀 Quick Start
 
 ```bash
