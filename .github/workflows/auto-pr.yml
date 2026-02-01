@@ -1,0 +1,165 @@
+name: Auto Create Pull Request
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  create-pull-request:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract branch info
+        id: branch-info
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          # Extract type (feature/bugfix/hotfix)
+          TYPE=$(echo "$BRANCH_NAME" | cut -d'/' -f1)
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+          
+          # Extract feature name
+          FEATURE=$(echo "$BRANCH_NAME" | cut -d'/' -f2- | sed 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
+          echo "feature=$FEATURE" >> $GITHUB_OUTPUT
+
+      - name: Check if PR already exists
+        id: check-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_EXISTS=$(gh pr list --head "${{ steps.branch-info.outputs.branch_name }}" --base develop --json number --jq 'length')
+          echo "exists=$PR_EXISTS" >> $GITHUB_OUTPUT
+
+      - name: Get commit messages
+        id: commits
+        if: steps.check-pr.outputs.exists == '0'
+        run: |
+          # Get commit messages from this branch (not in develop)
+          COMMITS=$(git log develop..${{ steps.branch-info.outputs.branch_name }} --pretty=format:"- %s" | head -10)
+          
+          # Escape for GitHub Actions
+          COMMITS="${COMMITS//'%'/'%25'}"
+          COMMITS="${COMMITS//$'\n'/'%0A'}"
+          COMMITS="${COMMITS//$'\r'/'%0D'}"
+          
+          echo "messages=$COMMITS" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check-pr.outputs.exists == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Determine PR title based on type
+          case "${{ steps.branch-info.outputs.type }}" in
+            feature)
+              PREFIX="feat"
+              ;;
+            bugfix)
+              PREFIX="fix"
+              ;;
+            hotfix)
+              PREFIX="hotfix"
+              ;;
+            *)
+              PREFIX="chore"
+              ;;
+          esac
+          
+          TITLE="${PREFIX}: ${{ steps.branch-info.outputs.feature }}"
+          
+          # Create PR body
+          cat << EOF > pr_body.md
+          ## 🚀 Auto-generated Pull Request
+          
+          This PR was automatically created when the branch was pushed.
+          
+          **Branch**: \`${{ steps.branch-info.outputs.branch_name }}\`  
+          **Type**: ${{ steps.branch-info.outputs.type }}
+          
+          ### 📝 Recent Commits
+          ${{ steps.commits.outputs.messages }}
+          
+          ### ✅ Checklist
+          - [ ] Code follows project style guidelines
+          - [ ] Tests added/updated and passing
+          - [ ] Documentation updated if needed
+          - [ ] No breaking changes (or documented)
+          - [ ] Reviewed own code changes
+          
+          ### 🔍 Related Issues
+          Closes #
+          
+          ---
+          
+          **⚠️ Note**: Please update this PR description with detailed information about your changes.
+          EOF
+          
+          # Create the PR
+          gh pr create \
+            --base develop \
+            --head "${{ steps.branch-info.outputs.branch_name }}" \
+            --title "$TITLE" \
+            --body-file pr_body.md
+          
+          # Add labels based on branch type (non-fatal if labels don't exist)
+          case "${{ steps.branch-info.outputs.type }}" in
+            feature)
+              gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-label "enhancement" 2>/dev/null || true
+              gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-label "feature" 2>/dev/null || true
+              ;;
+            bugfix)
+              gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-label "bug" 2>/dev/null || true
+              gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-label "fix" 2>/dev/null || true
+              ;;
+            hotfix)
+              gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-label "hotfix" 2>/dev/null || true
+              gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-label "priority: high" 2>/dev/null || true
+              ;;
+          esac
+          
+          # Add auto-created label
+          gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-label "auto-created" 2>/dev/null || true
+          
+          # Assign to project if PROJECT_NUMBER is set (configure in repo settings)
+          if [ -n "${{ vars.PROJECT_NUMBER }}" ]; then
+            gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-project "${{ vars.PROJECT_NUMBER }}" 2>/dev/null || echo "⚠️ Could not add to project"
+          fi
+          
+          # Set milestone if MILESTONE is set (configure in repo settings or detect from branch)
+          if [ -n "${{ vars.DEFAULT_MILESTONE }}" ]; then
+            gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --milestone "${{ vars.DEFAULT_MILESTONE }}" 2>/dev/null || echo "⚠️ Could not set milestone"
+          fi
+          
+          # Auto-assign reviewers if configured (comma-separated list in repo variables)
+          if [ -n "${{ vars.DEFAULT_REVIEWERS }}" ]; then
+            IFS=',' read -ra REVIEWERS <<< "${{ vars.DEFAULT_REVIEWERS }}"
+            for reviewer in "${REVIEWERS[@]}"; do
+              gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-reviewer "$reviewer" 2>/dev/null || true
+            done
+          fi
+          
+          echo "✅ PR created successfully with labels and metadata"
+
+      - name: Add comment to existing PR
+        if: steps.check-pr.outputs.exists != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=$(gh pr list --head "${{ steps.branch-info.outputs.branch_name }}" --base develop --json number --jq '.[0].number')
+          
+          gh pr comment "$PR_NUMBER" --body "🔄 New commits pushed to this branch:
+          ${{ steps.commits.outputs.messages }}"

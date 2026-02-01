@@ -631,4 +631,91 @@ class TrackControllerTest extends TestCase
                 'corners' => 14,
             ]);
     }
+
+    public function test_index_pagination_with_page_param(): void
+    {
+        Track::factory()->count(60)->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks?page=1&per_page=20');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data',
+                'current_page',
+                'per_page',
+                'total',
+            ])
+            ->assertJsonCount(20, 'data')
+            ->assertJson(['per_page' => 20]);
+    }
+
+    public function test_index_pagination_respects_max_per_page(): void
+    {
+        Track::factory()->count(150)->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks?per_page=200');
+
+        $response->assertStatus(200);
+        $data = $response->json();
+        $this->assertLessThanOrEqual(100, count($data['data']));
+    }
+
+    public function test_index_search_by_name(): void
+    {
+        Track::factory()->create(['name' => 'Circuit Park Berghem']);
+        Track::factory()->create(['name' => 'Goodwill Karting']);
+        Track::factory()->create(['name' => 'De Voltage']);
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks?search=Berghem');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['name' => 'Circuit Park Berghem']);
+    }
+
+    public function test_index_search_by_city(): void
+    {
+        Track::factory()->create(['name' => 'Track 1', 'city' => 'Amsterdam']);
+        Track::factory()->create(['name' => 'Track 2', 'city' => 'Rotterdam']);
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks?search=Amsterdam');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['city' => 'Amsterdam']);
+    }
+
+    public function test_index_search_by_country(): void
+    {
+        Track::factory()->create(['name' => 'Track 1', 'country' => 'Netherlands']);
+        Track::factory()->create(['name' => 'Track 2', 'country' => 'Belgium']);
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks?search=Belgium');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['country' => 'Belgium']);
+    }
+
+    public function test_index_country_filter(): void
+    {
+        Track::factory()->count(3)->create(['country' => 'Netherlands']);
+        Track::factory()->count(2)->create(['country' => 'Belgium']);
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks?country=Netherlands');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(3);
+    }
+
+    public function test_index_backward_compatible_without_pagination(): void
+    {
+        Track::factory()->count(5)->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/tracks');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(5)
+            ->assertJsonMissing(['current_page']); // No pagination structure
+    }
 }

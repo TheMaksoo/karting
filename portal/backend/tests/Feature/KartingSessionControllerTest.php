@@ -607,4 +607,113 @@ class KartingSessionControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(5, 'data');
     }
+
+    public function test_stats_returns_session_statistics(): void
+    {
+        $this->markTestIncomplete('stats() method implementation pending in separate branch');
+        
+        $session = $this->createSessionWithLaps(5);
+        $laps = $session->laps;
+
+        // Update lap times for predictable stats
+        $laps[0]->update(['lap_time' => 45.123]); // fastest
+        $laps[1]->update(['lap_time' => 46.456]);
+        $laps[2]->update(['lap_time' => 47.789]);
+        $laps[3]->update(['lap_time' => 48.234]);
+        $laps[4]->update(['lap_time' => 49.567]); // slowest
+
+        $response = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}/stats");
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'session',
+                'total_laps',
+                'drivers' => [
+                    '*' => [
+                        'driver',
+                        'total_laps',
+                        'fastest_lap',
+                        'slowest_lap',
+                        'average_lap_time',
+                        'median_lap_time',
+                        'consistency',
+                    ],
+                ],
+                'fastest_lap' => [
+                    'lap_time',
+                    'driver',
+                    'lap_number',
+                ],
+                'average_lap_time',
+                'lap_time_distribution' => [
+                    'fast',
+                    'medium',
+                    'slow',
+                ],
+            ])
+            ->assertJson([
+                'total_laps' => 5,
+                'fastest_lap' => [
+                    'lap_time' => 45.123,
+                ],
+            ]);
+    }
+
+    public function test_stats_with_empty_session(): void
+    {
+        $this->markTestIncomplete('stats() method implementation pending in separate branch');
+        
+        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
+
+        $response = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}/stats");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'total_laps' => 0,
+                'drivers' => [],
+                'fastest_lap' => null,
+                'average_lap_time' => null,
+            ]);
+    }
+
+    public function test_stats_caches_results(): void
+    {
+        $this->markTestIncomplete('stats() method implementation pending in separate branch');
+        
+        $session = $this->createSessionWithLaps(3);
+
+        // First request - not cached
+        $response1 = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}/stats");
+        $response1->assertStatus(200);
+
+        // Add more laps (should not appear due to cache)
+        Lap::factory()->create([
+            'karting_session_id' => $session->id,
+            'driver_id' => $session->laps->first()->driver_id,
+        ]);
+
+        // Second request - should return cached result
+        $response2 = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}/stats");
+        $response2->assertStatus(200)
+            ->assertJson(['total_laps' => 3]); // Still 3, not 4
+
+        // Clear cache
+        \Illuminate\Support\Facades\Cache::forget("session_stats_{$session->id}");
+
+        // Third request - should reflect new lap
+        $response3 = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}/stats");
+        $response3->assertStatus(200)
+            ->assertJson(['total_laps' => 4]); // Now 4
+    }
+
+    public function test_stats_requires_authentication(): void
+    {
+        $this->markTestIncomplete('stats() method implementation pending in separate branch');
+        
+        $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
+
+        $response = $this->getJson("/api/sessions/{$session->id}/stats");
+
+        $response->assertStatus(401);
+    }
 }

@@ -564,4 +564,92 @@ class DriverControllerTest extends TestCase
             'nickname' => 'NewNick',
         ]);
     }
+
+    public function test_index_pagination_with_page_param(): void
+    {
+        Driver::factory()->count(60)->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers?page=1&per_page=20');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data',
+                'current_page',
+                'per_page',
+                'total',
+            ])
+            ->assertJsonCount(20, 'data')
+            ->assertJson(['per_page' => 20]);
+    }
+
+    public function test_index_pagination_respects_max_per_page(): void
+    {
+        Driver::factory()->count(150)->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers?per_page=200');
+
+        $response->assertStatus(200);
+        $data = $response->json();
+        $this->assertLessThanOrEqual(100, count($data['data']));
+    }
+
+    public function test_index_search_by_name(): void
+    {
+        Driver::factory()->create(['name' => 'Max Verstappen']);
+        Driver::factory()->create(['name' => 'Lewis Hamilton']);
+        Driver::factory()->create(['name' => 'Charles Leclerc']);
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers?search=Max');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['name' => 'Max Verstappen']);
+    }
+
+    public function test_index_search_by_nickname(): void
+    {
+        Driver::factory()->create(['name' => 'Max Verstappen', 'nickname' => 'Mad Max']);
+        Driver::factory()->create(['name' => 'Lewis Hamilton', 'nickname' => 'Sir Lewis']);
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers?search=Sir');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['nickname' => 'Sir Lewis']);
+    }
+
+    public function test_index_search_by_email(): void
+    {
+        Driver::factory()->create(['name' => 'Test Driver', 'email' => 'max@redbull.com']);
+        Driver::factory()->create(['name' => 'Other Driver', 'email' => 'lewis@mercedes.com']);
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers?search=redbull');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['email' => 'max@redbull.com']);
+    }
+
+    public function test_index_active_only_filter(): void
+    {
+        Driver::factory()->create(['name' => 'Active Driver', 'is_active' => true]);
+        Driver::factory()->create(['name' => 'Inactive Driver', 'is_active' => false]);
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers?active_only=true');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['name' => 'Active Driver']);
+    }
+
+    public function test_index_backward_compatible_without_pagination(): void
+    {
+        Driver::factory()->count(5)->create();
+
+        $response = $this->actingAs($this->user)->getJson('/api/drivers');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(5)
+            ->assertJsonMissing(['current_page']); // No pagination structure
+    }
 }
