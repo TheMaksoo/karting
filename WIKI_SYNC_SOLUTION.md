@@ -22,16 +22,19 @@ Implemented an automated synchronization system that copies documentation from t
 
 **Process**:
 1. Checks out main repository
-2. Checks out wiki repository (separate `.wiki` Git repo)
-3. Removes old wiki content (preserving `.git` directory)
-4. Copies all files from `docs/wiki/` to wiki repository
-5. Commits and pushes changes to wiki
+2. Attempts to check out wiki repository (separate `.wiki` Git repo)
+3. **If wiki doesn't exist**: Automatically initializes it with a temporary page
+4. Removes old wiki content (preserving `.git` directory)
+5. Copies all files from `docs/wiki/` to wiki repository
+6. Commits and pushes changes to wiki
 
 **Features**:
+- **Automatic wiki initialization**: Creates wiki if it doesn't exist
 - Only commits if changes detected
 - Uses GitHub Actions bot for commits
 - Includes [skip ci] to avoid recursive triggers
-- Provides summary output
+- Provides summary output with helpful links
+- Graceful error handling
 
 ### 2. Documentation Files
 
@@ -82,9 +85,11 @@ Implemented an automated synchronization system that copies documentation from t
 ### For Administrators
 
 **First-Time Setup**:
-1. Enable wiki in repository settings (Settings → Features → Wikis)
+1. ~~Enable wiki in repository settings (Settings → Features → Wikis)~~ **No longer required!**
 2. Push a change to `docs/wiki/` or manually trigger workflow
 3. Wiki will be automatically created and populated
+
+**Note**: As of February 2026, the workflow now automatically initializes the wiki repository if it doesn't exist. You no longer need to manually enable the wiki feature first - just run the workflow and it will handle everything.
 
 **Manual Sync**:
 1. Go to Actions tab
@@ -147,17 +152,27 @@ permissions:
 
 ### Wiki Still Empty
 
-1. Verify wiki enabled in settings
-2. Check workflow run succeeded
-3. Ensure permissions are correct
-4. Try manual trigger
+1. ~~Verify wiki enabled in settings~~ (No longer required - auto-initialized)
+2. Check workflow run succeeded in Actions tab
+3. Ensure GitHub Actions has write permissions
+4. Try manual trigger: Actions → Sync Wiki → Run workflow
+5. Check workflow logs for any error messages
 
-### Workflow Fails
+### Workflow Fails with "Repository not found"
 
-1. Check GitHub Actions permissions
-2. Verify wiki is enabled
-3. Review workflow logs
-4. See `docs/WIKI_SETUP.md` troubleshooting section
+**This issue has been fixed!** As of February 2026, the workflow automatically creates the wiki repository if it doesn't exist. If you still see this error:
+
+1. Ensure the workflow file is up to date
+2. Check that `permissions: contents: write` is set in the workflow
+3. Verify your GitHub token has appropriate permissions
+4. Try manually triggering the workflow again
+
+### Workflow Fails for Other Reasons
+
+1. Check GitHub Actions permissions in repository settings
+2. Review workflow logs in Actions tab
+3. Verify the `docs/wiki/` directory exists and contains `.md` files
+4. See `docs/WIKI_SETUP.md` for detailed troubleshooting
 
 ### Changes Not Appearing
 
@@ -165,6 +180,7 @@ permissions:
 2. Check workflow triggered (Actions tab)
 3. Ensure changes in `docs/wiki/` directory
 4. Wait a few minutes for sync to complete
+5. Clear browser cache if viewing wiki
 
 ## File Structure
 

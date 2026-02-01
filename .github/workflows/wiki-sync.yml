@@ -39,11 +39,44 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout wiki repository
+        id: checkout-wiki
+        continue-on-error: true
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}.wiki
           path: wiki
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize wiki if it doesn't exist
+        if: steps.checkout-wiki.outcome == 'failure'
+        run: |
+          echo "⚠️  Wiki repository not found. Initializing..."
+          
+          # Create wiki directory
+          mkdir -p wiki
+          cd wiki
+          
+          # Initialize git repository
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create initial wiki page to enable wiki
+          echo "# Wiki Initialization" > Home.md
+          echo "" >> Home.md
+          echo "This wiki is being initialized automatically." >> Home.md
+          echo "" >> Home.md
+          echo "The wiki will be populated shortly from the repository's \`docs/wiki/\` directory." >> Home.md
+          
+          # Add remote and push to create wiki
+          git add Home.md
+          git commit -m "Initialize wiki repository [skip ci]"
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git
+          # GitHub wiki repositories use 'master' branch by convention, not 'main'
+          git branch -M master
+          git push -u origin master
+          
+          echo "✅ Wiki repository initialized successfully"
 
       - name: Sync wiki files
         run: |
@@ -75,3 +108,11 @@ jobs:
         run: |
           echo "✅ Wiki synchronization completed successfully"
           echo "📚 Wiki files have been synced to GitHub Wiki"
+          echo ""
+          echo "View your wiki at: https://github.com/${{ github.repository }}/wiki"
+          echo ""
+          if [ "${{ steps.checkout-wiki.outcome }}" == "failure" ]; then
+            echo "ℹ️  Wiki was initialized for the first time"
+          else
+            echo "ℹ️  Wiki was updated with latest changes"
+          fi

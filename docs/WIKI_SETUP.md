@@ -45,22 +45,34 @@ graph LR
 
 ### Prerequisites
 
-1. Repository must have wiki enabled in Settings
+1. ~~Repository must have wiki enabled in Settings~~ **No longer required!** (Auto-initialized as of Feb 2026)
 2. GitHub Actions must have write permissions
 3. `docs/wiki/` directory must exist with markdown files
 
-### Enable GitHub Wiki
+### ~~Enable GitHub Wiki~~ (DEPRECATED - No Longer Required)
+
+**Update (February 2026)**: The workflow now automatically initializes the wiki repository if it doesn't exist. You can skip this section!
+
+<details>
+<summary>Old manual setup instructions (kept for reference)</summary>
 
 1. Navigate to repository Settings
 2. Scroll to Features section
 3. Enable "Wikis" checkbox
 4. Save changes
 
+</details>
+
 ### First-Time Sync
 
-The wiki will be automatically populated when:
+The wiki will be automatically created and populated when:
 1. A change is pushed to `docs/wiki/**` on main branch, OR
 2. The "Sync Wiki" workflow is manually triggered
+
+**What happens automatically**:
+- If wiki doesn't exist, the workflow creates and initializes it
+- All content from `docs/wiki/` is synced to the wiki
+- You can immediately view the wiki at `https://github.com/YOUR_ORG/YOUR_REPO/wiki`
 
 ## 🔄 How Synchronization Works
 
@@ -173,28 +185,38 @@ After sync to wiki, GitHub renders these as:
 
 ## 🐛 Troubleshooting
 
+### Issue: Wiki Repository Not Found (FIXED!)
+
+**Error Message**: `fatal: repository 'https://github.com/.../karting.wiki/' not found`
+
+**Status**: ✅ **This issue has been fixed as of February 2026!**
+
+The workflow now automatically creates and initializes the wiki repository if it doesn't exist. You no longer need to manually enable the wiki feature.
+
+**If you still see this error**:
+1. Ensure you're using the latest version of `.github/workflows/wiki-sync.yml`
+2. Check that the workflow has `permissions: contents: write`
+3. Try manually triggering the workflow again
+
 ### Issue: Wiki Still Empty After Sync
 
-**Check 1: Is wiki enabled?**
-```bash
-# Navigate to: Settings → Features → Wikis
-# Ensure "Wikis" is checked
-```
+~~**Check 1: Is wiki enabled?**~~ (No longer required - auto-initialized)
 
-**Check 2: Did workflow run?**
+**Check 1: Did workflow run successfully?**
 ```bash
 # Navigate to: Actions → Sync Wiki
 # Check for successful runs
+# Look for "✅ Wiki repository initialized successfully" if first run
 # Look for errors in logs
 ```
 
-**Check 3: Are there changes to sync?**
+**Check 2: Are there changes to sync?**
 ```bash
 # Ensure files exist in docs/wiki/
 ls -la docs/wiki/
 ```
 
-**Check 4: Permissions**
+**Check 3: Permissions**
 ```yaml
 # Verify .github/workflows/wiki-sync.yml has:
 permissions:
