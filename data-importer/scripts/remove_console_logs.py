@@ -8,10 +8,6 @@ def remove_console_logs(file_path):
     
     original_lines = content.count('\n')
     
-    # Pattern to match console.log/warn/error/info statements
-    # Handles both single-line and multi-line
-    pattern = r'^\s*console\.(log|warn|error|info)\([^;]*\);?\s*$'
-    
     # Split into lines
     lines = content.split('\n')
     filtered_lines = []

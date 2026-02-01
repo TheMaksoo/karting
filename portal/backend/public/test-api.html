@@ -97,7 +97,8 @@
     </div>
 
     <script>
-        let token = localStorage.getItem('api_token') || '';
+        // Use sessionStorage for test tokens (cleared on browser close)
+        let token = sessionStorage.getItem('test_api_token') || '';
 
         async function testLogin() {
             const email = document.getElementById('email').value;
@@ -297,7 +298,7 @@
         // Check if we already have a token
         if (token) {
             document.getElementById('login-result').innerHTML = 
-                `<p class="success">✓ Token found in localStorage</p>`;
+                `<p class="success">✓ Token found in sessionStorage</p>`;
         }
     </script>
 </body>

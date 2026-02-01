@@ -26,7 +26,6 @@ import re
 import csv
 from datetime import datetime
 import requests
-from bs4 import BeautifulSoup
 from config import CONFIG, get_heat_price
 
 # Load configuration from config file
@@ -78,6 +77,10 @@ def convert_time_to_seconds(time_str):
                 minutes = int(parts[0])
                 seconds = float(parts[1])
                 return minutes * 60 + seconds
+            else:
+                # Unexpected format with multiple colons
+                print(f"Warning: Unexpected time format '{time_str}'")
+                return None
         else:
             # Already in seconds format
             return float(time_str)
@@ -522,7 +525,8 @@ def extract_session_data(file_path, track_name):
                                 'daily_rank': pos
                             }
                         except (ValueError, IndexError):
-                            pass
+                            # Skip lines with invalid format
+                            continue
                         break
         
         # Method 2: Goodwill Karting format (Apex Timing client area)
@@ -565,7 +569,8 @@ def extract_session_data(file_path, track_name):
                                     lap_time = float(parts[1])
                                     session_laps.append(lap_time)
                                 except ValueError:
-                                    pass
+                                    # Skip lines with invalid lap time format
+                                    continue
                     
                     if session_laps:
                         best_time = min(session_laps)
@@ -693,7 +698,8 @@ def extract_session_data(file_path, track_name):
                                     driver_data['lap_gaps'].append(gap)
                                     print(f"DEBUG: Added lap {lap_num} time {lap_time}s gap {gap}s for {driver_name}")
                                 except (ValueError, IndexError):
-                                    pass
+                                    # Skip lines with invalid format
+                                    continue
                     
                     print(f"DEBUG: Found {len(driver_data['laps'])} laps with gaps for {driver_name}")
                     break  # Only process one driver's detailed data per session
@@ -828,9 +834,8 @@ def check_duplicate_session(session_data, csv_file, track_name):
                             return True
                             
     except (FileNotFoundError, ValueError, IndexError):
-        pass
-    
-    return False
+        # File doesn't exist or has invalid format - not a duplicate
+        return False
 
 def get_heat_number(session_data, track_name, date, existing_csv_file):
     """Determine heat number based on session data, track, and date
@@ -876,7 +881,8 @@ def get_heat_number(session_data, track_name, date, existing_csv_file):
                                 # This session already exists, return its heat number
                                 return int(row.get('Heat', 1))
                 except (FileNotFoundError, KeyError, ValueError):
-                    pass
+                    # File doesn't exist or has issues - continue with next heat calculation
+                    next_heat = max(existing_heats) + 1 if existing_heats else 1
         
         return next_heat
         
@@ -925,16 +931,22 @@ def get_weather_data(track_name, date_str, time_str, session_data=None):
                 try:
                     # For historical weather, we'll use a simpler approach
                     # Current weather API call (historical data requires paid plan)
-                    # Note: API key is passed as parameter, not logged
-                    url = f"http://api.openweathermap.org/data/2.5/weather?q={city},{country}&appid={api_key}&units=metric"
-                    response = requests.get(url, timeout=10, headers={'User-Agent': 'KartingApp/1.0'})
+                    # Use params instead of URL string to avoid exposing API key in logs
+                    base_url = "http://api.openweathermap.org/data/2.5/weather"
+                    params = {
+                        'q': f"{city},{country}",
+                        'appid': api_key,
+                        'units': 'metric'
+                    }
+                    response = requests.get(base_url, params=params, timeout=10, headers={'User-Agent': 'KartingApp/1.0'})
                     
                     if response.status_code == 200:
                         weather_data = response.json()
                         weather_desc = weather_data['weather'][0]['description']
                         temp = weather_data['main']['temp']
                         
-                        print(f"Weather for {city} (API): {weather_desc} ({temp}°C)")
+                        # Log weather result without exposing API key
+                        print(f"Weather for {city}: {weather_desc} ({temp}°C)")
                         
                         # Map weather conditions to our categories
                         if 'rain' in weather_desc.lower() or 'drizzle' in weather_desc.lower():
@@ -950,12 +962,14 @@ def get_weather_data(track_name, date_str, time_str, session_data=None):
                         else:
                             return weather_desc.title()
                     else:
-                        print(f"Weather API error: {response.status_code}")
+                        print(f"Weather API error: HTTP {response.status_code}")
                         
-                except requests.RequestException as e:
-                    print(f"Weather API request failed: {e}")
-                except Exception as e:
-                    print(f"Weather API error: {e}")
+                except requests.RequestException:
+                    # Don't log exception details as they may contain sensitive URL params
+                    print(f"Weather API request failed for {city}")
+                except Exception:
+                    # Don't log exception details to avoid potential sensitive data exposure
+                    print(f"Weather API error for {city}")
         
         # Fallback to seasonal weather if API fails or no API key
         try:
@@ -1307,7 +1321,6 @@ def apply_pricing_to_csv():
         for idx, row in df.iterrows():
             track = row['Track']
             date = row['Date']
-            heat = row['Heat']
             driver = row['Driver']
             
             # Get number of heats on this day at this track

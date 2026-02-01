@@ -1,6 +1,5 @@
 """Tests for the config module."""
 
-import pytest
 import json
 import tempfile
 import os
