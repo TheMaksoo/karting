@@ -1,8 +1,8 @@
 # 🏎️ Karting Dashboard - Improvement TODO List
 
-> Last updated: January 31, 2026
+> Last updated: February 1, 2026
 > Status: **87 improvements identified** across 10 categories  
-> **60 completed** ✅ | **27 remaining**
+> **62 completed** ✅ | **25 remaining**
 
 ## Summary
 
@@ -39,7 +39,7 @@
 
 ### Security
 - [x] Add input sanitization for HTML/XSS in EML upload controller ✅ (InputSanitizer service)
-- [ ] Consider moving token storage from localStorage to httpOnly cookies
+- [x] Consider moving token storage from localStorage to httpOnly cookies ✅ (ENTERPRISE_UPGRADES)
 
 ### Performance
 - [x] Add index on `karting_sessions.session_type` ✅
@@ -47,13 +47,13 @@
 - [x] Add index on `drivers.is_active` ✅
 - [x] Fix N+1 queries in `DriverController@stats` ✅
 - [x] Fix N+1 queries in `TrackController@stats` ✅
-- [ ] Implement response caching on `/api/sessions/{id}/stats`
+- [x] Implement response caching on `/api/sessions/{id}/stats` ✅
 
 ### API Features
 - [x] Add rate limiting middleware to all API routes ✅
 - [x] Add soft deletes to Driver, Track, Session models ✅
 - [x] Create FormRequest classes for all controller validations ✅
-- [ ] Add API versioning (`/api/v1/`) for future compatibility
+- [x] Add API versioning (`/api/v1/`) for future compatibility ✅ (ENTERPRISE_UPGRADES)
 
 ### Code Quality
 - [x] **Split EmlUploadController** - Created services: ✅

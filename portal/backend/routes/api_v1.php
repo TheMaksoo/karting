@@ -50,6 +50,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1', 'per.user.rate.limit:120,1']
     // Sessions
     Route::apiResource('sessions', KartingSessionController::class);
     Route::get('/sessions/{session}/laps', [KartingSessionController::class, 'laps']);
+    Route::get('/sessions/{session}/stats', [KartingSessionController::class, 'stats']);
     Route::post('/sessions/upload-eml', [EmlUploadController::class, 'parseEml']);
     Route::post('/sessions/save-parsed', [EmlUploadController::class, 'saveParsedSession']);
 

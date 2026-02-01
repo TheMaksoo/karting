@@ -5,9 +5,15 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\KartingSession;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class KartingSessionController extends Controller
 {
+    /**
+     * Cache TTL for session stats (5 minutes)
+     */
+    private const CACHE_TTL = 300;
+
     public function index(Request $request)
     {
         $query = KartingSession::with(['track', 'laps.driver']);
@@ -103,5 +109,127 @@ class KartingSessionController extends Controller
         $laps = $session->laps()->with('driver')->orderBy('lap_number')->get();
 
         return response()->json($laps);
+    }
+
+    /**
+     * Get comprehensive statistics for a specific session
+     * Cached for 5 minutes to improve performance
+     */
+    public function stats(string $id)
+    {
+        $cacheKey = "session_stats_{$id}";
+
+        $stats = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($id) {
+            $session = KartingSession::with(['track', 'laps.driver'])->findOrFail($id);
+
+            $laps = $session->laps;
+
+            if ($laps->isEmpty()) {
+                return [
+                    'session' => $session,
+                    'total_laps' => 0,
+                    'drivers' => [],
+                    'fastest_lap' => null,
+                    'average_lap_time' => null,
+                ];
+            }
+
+            // Calculate overall stats
+            $totalLaps = $laps->count();
+            $fastestLap = $laps->sortBy('lap_time')->first();
+            $avgLapTime = $laps->avg('lap_time');
+
+            // Calculate per-driver stats
+            $driverStats = $laps->groupBy('driver_id')->map(function ($driverLaps, $driverId) {
+                $driver = $driverLaps->first()->driver;
+                $lapTimes = $driverLaps->pluck('lap_time');
+
+                return [
+                    'driver' => $driver,
+                    'total_laps' => $driverLaps->count(),
+                    'fastest_lap' => $lapTimes->min(),
+                    'slowest_lap' => $lapTimes->max(),
+                    'average_lap_time' => $lapTimes->avg(),
+                    'median_lap_time' => $this->calculateMedian($lapTimes->toArray()),
+                    'consistency' => $lapTimes->count() > 1 ? $this->calculateStdDev($lapTimes->toArray()) : 0,
+                ];
+            })->values();
+
+            return [
+                'session' => $session,
+                'total_laps' => $totalLaps,
+                'drivers' => $driverStats,
+                'fastest_lap' => [
+                    'lap_time' => $fastestLap->lap_time,
+                    'driver' => $fastestLap->driver,
+                    'lap_number' => $fastestLap->lap_number,
+                ],
+                'average_lap_time' => round($avgLapTime, 3),
+                'lap_time_distribution' => $this->calculateLapTimeDistribution($laps),
+            ];
+        });
+
+        return response()->json($stats);
+    }
+
+    /**
+     * Calculate median of array
+     */
+    private function calculateMedian(array $values): float
+    {
+        if (empty($values)) {
+            return 0;
+        }
+
+        sort($values);
+        $count = count($values);
+        $middle = floor($count / 2);
+
+        if ($count % 2 === 0) {
+            return ($values[$middle - 1] + $values[$middle]) / 2;
+        }
+
+        return $values[$middle];
+    }
+
+    /**
+     * Calculate standard deviation (consistency metric)
+     */
+    private function calculateStdDev(array $values): float
+    {
+        if (count($values) < 2) {
+            return 0;
+        }
+
+        $mean = array_sum($values) / count($values);
+        $variance = array_reduce($values, function ($carry, $value) use ($mean) {
+            return $carry + pow($value - $mean, 2);
+        }, 0) / count($values);
+
+        return round(sqrt($variance), 3);
+    }
+
+    /**
+     * Calculate lap time distribution (fast/medium/slow buckets)
+     */
+    private function calculateLapTimeDistribution($laps): array
+    {
+        $lapTimes = $laps->pluck('lap_time');
+        $min = $lapTimes->min();
+        $max = $lapTimes->max();
+        $range = $max - $min;
+
+        if ($range == 0) {
+            return ['fast' => $laps->count(), 'medium' => 0, 'slow' => 0];
+        }
+
+        $fastThreshold = $min + ($range * 0.33);
+        $mediumThreshold = $min + ($range * 0.67);
+
+        return [
+            'fast' => $laps->filter(fn ($lap) => $lap->lap_time <= $fastThreshold)->count(),
+            'medium' => $laps->filter(fn ($lap) => $lap->lap_time > $fastThreshold && $lap->lap_time <= $mediumThreshold)->count(),
+            'slow' => $laps->filter(fn ($lap) => $lap->lap_time > $mediumThreshold)->count(),
+        ];
     }
 }
