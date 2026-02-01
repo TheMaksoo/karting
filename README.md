@@ -7,13 +7,53 @@
 
 ## 📊 Project Status
 
-[![CI/CD Pipeline](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml)
+### 🔧 Core CI/CD
+[![🏎️ Karting Pipeline](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml)
+[![🎯 Master Orchestrator](https://github.com/TheMaksoo/karting/actions/workflows/master.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/master.yml)
+[![Auto Release](https://github.com/TheMaksoo/karting/actions/workflows/release.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/release.yml)
+
+### 🤖 Automation Workflows
+[![🤖 Auto-Fix CI Failures](https://github.com/TheMaksoo/karting/actions/workflows/auto-fix.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/auto-fix.yml)
+[![Auto Create Pull Request](https://github.com/TheMaksoo/karting/actions/workflows/auto-pr.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/auto-pr.yml)
+[![Auto Merge Dependabot](https://github.com/TheMaksoo/karting/actions/workflows/auto-merge-dependabot.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/auto-merge-dependabot.yml)
+[![Auto Label PRs](https://github.com/TheMaksoo/karting/actions/workflows/labeler.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/labeler.yml)
+[![Sync Wiki](https://github.com/TheMaksoo/karting/actions/workflows/wiki-sync.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/wiki-sync.yml)
+
+### 👥 Community & Maintenance
+[![Welcome New Contributors](https://github.com/TheMaksoo/karting/actions/workflows/welcome.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/welcome.yml)
+[![Stale Issue Manager](https://github.com/TheMaksoo/karting/actions/workflows/stale.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/stale.yml)
+
+### 📈 Coverage & Quality
 [![codecov](https://codecov.io/gh/TheMaksoo/karting/branch/main/graph/badge.svg)](https://codecov.io/gh/TheMaksoo/karting)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
+### 💻 Tech Stack
 [![PHP Version](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://www.php.net/)
 [![Node Version](https://img.shields.io/badge/Node-20+-green.svg)](https://nodejs.org/)
 [![Laravel](https://img.shields.io/badge/Laravel-11-red.svg)](https://laravel.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3-brightgreen.svg)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6.svg)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.x-38bdf8.svg)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-6.x-646cff.svg)](https://vitejs.dev/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479a1.svg)](https://www.mysql.com/)
+
+### 📊 GitHub Repository Stats
+[![GitHub Stars](https://img.shields.io/github/stars/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting/network/members)
+[![GitHub Watchers](https://img.shields.io/github/watchers/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting/watchers)
+[![GitHub Issues](https://img.shields.io/github/issues/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting/pulls)
+[![GitHub Last Commit](https://img.shields.io/github/last-commit/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting/commits/main)
+[![GitHub Contributors](https://img.shields.io/github/contributors/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting/graphs/contributors)
+[![GitHub Repo Size](https://img.shields.io/github/repo-size/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting)
+[![GitHub Language Count](https://img.shields.io/github/languages/count/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting)
+[![GitHub Top Language](https://img.shields.io/github/languages/top/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting)
+
+### 🔒 Security & Community
+[![Security Policy](https://img.shields.io/badge/Security-Policy-blue.svg)](SECURITY.md)
+[![Contributing](https://img.shields.io/badge/Contributing-Guide-green.svg)](CONTRIBUTING.md)
+[![GitHub Discussions](https://img.shields.io/github/discussions/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting/discussions)
 
 ### 🏆 SonarCloud Quality Metrics
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
@@ -26,6 +66,7 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 
 ---
 
