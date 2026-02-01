@@ -1,3 +1,21 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                      🏎️ KARTING DASHBOARD - WIKI SYNC                       ║
+# ║                                                                              ║
+# ║  Automatically synchronizes documentation from docs/wiki/ to GitHub Wiki    ║
+# ║                                                                              ║
+# ║  Triggers:                                                                   ║
+# ║  • Push to main branch (docs/wiki/** changes)                               ║
+# ║  • Manual workflow dispatch                                                 ║
+# ║                                                                              ║
+# ║  Process:                                                                    ║
+# ║  1. Checkout main repository                                                ║
+# ║  2. Checkout wiki repository (*.wiki)                                       ║
+# ║  3. Sync all files from docs/wiki/ to wiki repo                             ║
+# ║  4. Commit and push changes                                                 ║
+# ║                                                                              ║
+# ║  See: docs/WIKI_SETUP.md for detailed documentation                         ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
 name: Sync Wiki
 
 on:
@@ -31,20 +49,20 @@ jobs:
         run: |
           # Remove all existing files in wiki (except .git)
           find wiki -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
-          
+
           # Copy all files from docs/wiki to wiki repository
           cp -r docs/wiki/* wiki/
-          
+
           # Navigate to wiki directory
           cd wiki
-          
+
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Add all changes
           git add .
-          
+
           # Commit and push if there are changes
           if git diff --staged --quiet; then
             echo "No changes to commit"
