@@ -112,8 +112,10 @@ jobs:
             --base develop \
             --head "${{ steps.branch-info.outputs.branch_name }}" \
             --title "$TITLE" \
-            --body-file pr_body.md \
-            --label "auto-created"
+            --body-file pr_body.md
+          
+          # Try to add label (non-fatal if label doesn't exist)
+          gh pr edit "${{ steps.branch-info.outputs.branch_name }}" --add-label "auto-created" || echo "⚠️ Label 'auto-created' not found, skipping label addition"
 
       - name: Add comment to existing PR
         if: steps.check-pr.outputs.exists != '0'
