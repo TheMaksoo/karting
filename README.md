@@ -18,13 +18,26 @@ Full-stack karting lap time tracking and analytics platform with automated EML p
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 
+## 📚 Documentation
+
+**[📖 View Complete Wiki Documentation](docs/wiki/Home.md)**
+
+Quick Links:
+- **[🚀 Getting Started](docs/wiki/Getting-Started.md)** - Installation and setup guide
+- **[🏗️ Architecture Overview](docs/wiki/Architecture.md)** - System design and tech stack
+- **[📡 API Reference](docs/wiki/API-Reference.md)** - Complete API documentation
+- **[🎨 Frontend Guide](docs/wiki/Frontend-Guide.md)** - Vue 3 development guide
+- **[🔧 Backend Guide](docs/wiki/Backend-Guide.md)** - Laravel development guide
+- **[🔒 Security Guide](docs/wiki/Security.md)** - Security best practices
+- **[🐛 Troubleshooting](docs/wiki/Troubleshooting.md)** - Common issues and solutions
+
 ## 🚀 Quick Start
 
 1. Clone the repository
 2. Configure [GitHub Secrets](SETUP.md) for deployment
 3. Push to deploy automatically
 
-See [SETUP.md](SETUP.md) for detailed setup instructions.
+See [Getting Started Guide](docs/wiki/Getting-Started.md) for detailed setup instructions.
 
 ## 🛠 Local Development
 
