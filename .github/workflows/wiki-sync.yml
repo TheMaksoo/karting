@@ -1,0 +1,77 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                      🏎️ KARTING DASHBOARD - WIKI SYNC                       ║
+# ║                                                                              ║
+# ║  Automatically synchronizes documentation from docs/wiki/ to GitHub Wiki    ║
+# ║                                                                              ║
+# ║  Triggers:                                                                   ║
+# ║  • Push to main branch (docs/wiki/** changes)                               ║
+# ║  • Manual workflow dispatch                                                 ║
+# ║                                                                              ║
+# ║  Process:                                                                    ║
+# ║  1. Checkout main repository                                                ║
+# ║  2. Checkout wiki repository (*.wiki)                                       ║
+# ║  3. Sync all files from docs/wiki/ to wiki repo                             ║
+# ║  4. Commit and push changes                                                 ║
+# ║                                                                              ║
+# ║  See: docs/WIKI_SETUP.md for detailed documentation                         ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+name: Sync Wiki
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/wiki/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout wiki repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync wiki files
+        run: |
+          # Remove all existing files in wiki (except .git)
+          find wiki -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+
+          # Copy all files from docs/wiki to wiki repository
+          cp -r docs/wiki/* wiki/
+
+          # Navigate to wiki directory
+          cd wiki
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add all changes
+          git add .
+
+          # Commit and push if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Sync wiki from docs/wiki directory [skip ci]"
+            git push origin master
+          fi
+
+      - name: Summary
+        run: |
+          echo "✅ Wiki synchronization completed successfully"
+          echo "📚 Wiki files have been synced to GitHub Wiki"

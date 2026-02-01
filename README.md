@@ -31,7 +31,9 @@
 
 ## 📚 Documentation
 
-**[📖 View Complete Wiki Documentation](docs/wiki/Home.md)**
+**[📖 View Complete Wiki Documentation](docs/wiki/Home.md)** | **[🌐 GitHub Wiki](https://github.com/TheMaksoo/karting/wiki)**
+
+> 💡 Wiki is automatically synced from `docs/wiki/` - see [Wiki Setup Guide](docs/WIKI_SETUP.md)
 
 Quick Links:
 - **[🚀 Getting Started](docs/wiki/Getting-Started.md)** - Installation and setup guide
@@ -168,6 +170,8 @@ npm run type-check
 
 ### 📚 Documentation
 - 📖 **OpenAPI Docs**: Interactive Swagger UI at `/api/documentation`
+- 📚 **Wiki**: [GitHub Wiki](https://github.com/TheMaksoo/karting/wiki) - Comprehensive documentation (auto-synced from `docs/wiki/`)
+- 🔄 **Wiki Setup**: [WIKI_SETUP.md](docs/WIKI_SETUP.md) - How wiki synchronization works
 - 📋 **Setup Guide**: [SETUP.md](SETUP.md) - Complete installation instructions
 - 🚀 **Deployment**: [DEPLOYMENT.md](DEPLOYMENT.md) - Docker, K8s, cloud platforms
 - 🤝 **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md) - Development workflow
