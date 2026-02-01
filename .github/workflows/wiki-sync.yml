@@ -47,38 +47,29 @@ jobs:
           path: wiki
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Initialize wiki if it doesn't exist
+      - name: Check if wiki exists
+        id: check-wiki
         if: steps.checkout-wiki.outcome == 'failure'
         run: |
-          echo "⚠️  Wiki repository not found. Initializing..."
-          
-          # Create wiki directory
-          mkdir -p wiki
-          cd wiki
-          
-          # Initialize git repository
-          git init
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Create initial wiki page to enable wiki
-          echo "# Wiki Initialization" > Home.md
-          echo "" >> Home.md
-          echo "This wiki is being initialized automatically." >> Home.md
-          echo "" >> Home.md
-          echo "The wiki will be populated shortly from the repository's \`docs/wiki/\` directory." >> Home.md
-          
-          # Add remote and push to create wiki
-          git add Home.md
-          git commit -m "Initialize wiki repository [skip ci]"
-          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git
-          # GitHub wiki repositories use 'master' branch by convention, not 'main'
-          git branch -M master
-          git push -u origin master
-          
-          echo "✅ Wiki repository initialized successfully"
+          echo "⚠️  Wiki repository not found."
+          echo "Please enable the wiki on GitHub first:"
+          echo "1. Go to https://github.com/${{ github.repository }}/settings"
+          echo "2. Scroll to 'Features' section"
+          echo "3. Check the 'Wikis' checkbox"
+          echo "4. Visit https://github.com/${{ github.repository }}/wiki"
+          echo "5. Create the first wiki page (it will create Home page automatically)"
+          echo ""
+          echo "After the wiki is enabled, this workflow will sync automatically."
+          echo "wiki_enabled=false" >> $GITHUB_OUTPUT
+
+      - name: Skip sync if wiki doesn't exist
+        if: steps.checkout-wiki.outcome == 'failure'
+        run: |
+          echo "⏭️  Skipping wiki sync - wiki not enabled yet"
+          exit 0
 
       - name: Sync wiki files
+        if: steps.checkout-wiki.outcome == 'success'
         run: |
           # Remove all existing files in wiki (except .git)
           find wiki -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
@@ -105,14 +96,9 @@ jobs:
           fi
 
       - name: Summary
+        if: steps.checkout-wiki.outcome == 'success'
         run: |
           echo "✅ Wiki synchronization completed successfully"
           echo "📚 Wiki files have been synced to GitHub Wiki"
           echo ""
           echo "View your wiki at: https://github.com/${{ github.repository }}/wiki"
-          echo ""
-          if [ "${{ steps.checkout-wiki.outcome }}" == "failure" ]; then
-            echo "ℹ️  Wiki was initialized for the first time"
-          else
-            echo "ℹ️  Wiki was updated with latest changes"
-          fi
