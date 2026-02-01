@@ -72,6 +72,7 @@ jobs:
           git add Home.md
           git commit -m "Initialize wiki repository [skip ci]"
           git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git
+          # GitHub wiki repositories use 'master' branch by convention, not 'main'
           git branch -M master
           git push -u origin master
           
