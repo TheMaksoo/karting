@@ -1336,7 +1336,7 @@ GET /activity/latest
 
 - **Swagger Documentation**: Available at `/api/documentation` when running locally
 - **Postman Collection**: Contact maintainers for collection file
-- **API Client**: See [Frontend Guide](Frontend-Guide.md#api-client) for TypeScript API client
+- **API Client**: See [Frontend Guide](Frontend-Guide#api-client) for TypeScript API client
 
 ---
 

@@ -5,24 +5,24 @@ Welcome to the comprehensive documentation for the Karting Dashboard - a full-st
 ## 📚 Table of Contents
 
 ### Getting Started
-- **[Getting Started Guide](Getting-Started.md)** - Installation, prerequisites, and quick start
-- **[Architecture Overview](Architecture.md)** - System design, tech stack, and project structure
+- **[Getting Started Guide](Getting-Started)** - Installation, prerequisites, and quick start
+- **[Architecture Overview](Architecture)** - System design, tech stack, and project structure
 
 ### Development Guides
-- **[Frontend Guide](Frontend-Guide.md)** - Vue 3, TypeScript, components, and state management
-- **[Backend Guide](Backend-Guide.md)** - Laravel API, controllers, services, and models
-- **[Database Schema](Database-Schema.md)** - Complete database structure and relationships
-- **[API Reference](API-Reference.md)** - Complete API endpoint documentation
+- **[Frontend Guide](Frontend-Guide)** - Vue 3, TypeScript, components, and state management
+- **[Backend Guide](Backend-Guide)** - Laravel API, controllers, services, and models
+- **[Database Schema](Database-Schema)** - Complete database structure and relationships
+- **[API Reference](API-Reference)** - Complete API endpoint documentation
 
 ### Workflows & Processes
-- **[Development Workflow](Development-Workflow.md)** - Testing, linting, code quality, and CI/CD
-- **[Deployment Guide](Deployment-Guide.md)** - Production deployment and configuration
-- **[Contributing Guidelines](Contributing.md)** - How to contribute to the project
+- **[Development Workflow](Development-Workflow)** - Testing, linting, code quality, and CI/CD
+- **[Deployment Guide](Deployment-Guide)** - Production deployment and configuration
+- **[Contributing Guidelines](Contributing)** - How to contribute to the project
 
 ### Reference & Troubleshooting
-- **[Security Best Practices](Security.md)** - Authentication, authorization, and security guidelines
-- **[Troubleshooting Guide](Troubleshooting.md)** - Common issues and solutions
-- **[Features & Roadmap](Features-Roadmap.md)** - Current features and future plans
+- **[Security Best Practices](Security)** - Authentication, authorization, and security guidelines
+- **[Troubleshooting Guide](Troubleshooting)** - Common issues and solutions
+- **[Features & Roadmap](Features-Roadmap)** - Current features and future plans
 
 ## 🎯 What is Karting Dashboard?
 
@@ -39,19 +39,19 @@ Karting Dashboard is a comprehensive platform for tracking and analyzing go-kart
 ## 🚀 Quick Links
 
 ### For Users
-- [How to upload session data](Getting-Started.md#uploading-session-data)
-- [Understanding your statistics](Frontend-Guide.md#statistics-views)
-- [Managing your drivers](Frontend-Guide.md#driver-management)
+- [How to upload session data](Getting-Started#uploading-session-data)
+- [Understanding your statistics](Frontend-Guide#statistics-views)
+- [Managing your drivers](Frontend-Guide#driver-management)
 
 ### For Developers
-- [Setting up development environment](Getting-Started.md#development-setup)
-- [Running tests](Development-Workflow.md#testing)
-- [Making your first contribution](Contributing.md)
+- [Setting up development environment](Getting-Started#development-setup)
+- [Running tests](Development-Workflow#testing)
+- [Making your first contribution](Contributing)
 
 ### For Administrators
-- [Deployment instructions](Deployment-Guide.md)
-- [Security configuration](Security.md)
-- [Monitoring and health checks](Backend-Guide.md#health-monitoring)
+- [Deployment instructions](Deployment-Guide)
+- [Security configuration](Security)
+- [Monitoring and health checks](Backend-Guide#health-monitoring)
 
 ## 📊 Project Statistics
 
@@ -75,10 +75,10 @@ Karting Dashboard is a comprehensive platform for tracking and analyzing go-kart
 
 ## 📖 Additional Resources
 
-- [README.md](../../README.md) - Project overview and quick start
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Contributing guidelines
-- [TODO.md](../../TODO.md) - Development roadmap and improvements
-- [CHANGELOG.md](../../CHANGELOG.md) - Version history and changes
+- [README.md](https://github.com/TheMaksoo/karting/blob/main/README.md) - Project overview and quick start
+- [CONTRIBUTING.md](https://github.com/TheMaksoo/karting/blob/main/CONTRIBUTING.md) - Contributing guidelines
+- [TODO.md](https://github.com/TheMaksoo/karting/blob/main/TODO.md) - Development roadmap and improvements
+- [CHANGELOG.md](https://github.com/TheMaksoo/karting/blob/main/CHANGELOG.md) - Version history and changes
 
 ---
 

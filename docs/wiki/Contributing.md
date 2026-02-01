@@ -4,7 +4,7 @@ This page links to the main contributing guidelines.
 
 For complete contributing guidelines, please see:
 
-**[📄 CONTRIBUTING.md](../../CONTRIBUTING.md)**
+**[📄 CONTRIBUTING.md](https://github.com/TheMaksoo/karting/blob/main/CONTRIBUTING.md)**
 
 ## Quick Links
 
@@ -16,11 +16,11 @@ For complete contributing guidelines, please see:
 5. Submit a pull request
 
 ### Development Guidelines
-- [Getting Started](Getting-Started.md) - Setup development environment
-- [Development Workflow](Development-Workflow.md) - Testing and code quality
-- [Architecture](Architecture.md) - Understand the system design
-- [Frontend Guide](Frontend-Guide.md) - Frontend development
-- [Backend Guide](Backend-Guide.md) - Backend development
+- [Getting Started](Getting-Started) - Setup development environment
+- [Development Workflow](Development-Workflow) - Testing and code quality
+- [Architecture](Architecture) - Understand the system design
+- [Frontend Guide](Frontend-Guide) - Frontend development
+- [Backend Guide](Backend-Guide) - Backend development
 
 ### Code Standards
 - **Backend**: Laravel Pint (PSR-12)
@@ -36,7 +36,7 @@ For complete contributing guidelines, please see:
 
 - [GitHub Issues](https://github.com/TheMaksoo/karting/issues)
 - [Pull Requests](https://github.com/TheMaksoo/karting/pulls)
-- [Full Contributing Guide](../../CONTRIBUTING.md)
+- [Full Contributing Guide](https://github.com/TheMaksoo/karting/blob/main/CONTRIBUTING.md)
 
 ---
 

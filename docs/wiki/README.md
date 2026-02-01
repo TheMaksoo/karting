@@ -78,9 +78,9 @@ The wiki sync workflow will automatically create the wiki repository on first ru
 
 ## 📖 Related Documentation
 
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) - How to contribute to the project
-- [README.md](../../README.md) - Project overview and quick start
-- [PROJECT_OVERVIEW.md](../../PROJECT_OVERVIEW.md) - Comprehensive project documentation
+- [CONTRIBUTING.md](https://github.com/TheMaksoo/karting/blob/main/CONTRIBUTING.md) - How to contribute to the project
+- [README.md](https://github.com/TheMaksoo/karting/blob/main/README.md) - Project overview and quick start
+- [PROJECT_OVERVIEW.md](https://github.com/TheMaksoo/karting/blob/main/PROJECT_OVERVIEW.md) - Comprehensive project documentation
 
 ## 🤝 Contributing to Documentation
 
@@ -93,4 +93,4 @@ The wiki sync workflow will automatically create the wiki repository on first ru
 
 ---
 
-*For more information, see the [Wiki Sync Workflow](../../.github/workflows/wiki-sync.yml)*
+*For more information, see the [Wiki Sync Workflow](https://github.com/TheMaksoo/karting/blob/main/.github/workflows/wiki-sync.yml)*

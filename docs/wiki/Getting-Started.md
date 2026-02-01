@@ -282,17 +282,17 @@ chmod -R 775 storage bootstrap/cache
 chown -R $USER:www-data storage bootstrap/cache
 ```
 
-See [Troubleshooting Guide](Troubleshooting.md) for more solutions.
+See [Troubleshooting Guide](Troubleshooting) for more solutions.
 
 ## 📚 Next Steps
 
 Now that you have the application running:
 
-1. **Explore the code**: Read the [Architecture Overview](Architecture.md)
-2. **Understand the frontend**: Check the [Frontend Guide](Frontend-Guide.md)
-3. **Learn the backend**: Review the [Backend Guide](Backend-Guide.md)
-4. **Make changes**: Follow the [Development Workflow](Development-Workflow.md)
-5. **Contribute**: Read the [Contributing Guidelines](Contributing.md)
+1. **Explore the code**: Read the [Architecture Overview](Architecture)
+2. **Understand the frontend**: Check the [Frontend Guide](Frontend-Guide)
+3. **Learn the backend**: Review the [Backend Guide](Backend-Guide)
+4. **Make changes**: Follow the [Development Workflow](Development-Workflow)
+5. **Contribute**: Read the [Contributing Guidelines](Contributing)
 
 ## 🆘 Getting Help
 

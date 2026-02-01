@@ -278,7 +278,7 @@ settings ──── user_settings
    - Users can have many friends
    - Friendship is bidirectional
 
-See [Database Schema](Database-Schema.md) for complete details.
+See [Database Schema](Database-Schema) for complete details.
 
 ## ⚡ Performance Optimizations
 
@@ -334,7 +334,7 @@ See [Database Schema](Database-Schema.md) for complete details.
 9. **SQL Injection**: Eloquent ORM protection
 10. **Password Security**: Bcrypt hashing with minimum requirements
 
-See [Security Best Practices](Security.md) for details.
+See [Security Best Practices](Security) for details.
 
 ## 📊 Testing Strategy
 
@@ -377,7 +377,7 @@ cPanel Shared Hosting
 └── Static Frontend Files
 ```
 
-See [Deployment Guide](Deployment-Guide.md) for details.
+See [Deployment Guide](Deployment-Guide) for details.
 
 ## 🔄 CI/CD Pipeline
 
@@ -479,10 +479,10 @@ Future implementation for gradual feature rollout.
 
 ## 📚 Further Reading
 
-- [Frontend Guide](Frontend-Guide.md) - Detailed frontend architecture
-- [Backend Guide](Backend-Guide.md) - Detailed backend architecture
-- [Database Schema](Database-Schema.md) - Complete database structure
-- [Development Workflow](Development-Workflow.md) - Development processes
+- [Frontend Guide](Frontend-Guide) - Detailed frontend architecture
+- [Backend Guide](Backend-Guide) - Detailed backend architecture
+- [Database Schema](Database-Schema) - Complete database structure
+- [Development Workflow](Development-Workflow) - Development processes
 
 ---
 

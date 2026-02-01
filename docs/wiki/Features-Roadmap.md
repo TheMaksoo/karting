@@ -266,7 +266,7 @@ Current features and future development plans for the Karting Dashboard.
 
 ## 🤝 Contributing to Roadmap
 
-We welcome feature requests and contributions! See [Contributing Guidelines](Contributing.md) for how to:
+We welcome feature requests and contributions! See [Contributing Guidelines](Contributing) for how to:
 
 1. **Propose Features**: Open a GitHub issue with the "feature request" label
 2. **Vote on Features**: React to existing feature requests
@@ -295,8 +295,8 @@ We welcome feature requests and contributions! See [Contributing Guidelines](Con
 ## 📚 Additional Resources
 
 - [GitHub Issues](https://github.com/TheMaksoo/karting/issues) - Current issues and feature requests
-- [TODO.md](../../TODO.md) - Detailed implementation TODO list
-- [CHANGELOG.md](../../CHANGELOG.md) - Version history and changes
+- [TODO.md](https://github.com/TheMaksoo/karting/blob/main/TODO.md) - Detailed implementation TODO list
+- [CHANGELOG.md](https://github.com/TheMaksoo/karting/blob/main/CHANGELOG.md) - Version history and changes
 
 ---
 
