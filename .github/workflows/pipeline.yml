@@ -146,7 +146,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: portal/backend/coverage/clover.xml
           flags: php
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: backend-coverage
@@ -174,7 +174,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./portal/frontend/coverage/lcov.info
           flags: typescript
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: frontend-coverage
           path: portal/frontend/coverage/lcov.info
@@ -204,7 +204,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: data-importer/scripts/coverage.xml
           flags: python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: python-coverage
           path: data-importer/scripts/coverage.xml
@@ -231,7 +231,7 @@ jobs:
       - run: npm run build
         env:
           VITE_API_BASE_URL: https://solyx.gg/karting/api/public/api
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: frontend-dist
           path: portal/frontend/dist/
