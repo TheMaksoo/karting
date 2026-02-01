@@ -34,7 +34,7 @@ if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
       'ResizeObserver loop limit exceeded',
       'Non-Error promise rejection captured',
     ],
-    beforeSend(event, hint) {
+    beforeSend(event, _hint) {
       // Add user context if authenticated
       const userStore = app.config.globalProperties.$pinia?.state?.value?.auth?.user
       if (userStore) {
@@ -64,8 +64,6 @@ const toastOptions: PluginOptions = {
   icon: true,
   rtl: false,
 }
-
-const app = createApp(App)
 
 // Global error handler for uncaught Vue errors
 app.config.errorHandler = (err, instance, info) => {
