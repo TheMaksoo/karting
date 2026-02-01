@@ -1415,16 +1415,16 @@
         },
         {
             "name": "laravel/sanctum",
-            "version": "v4.2.0",
+            "version": "v4.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/sanctum.git",
-                "reference": "fd6df4f79f48a72992e8d29a9c0ee25422a0d677"
+                "reference": "c978c82b2b8ab685468a7ca35224497d541b775a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/sanctum/zipball/fd6df4f79f48a72992e8d29a9c0ee25422a0d677",
-                "reference": "fd6df4f79f48a72992e8d29a9c0ee25422a0d677",
+                "url": "https://api.github.com/repos/laravel/sanctum/zipball/c978c82b2b8ab685468a7ca35224497d541b775a",
+                "reference": "c978c82b2b8ab685468a7ca35224497d541b775a",
                 "shasum": ""
             },
             "require": {
@@ -1438,9 +1438,8 @@
             },
             "require-dev": {
                 "mockery/mockery": "^1.6",
-                "orchestra/testbench": "^9.0|^10.0",
-                "phpstan/phpstan": "^1.10",
-                "phpunit/phpunit": "^11.3"
+                "orchestra/testbench": "^9.15|^10.8",
+                "phpstan/phpstan": "^1.10"
             },
             "type": "library",
             "extra": {
@@ -1475,7 +1474,7 @@
                 "issues": "https://github.com/laravel/sanctum/issues",
                 "source": "https://github.com/laravel/sanctum"
             },
-            "time": "2025-07-09T19:45:24+00:00"
+            "time": "2026-01-22T22:27:01+00:00"
         },
         {
             "name": "laravel/serializable-closure",
@@ -1540,16 +1539,16 @@
         },
         {
             "name": "laravel/tinker",
-            "version": "v2.10.1",
+            "version": "v2.11.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/tinker.git",
-                "reference": "22177cc71807d38f2810c6204d8f7183d88a57d3"
+                "reference": "3d34b97c9a1747a81a3fde90482c092bd8b66468"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/tinker/zipball/22177cc71807d38f2810c6204d8f7183d88a57d3",
-                "reference": "22177cc71807d38f2810c6204d8f7183d88a57d3",
+                "url": "https://api.github.com/repos/laravel/tinker/zipball/3d34b97c9a1747a81a3fde90482c092bd8b66468",
+                "reference": "3d34b97c9a1747a81a3fde90482c092bd8b66468",
                 "shasum": ""
             },
             "require": {
@@ -1558,7 +1557,7 @@
                 "illuminate/support": "^6.0|^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
                 "php": "^7.2.5|^8.0",
                 "psy/psysh": "^0.11.1|^0.12.0",
-                "symfony/var-dumper": "^4.3.4|^5.0|^6.0|^7.0"
+                "symfony/var-dumper": "^4.3.4|^5.0|^6.0|^7.0|^8.0"
             },
             "require-dev": {
                 "mockery/mockery": "~1.3.3|^1.4.2",
@@ -1600,9 +1599,9 @@
             ],
             "support": {
                 "issues": "https://github.com/laravel/tinker/issues",
-                "source": "https://github.com/laravel/tinker/tree/v2.10.1"
+                "source": "https://github.com/laravel/tinker/tree/v2.11.0"
             },
-            "time": "2025-01-27T14:24:01+00:00"
+            "time": "2025-12-19T19:16:45+00:00"
         },
         {
             "name": "league/commonmark",
@@ -3206,16 +3205,16 @@
         },
         {
             "name": "psy/psysh",
-            "version": "v0.12.14",
+            "version": "v0.12.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bobthecow/psysh.git",
-                "reference": "95c29b3756a23855a30566b745d218bee690bef2"
+                "reference": "a4f766e5c5b6773d8399711019bb7d90875a50ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/95c29b3756a23855a30566b745d218bee690bef2",
-                "reference": "95c29b3756a23855a30566b745d218bee690bef2",
+                "url": "https://api.github.com/repos/bobthecow/psysh/zipball/a4f766e5c5b6773d8399711019bb7d90875a50ee",
+                "reference": "a4f766e5c5b6773d8399711019bb7d90875a50ee",
                 "shasum": ""
             },
             "require": {
@@ -3223,8 +3222,8 @@
                 "ext-tokenizer": "*",
                 "nikic/php-parser": "^5.0 || ^4.0",
                 "php": "^8.0 || ^7.4",
-                "symfony/console": "^7.0 || ^6.0 || ^5.0 || ^4.0 || ^3.4",
-                "symfony/var-dumper": "^7.0 || ^6.0 || ^5.0 || ^4.0 || ^3.4"
+                "symfony/console": "^8.0 || ^7.0 || ^6.0 || ^5.0 || ^4.0 || ^3.4",
+                "symfony/var-dumper": "^8.0 || ^7.0 || ^6.0 || ^5.0 || ^4.0 || ^3.4"
             },
             "conflict": {
                 "symfony/console": "4.4.37 || 5.3.14 || 5.3.15 || 5.4.3 || 5.4.4 || 6.0.3 || 6.0.4"
@@ -3279,9 +3278,9 @@
             ],
             "support": {
                 "issues": "https://github.com/bobthecow/psysh/issues",
-                "source": "https://github.com/bobthecow/psysh/tree/v0.12.14"
+                "source": "https://github.com/bobthecow/psysh/tree/v0.12.19"
             },
-            "time": "2025-10-27T17:15:31+00:00"
+            "time": "2026-01-30T17:33:13+00:00"
         },
         {
             "name": "radebatz/type-info-extras",
@@ -3545,16 +3544,16 @@
         },
         {
             "name": "smalot/pdfparser",
-            "version": "v2.12.2",
+            "version": "v2.12.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/smalot/pdfparser.git",
-                "reference": "370b7e983fafecb787a9bcfd73baab8038212ad1"
+                "reference": "61c9bcafcb92899b76d8ebda6508267bae77e264"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/370b7e983fafecb787a9bcfd73baab8038212ad1",
-                "reference": "370b7e983fafecb787a9bcfd73baab8038212ad1",
+                "url": "https://api.github.com/repos/smalot/pdfparser/zipball/61c9bcafcb92899b76d8ebda6508267bae77e264",
+                "reference": "61c9bcafcb92899b76d8ebda6508267bae77e264",
                 "shasum": ""
             },
             "require": {
@@ -3590,9 +3589,9 @@
             ],
             "support": {
                 "issues": "https://github.com/smalot/pdfparser/issues",
-                "source": "https://github.com/smalot/pdfparser/tree/v2.12.2"
+                "source": "https://github.com/smalot/pdfparser/tree/v2.12.3"
             },
-            "time": "2025-09-04T08:49:09+00:00"
+            "time": "2026-01-08T08:04:04+00:00"
         },
         {
             "name": "swagger-api/swagger-ui",
