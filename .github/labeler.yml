@@ -1,0 +1,91 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                    🏎️ KARTING DASHBOARD - LABELER CONFIG                     ║
+# ║                                                                              ║
+# ║  Maps file paths to labels for automatic PR labeling                        ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+# Backend changes
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'portal/backend/**/*'
+
+php:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.php'
+
+# Frontend changes
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'portal/frontend/**/*'
+
+typescript:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.ts'
+          - '**/*.vue'
+
+# Documentation
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**/*'
+
+# Database changes
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'portal/backend/database/**/*'
+          - '**/*migration*'
+
+# API changes
+api:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'portal/backend/app/Http/Controllers/**/*'
+          - 'portal/backend/routes/**/*'
+
+# Tests
+testing:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/tests/**/*'
+          - '**/*.test.ts'
+          - '**/*.spec.ts'
+          - '**/Test.php'
+
+# CI/CD
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**/*'
+
+# Python / Data importer
+python:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'data-importer/**/*'
+          - '**/*.py'
+
+# Configuration
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.json'
+          - '**/*.yml'
+          - '**/*.yaml'
+          - '**/.*rc'
+          - '**/*.config.*'
+
+# Dependencies
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/package.json'
+          - '**/package-lock.json'
+          - '**/composer.json'
+          - '**/composer.lock'
+          - '**/requirements.txt'

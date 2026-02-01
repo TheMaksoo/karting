@@ -1,0 +1,122 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                    🏎️ KARTING DASHBOARD - AUTO RELEASE                       ║
+# ║                                                                              ║
+# ║  Automatically creates GitHub releases when version tags are pushed         ║
+# ║                                                                              ║
+# ║  Triggers:                                                                   ║
+# ║  • Push of version tags (v*)                                                ║
+# ║  • Manual workflow dispatch                                                 ║
+# ║                                                                              ║
+# ║  Usage:                                                                      ║
+# ║  1. Update version in package.json / composer.json                          ║
+# ║  2. Commit: git commit -m "chore: release v1.2.3"                           ║
+# ║  3. Tag: git tag v1.2.3                                                     ║
+# ║  4. Push: git push origin main --tags                                       ║
+# ║  5. Release is automatically created!                                       ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+name: Auto Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Creating release for version: $VERSION"
+
+      - name: Get previous tag
+        id: previous_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "📌 Previous tag: $PREV_TAG"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PREV_TAG="${{ steps.previous_tag.outputs.previous_tag }}"
+          
+          echo "## 🏎️ Karting Dashboard $VERSION" > CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+          echo "Released on $(date +'%B %d, %Y')" >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+          
+          if [ -n "$PREV_TAG" ]; then
+            echo "### 📝 Changes since $PREV_TAG" >> CHANGELOG_RELEASE.md
+            echo "" >> CHANGELOG_RELEASE.md
+            
+            # Features
+            FEATURES=$(git log $PREV_TAG..HEAD --pretty=format:"- %s" --grep="^feat" 2>/dev/null || echo "")
+            if [ -n "$FEATURES" ]; then
+              echo "#### 🚀 New Features" >> CHANGELOG_RELEASE.md
+              echo "$FEATURES" >> CHANGELOG_RELEASE.md
+              echo "" >> CHANGELOG_RELEASE.md
+            fi
+            
+            # Bug fixes
+            FIXES=$(git log $PREV_TAG..HEAD --pretty=format:"- %s" --grep="^fix" 2>/dev/null || echo "")
+            if [ -n "$FIXES" ]; then
+              echo "#### 🐛 Bug Fixes" >> CHANGELOG_RELEASE.md
+              echo "$FIXES" >> CHANGELOG_RELEASE.md
+              echo "" >> CHANGELOG_RELEASE.md
+            fi
+            
+            # Other changes
+            echo "#### 📋 All Commits" >> CHANGELOG_RELEASE.md
+            git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" >> CHANGELOG_RELEASE.md
+          else
+            echo "🎉 Initial release!" >> CHANGELOG_RELEASE.md
+          fi
+          
+          echo "" >> CHANGELOG_RELEASE.md
+          echo "---" >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREV_TAG...$VERSION" >> CHANGELOG_RELEASE.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: "🏎️ ${{ steps.version.outputs.version }}"
+          body_path: CHANGELOG_RELEASE.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-alpha') || contains(steps.version.outputs.version, '-beta') || contains(steps.version.outputs.version, '-rc') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## ✅ Release Created!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**URL**: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY

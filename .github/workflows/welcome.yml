@@ -1,0 +1,65 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                  🏎️ KARTING DASHBOARD - WELCOME BOT                          ║
+# ║                                                                              ║
+# ║  Welcomes first-time contributors automatically                             ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+name: Welcome New Contributors
+
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Welcome first-time PR contributor
+        if: github.event_name == 'pull_request_target'
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |
+            👋 **Welcome to Karting Dashboard, @${{ github.event.pull_request.user.login }}!**
+            
+            Thank you for your first pull request! 🏎️
+            
+            Here's what happens next:
+            1. ✅ Our CI pipeline will run automated tests
+            2. 👀 A maintainer will review your changes
+            3. 💬 We may suggest some changes or improvements
+            4. 🎉 Once approved, your PR will be merged!
+            
+            **Helpful links:**
+            - [Contributing Guidelines](https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md)
+            - [Code of Conduct](https://github.com/${{ github.repository }}/blob/main/CODE_OF_CONDUCT.md)
+            - [Wiki Documentation](https://github.com/${{ github.repository }}/wiki)
+            
+            Thanks for contributing! 🙌
+
+      - name: Welcome first-time issue creator
+        if: github.event_name == 'issues'
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            👋 **Welcome to Karting Dashboard, @${{ github.event.issue.user.login }}!**
+            
+            Thank you for opening your first issue! 🏎️
+            
+            A maintainer will review it soon. In the meantime:
+            - Make sure you've included all relevant details
+            - Check if there's a similar issue already open
+            - Add appropriate labels if you can
+            
+            **Helpful links:**
+            - [Troubleshooting Guide](https://github.com/${{ github.repository }}/wiki/Troubleshooting)
+            - [Wiki Documentation](https://github.com/${{ github.repository }}/wiki)
+            
+            Thanks for helping improve Karting Dashboard! 🙌

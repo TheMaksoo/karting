@@ -1,0 +1,81 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                   🏎️ KARTING DASHBOARD - RELEASE NOTES CONFIG               ║
+# ║                                                                              ║
+# ║  Automatically generates release notes when creating a new GitHub release   ║
+# ║  Groups PRs by labels into categories for better readability                ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+      - dependencies
+    authors:
+      - dependabot
+      - dependabot[bot]
+
+  categories:
+    - title: 🚀 New Features
+      labels:
+        - enhancement
+        - feature
+        - new-feature
+
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+        - bugfix
+        - fix
+
+    - title: 🔒 Security
+      labels:
+        - security
+
+    - title: 📚 Documentation
+      labels:
+        - documentation
+        - docs
+
+    - title: 🧪 Testing
+      labels:
+        - testing
+        - tests
+
+    - title: ⚡ Performance
+      labels:
+        - performance
+
+    - title: 🎨 UI/UX
+      labels:
+        - ui
+        - ux
+        - frontend
+
+    - title: 🔧 Backend
+      labels:
+        - backend
+        - api
+
+    - title: 🗄️ Database
+      labels:
+        - database
+
+    - title: 🏗️ Infrastructure
+      labels:
+        - infrastructure
+        - ci
+        - devops
+
+    - title: 📦 Dependencies
+      labels:
+        - dependencies
+
+    - title: 🧹 Maintenance
+      labels:
+        - chore
+        - refactor
+        - cleanup
+
+    - title: 📝 Other Changes
+      labels:
+        - "*"

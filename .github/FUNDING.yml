@@ -1,0 +1,25 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                      🏎️ KARTING DASHBOARD - FUNDING                         ║
+# ║                                                                              ║
+# ║  Configure the "Sponsor" button on GitHub                                   ║
+# ║                                                                              ║
+# ║  Uncomment and fill in the platforms you want to use                        ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+# GitHub Sponsors username
+github: [TheMaksoo]
+
+# Patreon username
+# patreon: username
+
+# Open Collective username
+# open_collective: karting-dashboard
+
+# Ko-fi username
+# ko_fi: username
+
+# Buy Me a Coffee username
+# buy_me_a_coffee: username
+
+# Custom sponsorship URLs (up to 4)
+# custom: ['https://www.paypal.me/username', 'https://your-website.com/donate']

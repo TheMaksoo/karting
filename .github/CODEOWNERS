@@ -1,0 +1,31 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                      🏎️ KARTING DASHBOARD - CODEOWNERS                       ║
+# ║                                                                              ║
+# ║  Automatically assigns reviewers to pull requests based on file paths       ║
+# ║                                                                              ║
+# ║  Documentation: https://docs.github.com/en/repositories/managing-your-      ║
+# ║  repositorys-settings-and-features/customizing-your-repository/about-       ║
+# ║  code-owners                                                                 ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+# Default owner for everything
+* @TheMaksoo
+
+# Backend (Laravel/PHP)
+/portal/backend/ @TheMaksoo
+
+# Frontend (Vue/TypeScript)
+/portal/frontend/ @TheMaksoo
+
+# Data Importer (Python)
+/data-importer/ @TheMaksoo
+
+# Documentation
+/docs/ @TheMaksoo
+*.md @TheMaksoo
+
+# GitHub Configuration
+/.github/ @TheMaksoo
+
+# CI/CD Workflows (require extra attention)
+/.github/workflows/ @TheMaksoo
