@@ -65,11 +65,11 @@
 - [ ] Split `EmlUploadView.vue` (1335 lines) - extract FileDropzone, BatchProgress
 - [x] Split `api.ts` by domain (AuthApi, DriversApi, TracksApi etc.) ✅
 - [x] Move stats logic to service classes (SessionCalculatorService) ✅
-- [ ] Extract TimeConverter utility for shared time parsing logic
+- [x] Extract TimeConverter utility for shared time parsing logic ✅
 
 ### Documentation
 - [x] Add OpenAPI/Swagger API documentation using L5-Swagger ✅
-- [ ] Write project-specific backend README
+- [x] Write project-specific backend README ✅
 - [ ] Add detailed production deployment guide
 
 ---
