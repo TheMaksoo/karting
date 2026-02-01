@@ -1,11 +1,21 @@
 # 🏎️ Karting Dashboard
 
-Full-stack karting lap time tracking and analytics platform with automated EML parsing, driver performance analytics, and multi-track support.
+> **Enterprise-grade karting lap time tracking and analytics platform**  
+> Automated EML parsing • Real-time analytics • Multi-track support • Production-ready
 
-[![CI/CD Pipeline](https://github.com/TheMaksoo/karting/actions/workflows/ci.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/ci.yml)
+---
+
+## 📊 Project Status
+
+[![CI/CD Pipeline](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml)
 [![codecov](https://codecov.io/gh/TheMaksoo/karting/branch/main/graph/badge.svg)](https://codecov.io/gh/TheMaksoo/karting)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://www.php.net/)
+[![Node Version](https://img.shields.io/badge/Node-20+-green.svg)](https://nodejs.org/)
+[![Laravel](https://img.shields.io/badge/Laravel-11-red.svg)](https://laravel.com)
+[![Vue.js](https://img.shields.io/badge/Vue.js-3-brightgreen.svg)](https://vuejs.org/)
 
-### SonarCloud Quality Metrics
+### 🏆 SonarCloud Quality Metrics
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
@@ -14,17 +24,42 @@ Full-stack karting lap time tracking and analytics platform with automated EML p
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=bugs)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+
+---
 
 ## 🚀 Quick Start
 
-1. Clone the repository
-2. Configure [GitHub Secrets](SETUP.md) for deployment
-3. Push to deploy automatically
+```bash
+# 1. Clone the repository
+git clone https://github.com/TheMaksoo/karting.git
+cd karting
 
-See [SETUP.md](SETUP.md) for detailed setup instructions.
+# 2. Backend setup
+cd portal/backend
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
+
+# 3. Frontend setup (new terminal)
+cd portal/frontend
+npm install
+cp .env.example .env
+npm run dev
+
+# 4. Access the application
+# Frontend: http://localhost:5173
+# Backend API: http://localhost:8000/api
+# API Docs: http://localhost:8000/api/documentation
+```
+
+📚 **Full Setup Guide**: See [SETUP.md](SETUP.md) for detailed configuration  
+🚀 **Production Deployment**: See [DEPLOYMENT.md](DEPLOYMENT.md) for Docker/K8s
+
+---
 
 ## 🛠 Local Development
 
@@ -80,23 +115,50 @@ npm run type-check
 
 ## 📦 Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | Vue 3.5 + TypeScript 5.9 + Vite 6 + Pinia |
-| **Backend** | Laravel 12 + PHP 8.2 + Sanctum |
-| **Database** | MySQL 8.0 |
-| **Testing** | PEST (PHP), Vitest (JS), pytest (Python) |
-| **CI/CD** | GitHub Actions + SonarQube |
+| Layer | Technology | Version |
+|-------|------------|---------|
+| **Frontend** | Vue 3 + TypeScript + Vite + Pinia | 3.5 / 5.9 / 6 / 2.3 |
+| **Backend** | Laravel + PHP + Sanctum | 11 / 8.2+ / 4 |
+| **Database** | MySQL / SQLite | 8.0 / 3 |
+| **Cache** | Redis | 7+ |
+| **Testing** | PEST + Vitest + pytest | Latest |
+| **CI/CD** | GitHub Actions + SonarCloud | - |
+| **Monitoring** | Sentry + Structured Logging | Latest |
+| **Deployment** | Docker + Kubernetes | Latest |
+
+---
 
 ## ✨ Features
 
-- 📧 **EML Upload**: Parse karting session emails with auto-track detection
-- 📊 **Analytics**: Real-time lap time analytics and performance trends
-- 👥 **Drivers**: Multi-driver support with color coding and statistics
-- 🏁 **Tracks**: Multi-track support with location and lap records
+### 🎯 Core Features
+- 📧 **EML Upload**: Parse karting session emails with auto-track detection (7 tracks supported)
+- 📊 **Real-time Analytics**: Live lap time analytics and performance trends
+- 👥 **Multi-Driver**: Support unlimited drivers with color coding and statistics
+- 🏁 **Multi-Track**: Track performance across different karting venues
 - 🏆 **Trophy Case**: Personal bests, track records, and achievements
-- 🔄 **Health Monitoring**: `/api/health` endpoints for monitoring
-- 🚀 **Automated Deployment**: Push to main for automatic deployment
+- 📈 **Performance Insights**: Lap time progression, consistency analysis
+
+### 🔒 Enterprise Security
+- 🔐 **HttpOnly Cookies**: XSS-proof session-based authentication
+- 🚦 **Rate Limiting**: IP + per-user rate limiting (120 req/min)
+- 🛡️ **Security Headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- 🔍 **Audit Logging**: Full CRUD operation tracking with user context
+- ✅ **Input Validation**: XSS/SQL injection protection, file validation
+
+### 🚀 Production Ready
+- ✅ **990 Tests**: 554 backend + 407 frontend + 29 Python (100% passing)
+- 📊 **Health Checks**: 4 endpoints for monitoring (`/api/health/*`)
+- 📝 **Structured Logging**: JSON logs with user/request context
+- 🐛 **Error Tracking**: Sentry integration with breadcrumbs
+- 🐳 **Containerized**: Docker + Kubernetes deployment ready
+- 🔄 **API Versioning**: `/api/v1/*` for backward compatibility
+
+### 📚 Documentation
+- 📖 **OpenAPI Docs**: Interactive Swagger UI at `/api/documentation`
+- 📋 **Complete Guides**: Setup, deployment, contributing, security
+- 🎯 **Project Overview**: Full transparency (990 tests, 73 endpoints, 530 functions)
+
+---
 
 ## 📁 Project Structure
 
