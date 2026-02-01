@@ -121,7 +121,7 @@ jobs:
 
       - name: 📦 Setup Node
         if: steps.extract-errors.outputs.has_errors == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
 
