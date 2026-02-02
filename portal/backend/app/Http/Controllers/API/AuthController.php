@@ -106,8 +106,11 @@ class AuthController extends Controller
         // Logout from web guard (session-based)
         auth()->guard('web')->logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Only invalidate session if session is available (not in stateless API tests)
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json(['message' => 'Logged out successfully']);
     }

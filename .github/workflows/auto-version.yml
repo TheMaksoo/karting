@@ -1,0 +1,212 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                    🏎️ KARTING DASHBOARD - AUTO VERSIONING                   ║
+# ║                                                                              ║
+# ║  Automatically creates a new version and release when PRs are merged        ║
+# ║                                                                              ║
+# ║  Version bumping logic:                                                      ║
+# ║  • feat: → Minor bump (1.0.0 → 1.1.0)                                       ║
+# ║  • fix:  → Patch bump (1.0.0 → 1.0.1)                                       ║
+# ║  • BREAKING CHANGE → Major bump (1.0.0 → 2.0.0)                             ║
+# ║  • Other commits → Patch bump                                               ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+name: 🔖 Auto Version & Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+        default: auto
+
+permissions:
+  contents: write
+
+jobs:
+  version-and-release:
+    name: 🔖 Version & Release
+    runs-on: ubuntu-latest
+    # Skip if commit is from this workflow (prevents infinite loop)
+    if: "!contains(github.event.head_commit.message, '[skip-release]') && !contains(github.event.head_commit.message, 'chore: release v')"
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest tag
+        id: latest_tag
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "📌 Latest tag: $LATEST_TAG"
+
+      - name: Determine version bump
+        id: bump
+        run: |
+          LATEST_TAG="${{ steps.latest_tag.outputs.tag }}"
+          VERSION="${LATEST_TAG#v}"
+          
+          # Parse current version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
+          
+          # Check commit messages since last tag
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+            # First release
+            COMMITS=$(git log --pretty=format:"%s" HEAD 2>/dev/null || echo "")
+          else
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s" 2>/dev/null || echo "")
+          fi
+          
+          # Determine bump type
+          BUMP_TYPE="${{ github.event.inputs.bump_type || 'auto' }}"
+          
+          if [ "$BUMP_TYPE" = "auto" ]; then
+            if echo "$COMMITS" | grep -qiE "BREAKING CHANGE|^break:|^major:"; then
+              BUMP_TYPE="major"
+            elif echo "$COMMITS" | grep -qiE "^feat(\(.+\))?:"; then
+              BUMP_TYPE="minor"
+            else
+              BUMP_TYPE="patch"
+            fi
+          fi
+          
+          # Calculate new version
+          case $BUMP_TYPE in
+            major)
+              NEW_MAJOR=$((MAJOR + 1))
+              NEW_VERSION="${NEW_MAJOR}.0.0"
+              ;;
+            minor)
+              NEW_MINOR=$((MINOR + 1))
+              NEW_VERSION="${MAJOR}.${NEW_MINOR}.0"
+              ;;
+            patch)
+              NEW_PATCH=$((PATCH + 1))
+              NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+              ;;
+          esac
+          
+          echo "old_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "🔖 Version bump: $VERSION → $NEW_VERSION ($BUMP_TYPE)"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+          OLD_TAG="${{ steps.latest_tag.outputs.tag }}"
+          
+          echo "## 🏎️ Karting Dashboard v${NEW_VERSION}" > CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+          echo "**Released:** $(date +'%B %d, %Y at %H:%M UTC')" >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+          
+          if [ "$OLD_TAG" != "v0.0.0" ]; then
+            echo "### 📝 Changes since ${OLD_TAG}" >> CHANGELOG_RELEASE.md
+            echo "" >> CHANGELOG_RELEASE.md
+            
+            # Features
+            FEATURES=$(git log ${OLD_TAG}..HEAD --pretty=format:"- %s (%h)" --grep="^feat" 2>/dev/null || echo "")
+            if [ -n "$FEATURES" ]; then
+              echo "#### 🚀 New Features" >> CHANGELOG_RELEASE.md
+              echo "$FEATURES" >> CHANGELOG_RELEASE.md
+              echo "" >> CHANGELOG_RELEASE.md
+            fi
+            
+            # Bug fixes
+            FIXES=$(git log ${OLD_TAG}..HEAD --pretty=format:"- %s (%h)" --grep="^fix" 2>/dev/null || echo "")
+            if [ -n "$FIXES" ]; then
+              echo "#### 🐛 Bug Fixes" >> CHANGELOG_RELEASE.md
+              echo "$FIXES" >> CHANGELOG_RELEASE.md
+              echo "" >> CHANGELOG_RELEASE.md
+            fi
+            
+            # Tests
+            TESTS=$(git log ${OLD_TAG}..HEAD --pretty=format:"- %s (%h)" --grep="^test" 2>/dev/null || echo "")
+            if [ -n "$TESTS" ]; then
+              echo "#### 🧪 Tests" >> CHANGELOG_RELEASE.md
+              echo "$TESTS" >> CHANGELOG_RELEASE.md
+              echo "" >> CHANGELOG_RELEASE.md
+            fi
+            
+            # Docs
+            DOCS=$(git log ${OLD_TAG}..HEAD --pretty=format:"- %s (%h)" --grep="^docs" 2>/dev/null || echo "")
+            if [ -n "$DOCS" ]; then
+              echo "#### 📚 Documentation" >> CHANGELOG_RELEASE.md
+              echo "$DOCS" >> CHANGELOG_RELEASE.md
+              echo "" >> CHANGELOG_RELEASE.md
+            fi
+            
+            # Chores
+            CHORES=$(git log ${OLD_TAG}..HEAD --pretty=format:"- %s (%h)" --grep="^chore" 2>/dev/null || echo "")
+            if [ -n "$CHORES" ]; then
+              echo "#### 🔧 Maintenance" >> CHANGELOG_RELEASE.md
+              echo "$CHORES" >> CHANGELOG_RELEASE.md
+              echo "" >> CHANGELOG_RELEASE.md
+            fi
+            
+            echo "---" >> CHANGELOG_RELEASE.md
+            echo "" >> CHANGELOG_RELEASE.md
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${OLD_TAG}...v${NEW_VERSION}" >> CHANGELOG_RELEASE.md
+          else
+            echo "🎉 **Initial Release!**" >> CHANGELOG_RELEASE.md
+            echo "" >> CHANGELOG_RELEASE.md
+            echo "This is the first official release of Karting Dashboard." >> CHANGELOG_RELEASE.md
+            echo "" >> CHANGELOG_RELEASE.md
+            echo "### ✨ Features" >> CHANGELOG_RELEASE.md
+            echo "- Full-stack karting lap time tracking and analytics" >> CHANGELOG_RELEASE.md
+            echo "- Laravel 12 backend with REST API" >> CHANGELOG_RELEASE.md
+            echo "- Vue 3 + TypeScript frontend" >> CHANGELOG_RELEASE.md
+            echo "- Session management and driver profiles" >> CHANGELOG_RELEASE.md
+            echo "- Track management with weather conditions" >> CHANGELOG_RELEASE.md
+            echo "- EML file import for lap data" >> CHANGELOG_RELEASE.md
+            echo "- Dark/Light mode support" >> CHANGELOG_RELEASE.md
+          fi
+
+      - name: Create and push tag
+        run: |
+          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
+          git push origin "v${NEW_VERSION}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.bump.outputs.new_version }}
+          name: "🏎️ v${{ steps.bump.outputs.new_version }}"
+          body_path: CHANGELOG_RELEASE.md
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## ✅ Release Created!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | v${{ steps.bump.outputs.new_version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Bump Type** | ${{ steps.bump.outputs.bump_type }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Previous** | ${{ steps.latest_tag.outputs.tag }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Release URL**: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.bump.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
