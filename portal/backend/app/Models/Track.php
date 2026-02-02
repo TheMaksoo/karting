@@ -17,6 +17,7 @@ class Track extends Model
         'city',
         'country',
         'region',
+        'address',
         'latitude',
         'longitude',
         'distance',
@@ -28,6 +29,9 @@ class Track extends Model
         'contact',
         'pricing',
         'karts',
+        'status',
+        'notes',
+        'opening_hours',
     ];
 
     protected $casts = [
@@ -36,6 +40,7 @@ class Track extends Model
         'contact' => 'array',
         'pricing' => 'array',
         'karts' => 'array',
+        'opening_hours' => 'array',
     ];
 
     public function kartingSessions(): HasMany
