@@ -40,7 +40,7 @@ return new class() extends Migration
     {
         Schema::table('tracks', function (Blueprint $table) {
             $columns = ['address', 'status', 'notes', 'opening_hours', 'deleted_at'];
-            
+
             foreach ($columns as $column) {
                 if (Schema::hasColumn('tracks', $column)) {
                     $table->dropColumn($column);
