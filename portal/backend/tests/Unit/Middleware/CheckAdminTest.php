@@ -15,7 +15,7 @@ it('returns 401 for unauthenticated user', function () {
     $response = $this->middleware->handle($this->request, $this->next);
 
     expect($response->getStatusCode())->toBe(401);
-    
+
     $content = json_decode($response->getContent(), true);
     expect($content['success'])->toBeFalse();
     expect($content['message'])->toBe('Unauthenticated');
@@ -23,17 +23,19 @@ it('returns 401 for unauthenticated user', function () {
 
 it('returns 403 for non-admin user', function () {
     // Create a mock user with non-admin role
-    $user = new class {
+    $user = new class()
+    {
         public string $role = 'user';
+
         public int $id = 1;
     };
-    
+
     $this->request->setUserResolver(fn () => $user);
-    
+
     $response = $this->middleware->handle($this->request, $this->next);
 
     expect($response->getStatusCode())->toBe(403);
-    
+
     $content = json_decode($response->getContent(), true);
     expect($content['success'])->toBeFalse();
     expect($content['message'])->toBe('Access denied. Admin privileges required.');
@@ -41,13 +43,15 @@ it('returns 403 for non-admin user', function () {
 
 it('allows admin user to pass through', function () {
     // Create a mock admin user
-    $user = new class {
+    $user = new class()
+    {
         public string $role = 'admin';
+
         public int $id = 1;
     };
-    
+
     $this->request->setUserResolver(fn () => $user);
-    
+
     $response = $this->middleware->handle($this->request, $this->next);
 
     expect($response->getStatusCode())->toBe(200);
@@ -55,26 +59,30 @@ it('allows admin user to pass through', function () {
 });
 
 it('returns 403 for driver role', function () {
-    $user = new class {
+    $user = new class()
+    {
         public string $role = 'driver';
+
         public int $id = 1;
     };
-    
+
     $this->request->setUserResolver(fn () => $user);
-    
+
     $response = $this->middleware->handle($this->request, $this->next);
 
     expect($response->getStatusCode())->toBe(403);
 });
 
 it('returns 403 for empty role', function () {
-    $user = new class {
+    $user = new class()
+    {
         public string $role = '';
+
         public int $id = 1;
     };
-    
+
     $this->request->setUserResolver(fn () => $user);
-    
+
     $response = $this->middleware->handle($this->request, $this->next);
 
     expect($response->getStatusCode())->toBe(403);
