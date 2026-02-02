@@ -7,26 +7,28 @@
 
 ## 📊 Project Status
 
-### 🔧 Core CI/CD
-[![🏎️ Karting Pipeline](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml)
-[![🎯 Master Orchestrator](https://github.com/TheMaksoo/karting/actions/workflows/master.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/master.yml)
-[![Auto Release](https://github.com/TheMaksoo/karting/actions/workflows/release.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/release.yml)
-
-### 🤖 Automation Workflows
-[![🤖 Auto-Fix CI Failures](https://github.com/TheMaksoo/karting/actions/workflows/auto-fix.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/auto-fix.yml)
-[![Auto Create Pull Request](https://github.com/TheMaksoo/karting/actions/workflows/auto-pr.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/auto-pr.yml)
-[![Auto Merge Dependabot](https://github.com/TheMaksoo/karting/actions/workflows/auto-merge-dependabot.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/auto-merge-dependabot.yml)
-[![Auto Label PRs](https://github.com/TheMaksoo/karting/actions/workflows/labeler.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/labeler.yml)
-[![Sync Wiki](https://github.com/TheMaksoo/karting/actions/workflows/wiki-sync.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/wiki-sync.yml)
-
-### 👥 Community & Maintenance
-[![Welcome New Contributors](https://github.com/TheMaksoo/karting/actions/workflows/welcome.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/welcome.yml)
-[![Stale Issue Manager](https://github.com/TheMaksoo/karting/actions/workflows/stale.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/stale.yml)
+### 🏆 SonarCloud Quality Metrics
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=bugs)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 
 ### 📈 Coverage & Quality
 [![codecov](https://codecov.io/gh/TheMaksoo/karting/branch/main/graph/badge.svg)](https://codecov.io/gh/TheMaksoo/karting)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
+### 🔧 Core CI/CD
+[![🏎️ Karting Pipeline](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/pipeline.yml)
+[![🎯 Master Orchestrator](https://github.com/TheMaksoo/karting/actions/workflows/master.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/master.yml)
+[![Auto Release](https://github.com/TheMaksoo/karting/actions/workflows/release.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/release.yml)
 
 ### 💻 Tech Stack
 [![PHP Version](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://www.php.net/)
@@ -55,18 +57,16 @@
 [![Contributing](https://img.shields.io/badge/Contributing-Guide-green.svg)](CONTRIBUTING.md)
 [![GitHub Discussions](https://img.shields.io/github/discussions/TheMaksoo/karting?style=flat&logo=github)](https://github.com/TheMaksoo/karting/discussions)
 
-### 🏆 SonarCloud Quality Metrics
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=bugs)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
+### 🤖 Automation Workflows
+[![🤖 Auto-Fix CI Failures](https://github.com/TheMaksoo/karting/actions/workflows/auto-fix.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/auto-fix.yml)
+[![Auto Create Pull Request](https://github.com/TheMaksoo/karting/actions/workflows/auto-pr.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/auto-pr.yml)
+[![Auto Merge Dependabot](https://github.com/TheMaksoo/karting/actions/workflows/auto-merge-dependabot.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/auto-merge-dependabot.yml)
+[![Auto Label PRs](https://github.com/TheMaksoo/karting/actions/workflows/labeler.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/labeler.yml)
+[![Sync Wiki](https://github.com/TheMaksoo/karting/actions/workflows/wiki-sync.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/wiki-sync.yml)
+
+### 👥 Community & Maintenance
+[![Welcome New Contributors](https://github.com/TheMaksoo/karting/actions/workflows/welcome.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/welcome.yml)
+[![Stale Issue Manager](https://github.com/TheMaksoo/karting/actions/workflows/stale.yml/badge.svg)](https://github.com/TheMaksoo/karting/actions/workflows/stale.yml)
 
 ---
 
