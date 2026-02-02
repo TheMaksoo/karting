@@ -24,7 +24,7 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['user', 'token'])
+            ->assertJsonStructure(['user', 'message'])
             ->assertJson(['user' => ['email' => 'test@example.com']]);
     }
 
@@ -232,7 +232,7 @@ class AuthTest extends TestCase
         $response->assertStatus(401);
     }
 
-    public function test_login_returns_token(): void
+    public function test_login_returns_user(): void
     {
         $user = User::factory()->create([
             'email' => 'test@example.com',
@@ -245,8 +245,8 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJsonStructure(['token'])
-            ->assertJsonPath('token', fn ($token) => ! empty($token));
+            ->assertJsonStructure(['user', 'message'])
+            ->assertJsonPath('user.email', 'test@example.com');
     }
 
     public function test_login_tracks_last_login_at(): void
