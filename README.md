@@ -21,7 +21,8 @@
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=TheMaksoo_karting&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=TheMaksoo_karting)
 
 ### 📈 Coverage & Quality
-[![codecov](https://codecov.io/gh/TheMaksoo/karting/branch/main/graph/badge.svg)](https://codecov.io/gh/TheMaksoo/karting)
+[![Frontend Coverage](https://codecov.io/gh/TheMaksoo/karting/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/TheMaksoo/karting?flags=frontend)
+[![Backend Coverage](https://codecov.io/gh/TheMaksoo/karting/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/TheMaksoo/karting?flags=backend)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
