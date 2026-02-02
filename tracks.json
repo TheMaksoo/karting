@@ -6,7 +6,12 @@
       "location": {
         "city": "Elche",
         "country": "Spain",
-        "region": "Alicante"
+        "region": "Alicante",
+        "address": "Polígono Industrial Elche Parque Empresarial"
+      },
+      "coordinates": {
+        "latitude": 38.272984348876044,
+        "longitude": -0.6635265027667782
       },
       "specifications": {
         "distance": 1160,
@@ -21,11 +26,14 @@
         "Cafeteria",
         "Game room",
         "Large terrace",
-        "Private paddock"
+        "Private paddock",
+        "Pool table",
+        "Foosball"
       ],
       "website": "https://fastkart.es/karting-elche",
       "contact": {
-        "phone": "+34 638 003 916"
+        "phone": "+34 638 003 916",
+        "whatsapp": "+34 638 003 916"
       },
       "pricing": {
         "ticketSimple": 20.0,
@@ -36,7 +44,13 @@
         "session": 30.0,
         "costPerLap": 2.14
       },
-      "karts": ["GTR 270cc", "LR5 Junior 160cc", "Biplaza 270cc", "RT8 390cc"]
+      "karts": [
+        "GTR 270cc",
+        "LR5 Junior 160cc",
+        "Biplaza 270cc",
+        "RT8 390cc"
+      ],
+      "status": "OPEN"
     },
     {
       "trackId": "TRK-002",
@@ -44,24 +58,44 @@
       "location": {
         "city": "Tilburg",
         "country": "Netherlands",
-        "region": "North Brabant"
+        "region": "North Brabant",
+        "address": "Groenstraat 139-391, 5021 LL Tilburg"
+      },
+      "coordinates": {
+        "latitude": 51.546748863935406,
+        "longitude": 5.088176982433279
       },
       "specifications": {
         "distance": 450,
         "corners": 12,
+        "width": 8,
         "indoor": true
       },
-      "features": ["Electric karts", "Fly-over", "Largest lasergame area in North Brabant"],
+      "features": [
+        "Electric karts",
+        "Fly-over",
+        "SMS Timing",
+        "Lasergame area",
+        "Bowling",
+        "Escape rooms",
+        "Restaurant",
+        "Reball/Paintball",
+        "Bar"
+      ],
       "website": "https://devoltage.nl",
       "contact": {
-        "phone": "013 - 580 00 07",
+        "phone": "+31 13 580 00 07",
         "email": "info@devoltage.nl"
       },
       "pricing": {
         "session": 19.75,
         "costPerLap": 1.65
       },
-      "karts": ["Sodi Electric Karts (up to 50 km/h)"]
+      "karts": [
+        "Sodi Electric Karts (up to 50 km/h)"
+      ],
+      "status": "OPEN",
+      "notes": "New track opened July 2025 with improved circuit"
     },
     {
       "trackId": "TRK-003",
@@ -69,67 +103,150 @@
       "location": {
         "city": "Antwerp",
         "country": "Belgium",
-        "region": "Flanders"
+        "region": "Flanders",
+        "address": "Michiganstraat 1, 2030 Antwerpen"
+      },
+      "coordinates": {
+        "latitude": 51.25271272608237,
+        "longitude": 4.419162930852564
       },
       "specifications": {
         "distance": 350,
         "corners": 9,
+        "width": 8,
         "indoor": true
       },
-      "features": ["E-Karting", "Apex timing system"],
-      "website": "https://www.experience-factory.com",
+      "features": [
+        "E-Karting",
+        "Apex timing system",
+        "Mini karting",
+        "Quiz game",
+        "Axe throwing",
+        "Action game",
+        "Gaming arcades",
+        "Interactive darts",
+        "Bowling",
+        "Laser tag"
+      ],
+      "website": "https://www.experience-factory.com/antwerp",
       "contact": {
+        "phone": "+32 3 301 03 03",
         "email": "antwerp@experience-factory.com"
       },
       "pricing": {
-        "session": 23.5,
+        "session": 23.50,
         "costPerLap": 2.14
       },
-      "karts": ["E-Kart"]
+      "karts": [
+        "E-Kart"
+      ],
+      "status": "OPEN"
     },
     {
       "trackId": "TRK-004",
       "name": "Circuit Park Berghem",
       "location": {
-        "city": "Berghem (Oss)",
+        "city": "Berghem",
         "country": "Netherlands",
-        "region": "North Brabant"
+        "region": "North Brabant",
+        "address": "Zevenbergseweg 45, Berghem (Oss)"
+      },
+      "coordinates": {
+        "latitude": 51.73851115252818,
+        "longitude": 5.57316991127734
       },
       "specifications": {
         "distance": 1200,
         "corners": 14,
+        "width": 10,
         "indoor": false
       },
-      "features": ["SMS Timing"],
+      "features": [
+        "SMS Timing",
+        "Outdoor circuit",
+        "Longest outdoor track in Netherlands",
+        "À la kart café",
+        "Arrive & Drive races",
+        "Endurance races (2h, 3h, 4h)",
+        "Private kart sessions",
+        "Group arrangements"
+      ],
       "website": "https://circuitparkberghem.nl",
-      "contact": {},
+      "contact": {
+        "phone": "+31 412 455 222",
+        "email": "info@circuitparkberghem.nl"
+      },
       "pricing": {
         "session": 19.95,
+        "winterAction3Heats": 49.95,
         "costPerLap": 0.91
       },
-      "karts": []
+      "karts": [
+        "Kombikart ECO Honda GX200 (6.5 HP, max 80 km/h)"
+      ],
+      "status": "OPEN",
+      "notes": "Longest outdoor karting circuit in the Netherlands"
     },
     {
       "trackId": "TRK-005",
       "name": "Goodwill Karting",
       "location": {
-        "city": "Hoogbuul",
+        "city": "Olen",
         "country": "Belgium",
-        "region": "Flanders"
+        "region": "Antwerp",
+        "address": "Hoogbuul 47, 2250 Olen"
+      },
+      "coordinates": {
+        "latitude": 51.14925349083925,
+        "longitude": 4.892154395909144
       },
       "specifications": {
-        "distance": 450,
-        "corners": 10,
+        "distance": 600,
+        "corners": 12,
+        "width": 8,
         "indoor": true
       },
-      "features": [],
-      "website": "https://goodwillkarting.nl",
-      "contact": {},
-      "pricing": {
-        "session": 13.30,
-        "costPerLap": 0.74
+      "features": [
+        "Indoor and outdoor circuit",
+        "Banked corner (kombocht)",
+        "Apex timing system",
+        "Electronic time registration",
+        "Professional start/finish line",
+        "Bar",
+        "Catering available",
+        "Mobile app",
+        "Sodi karts"
+      ],
+      "website": "https://www.goodwillkarting.be",
+      "contact": {
+        "phone": "+32 14 22 43 46",
+        "email": "info@goodwillkarting.be"
       },
-      "karts": []
+      "pricing": {
+        "membershipCard": 5.0,
+        "formula1": 32.0,
+        "formula2": 47.0,
+        "formula3": 60.0,
+        "kidsRaceParty": 50.0,
+        "raceParty": 60.0,
+        "session": 16.0,
+        "costPerLap": 0.89
+      },
+      "karts": [
+        "Sodi RT8",
+        "Sodi SR5",
+        "Kids karts"
+      ],
+      "openingHours": {
+        "monday": "Closed",
+        "tuesday": "Closed",
+        "wednesday": "14:00-23:00",
+        "thursday": "14:00-23:00",
+        "friday": "14:00-00:00",
+        "saturday": "13:00-00:00",
+        "sunday": "13:00-23:00"
+      },
+      "status": "OPEN"
     },
     {
       "trackId": "TRK-006",
@@ -137,17 +254,25 @@
       "location": {
         "city": "Breda",
         "country": "Netherlands",
-        "region": "North Brabant"
+        "region": "North Brabant",
+        "address": "Breda"
+      },
+      "coordinates": {
+        "latitude": 51.6057903423378,
+        "longitude": 4.751824250745985
       },
       "specifications": {
         "distance": 325,
         "corners": 11,
+        "width": 7,
         "indoor": true
       },
-      "features": ["SMS Timing"],
+      "features": [
+        "SMS Timing"
+      ],
       "website": "https://lot66.nl",
       "contact": {
-        "phone": "076 - 543 93 65",
+        "phone": "+31 76 543 93 65",
         "email": "info@lot66.nl"
       },
       "pricing": {
@@ -164,11 +289,17 @@
       "location": {
         "city": "Guardamar del Segura",
         "country": "Spain",
-        "region": "Alicante"
+        "region": "Alicante",
+        "address": "Ctra. Alicante-Cartagena KM 74, N-332, between La Marina and Guardamar del Segura"
+      },
+      "coordinates": {
+        "latitude": 38.1142223242832,
+        "longitude": -0.6579792316078417
       },
       "specifications": {
         "distance": 500,
         "corners": 12,
+        "width": 8,
         "indoor": false
       },
       "features": [
@@ -176,7 +307,10 @@
         "Photography services",
         "Recreational area",
         "Restaurant (The Paddock)",
-        "Formula 1 store"
+        "Formula 1 store",
+        "Sprint League competition",
+        "Birthday parties",
+        "Multilingual (ES/EN/FR)"
       ],
       "website": "https://racingcentergilesias.es",
       "contact": {
@@ -187,8 +321,17 @@
         "session8min": 15.0,
         "costPerLap": 0.83
       },
-      "karts": ["2 Stroke", "Super Fast Kart", "Fast Kart", "Super Junior", "Junior", "Mini Junior", "Biplazas"],
-      "notes": "Since 1989. Best karting track with Google rating in the Valencian Community and Region of Murcia"
+      "karts": [
+        "2 Stroke",
+        "Super Fast Kart",
+        "Fast Kart",
+        "Super Junior",
+        "Junior",
+        "Mini Junior (from 2 years)",
+        "Biplazas"
+      ],
+      "status": "OPEN",
+      "notes": "Since 1989. Best karting track with Google rating in the Valencian Community and Region of Murcia. Gilesias Sprint League 2025-2026 with F1 GP Spain tickets as prize."
     }
   ]
 }

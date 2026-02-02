@@ -44,29 +44,76 @@ def load_config():
                 'distance': 400,  # meters (default)
                 'corners': 10     # default
             },
-            'Elche': {
+            'Fastkart Elche': {
                 'indoor': False,
                 'city': 'Elche',
                 'country': 'Spain',
-                'timezone': 'CET',
-                'distance': 800,
-                'corners': 15
+                'timezone': 'Europe/Madrid',
+                'distance': 1160,
+                'corners': 14,
+                'width': 10,
+                'track_id': 'TRK-001'
+            },
+            'De Voltage': {
+                'indoor': True,
+                'city': 'Tilburg',
+                'country': 'Netherlands',
+                'timezone': 'Europe/Amsterdam',
+                'distance': 450,
+                'corners': 12,
+                'width': 8,
+                'track_id': 'TRK-002'
             },
             'Experience Factory Antwerp': {
                 'indoor': True,
                 'city': 'Antwerp',
                 'country': 'Belgium',
-                'timezone': 'CET',
-                'distance': 500,
-                'corners': 12
+                'timezone': 'Europe/Brussels',
+                'distance': 350,
+                'corners': 9,
+                'width': 8,
+                'track_id': 'TRK-003'
             },
-            'Gilesias': {
+            'Circuit Park Berghem': {
                 'indoor': False,
-                'city': 'Gilesias',
-                'country': 'Italy',
-                'timezone': 'CET',
-                'distance': 1000,
-                'corners': 20
+                'city': 'Berghem',
+                'country': 'Netherlands',
+                'timezone': 'Europe/Amsterdam',
+                'distance': 1200,
+                'corners': 14,
+                'width': 10,
+                'track_id': 'TRK-004'
+            },
+            'Goodwill Karting': {
+                'indoor': True,
+                'city': 'Olen',
+                'country': 'Belgium',
+                'timezone': 'Europe/Brussels',
+                'distance': 600,
+                'corners': 12,
+                'width': 8,
+                'track_id': 'TRK-005'
+            },
+            'Lot66': {
+                'indoor': True,
+                'city': 'Breda',
+                'country': 'Netherlands',
+                'timezone': 'Europe/Amsterdam',
+                'distance': 325,
+                'corners': 11,
+                'width': 7,
+                'track_id': 'TRK-006',
+                'status': 'PERMANENTLY CLOSED'
+            },
+            'Racing Center Gilesias': {
+                'indoor': False,
+                'city': 'Guardamar del Segura',
+                'country': 'Spain',
+                'timezone': 'Europe/Madrid',
+                'distance': 500,
+                'corners': 12,
+                'width': 8,
+                'track_id': 'TRK-007'
             }
         }
     
@@ -80,6 +127,56 @@ def load_config():
                     2: 57.00,
                     3: 81.00
                 }
+            },
+            'Fastkart Elche': {
+                'cost_per_lap': 2.14,
+                'heat_pricing': {
+                    1: 20.00,  # Ticket Simple
+                    2: 30.00,  # Carrera
+                    3: 40.00,  # Gran Premio
+                    4: 50.00,  # Challenge
+                    5: 60.00   # Super Challenge
+                }
+            },
+            'De Voltage': {
+                'cost_per_lap': 1.65,
+                'heat_pricing': {
+                    1: 19.75
+                }
+            },
+            'Experience Factory Antwerp': {
+                'cost_per_lap': 2.14,
+                'heat_pricing': {
+                    1: 23.50
+                }
+            },
+            'Circuit Park Berghem': {
+                'cost_per_lap': 0.91,
+                'heat_pricing': {
+                    1: 19.95,
+                    3: 49.95  # Winter action
+                }
+            },
+            'Goodwill Karting': {
+                'cost_per_lap': 0.89,
+                'heat_pricing': {
+                    1: 16.00,
+                    2: 32.00,  # Formula 1
+                    3: 47.00,  # Formula 2
+                    4: 60.00   # Formula 3
+                }
+            },
+            'Lot66': {
+                'cost_per_lap': 2.00,
+                'heat_pricing': {
+                    1: 30.00
+                }
+            },
+            'Racing Center Gilesias': {
+                'cost_per_lap': 0.83,
+                'heat_pricing': {
+                    1: 15.00  # 8 min session
+                }
             }
         }
     
@@ -89,7 +186,11 @@ def load_config():
             'Default Track': {
                 driver: [driver] for driver in config['default_drivers']
             },
-            'Elche': {
+            'Fastkart Elche': {
+                'Max van Lierop': ['Max', 'M. Lierop'],
+                'Quinten van Wesel': ['Quinten', 'Q. Wesel']
+            },
+            'De Voltage': {
                 'Max van Lierop': ['Max', 'M. Lierop'],
                 'Quinten van Wesel': ['Quinten', 'Q. Wesel']
             },
@@ -97,7 +198,15 @@ def load_config():
                 'Max van Lierop': ['Max', 'M. Lierop'],
                 'Quinten van Wesel': ['Quinten', 'Q. Wesel']
             },
-            'Gilesias': {
+            'Circuit Park Berghem': {
+                'Max van Lierop': ['Max', 'M. Lierop'],
+                'Quinten van Wesel': ['Quinten', 'Q. Wesel']
+            },
+            'Goodwill Karting': {
+                'Max van Lierop': ['Max', 'M. Lierop'],
+                'Quinten van Wesel': ['Quinten', 'Q. Wesel']
+            },
+            'Racing Center Gilesias': {
                 'Max van Lierop': ['Max', 'M. Lierop'],
                 'Quinten van Wesel': ['Quinten', 'Q. Wesel']
             }
@@ -111,9 +220,13 @@ def load_config():
     if not config.get('track_ids'):
         config['track_ids'] = {
             'default': 'TRK-001',
-            'Elche': 'TRK-002',
+            'Fastkart Elche': 'TRK-001',
+            'De Voltage': 'TRK-002',
             'Experience Factory Antwerp': 'TRK-003',
-            'Gilesias': 'TRK-004'
+            'Circuit Park Berghem': 'TRK-004',
+            'Goodwill Karting': 'TRK-005',
+            'Lot66': 'TRK-006',
+            'Racing Center Gilesias': 'TRK-007'
         }
     
     # CSV filename

@@ -70,6 +70,9 @@ class DatabaseSeeder extends Seeder
                 'city' => $trackData['location']['city'] ?? null,
                 'country' => $trackData['location']['country'] ?? null,
                 'region' => $trackData['location']['region'] ?? null,
+                'address' => $trackData['location']['address'] ?? null,
+                'latitude' => $trackData['coordinates']['latitude'] ?? null,
+                'longitude' => $trackData['coordinates']['longitude'] ?? null,
                 'distance' => $trackData['specifications']['distance'] ?? null,
                 'corners' => $trackData['specifications']['corners'] ?? null,
                 'width' => $trackData['specifications']['width'] ?? null,
@@ -79,6 +82,9 @@ class DatabaseSeeder extends Seeder
                 'contact' => $trackData['contact'] ?? [],
                 'pricing' => $trackData['pricing'] ?? [],
                 'karts' => $trackData['karts'] ?? [],
+                'status' => $trackData['status'] ?? 'OPEN',
+                'notes' => $trackData['notes'] ?? null,
+                'opening_hours' => $trackData['openingHours'] ?? null,
             ]);
         }
 
