@@ -213,10 +213,27 @@ git push origin hotfix/critical-security-fix
 
 ## 📚 Related Documentation
 
+- [GitHub Rulesets](.github/rulesets/README.md) - Repository ruleset configurations
 - [PR Template](.github/PULL_REQUEST_TEMPLATE.md)
 - [CI/CD Pipeline](.github/workflows/pipeline.yml)
 - [Contributing Guide](CONTRIBUTING.md)
 - [Security Policy](SECURITY.md)
+
+## 📋 GitHub Rulesets
+
+This repository uses **GitHub Rulesets** for modern, flexible branch and tag protection. Rulesets provide more granular control and can be version-controlled.
+
+### Available Rulesets
+
+| Ruleset | Purpose |
+|---------|---------|
+| [Develop Branch Protection](.github/rulesets/develop-branch-protection.json) | Protects the develop branch |
+| [Release Tags Protection](.github/rulesets/release-tags-protection.json) | Protects release tags (v*) |
+| [Feature Branch Standards](.github/rulesets/feature-branch-standards.json) | Enforces standards on feature branches |
+
+### Importing Rulesets
+
+See [.github/rulesets/README.md](.github/rulesets/README.md) for detailed instructions on importing these rulesets via the GitHub UI, CLI, or API.
 
 ## 🎓 Training Resources
 
