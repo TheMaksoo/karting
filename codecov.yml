@@ -17,6 +17,10 @@ coverage:
         target: auto
         threshold: 5%
         if_ci_failed: error
+        # Only count backend and frontend for overall coverage
+        flags:
+          - backend
+          - frontend
     patch:
       default:
         target: auto
@@ -38,6 +42,8 @@ flags:
     paths:
       - data-importer/scripts/
     carryforward: true
+    # Python data-importer is auxiliary, don't count towards main coverage
+    after_n_builds: 1
 
 # Ignore certain files from coverage
 ignore:
