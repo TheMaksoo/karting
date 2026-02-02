@@ -16,7 +16,7 @@ it('handles POST requests (create operations)', function () {
     $next = fn ($request) => new Response(json_encode(['id' => 1]), 201);
 
     $response = $this->middleware->handle($request, $next);
-    
+
     expect($response)->toBeInstanceOf(Response::class);
     expect($response->getStatusCode())->toBe(201);
 });
@@ -27,7 +27,7 @@ it('handles PUT requests (update operations)', function () {
     $next = fn ($request) => new Response(json_encode(['id' => 1]), 200);
 
     $response = $this->middleware->handle($request, $next);
-    
+
     expect($response)->toBeInstanceOf(Response::class);
     expect($response->getStatusCode())->toBe(200);
 });
@@ -38,7 +38,7 @@ it('handles PATCH requests (update operations)', function () {
     $next = fn ($request) => new Response(json_encode(['id' => 1]), 200);
 
     $response = $this->middleware->handle($request, $next);
-    
+
     expect($response)->toBeInstanceOf(Response::class);
     expect($response->getStatusCode())->toBe(200);
 });
@@ -49,7 +49,7 @@ it('handles DELETE requests (delete operations)', function () {
     $next = fn ($request) => new Response('', 204);
 
     $response = $this->middleware->handle($request, $next);
-    
+
     expect($response)->toBeInstanceOf(Response::class);
     expect($response->getStatusCode())->toBe(204);
 });
@@ -60,7 +60,7 @@ it('does not audit GET requests', function () {
     $next = fn ($request) => new Response(json_encode([]), 200);
 
     $response = $this->middleware->handle($request, $next);
-    
+
     expect($response)->toBeInstanceOf(Response::class);
     expect($response->getStatusCode())->toBe(200);
 });
@@ -71,7 +71,7 @@ it('does not audit when not authenticated', function () {
     $next = fn ($request) => new Response(json_encode(['id' => 1]), 201);
 
     $response = $this->middleware->handle($request, $next);
-    
+
     expect($response)->toBeInstanceOf(Response::class);
     expect($response->getStatusCode())->toBe(201);
 });

@@ -611,7 +611,7 @@ class KartingSessionControllerTest extends TestCase
     public function test_stats_returns_session_statistics(): void
     {
         $this->markTestIncomplete('stats() method implementation pending in separate branch');
-        
+
         $session = $this->createSessionWithLaps(5);
         $laps = $session->laps;
 
@@ -662,7 +662,7 @@ class KartingSessionControllerTest extends TestCase
     public function test_stats_with_empty_session(): void
     {
         $this->markTestIncomplete('stats() method implementation pending in separate branch');
-        
+
         $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
 
         $response = $this->actingAs($this->user)->getJson("/api/sessions/{$session->id}/stats");
@@ -679,7 +679,7 @@ class KartingSessionControllerTest extends TestCase
     public function test_stats_caches_results(): void
     {
         $this->markTestIncomplete('stats() method implementation pending in separate branch');
-        
+
         $session = $this->createSessionWithLaps(3);
 
         // First request - not cached
@@ -709,7 +709,7 @@ class KartingSessionControllerTest extends TestCase
     public function test_stats_requires_authentication(): void
     {
         $this->markTestIncomplete('stats() method implementation pending in separate branch');
-        
+
         $session = KartingSession::factory()->create(['track_id' => $this->track->id]);
 
         $response = $this->getJson("/api/sessions/{$session->id}/stats");
