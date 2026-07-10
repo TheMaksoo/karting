@@ -1,0 +1,34 @@
+name: Deploy Demo Page
+
+# Deploys demo.html to solyx.gg/karting/demo.html on push to main
+# This runs independently of the full pipeline (which requires develop branch)
+#
+# 🔑 REQUIRED SECRETS: FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'portal/frontend/public/demo.html'
+  workflow_dispatch:
+
+jobs:
+  deploy-demo:
+    name: 🚀 Deploy karting demo page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy demo.html via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server:    ${{ secrets.FTP_SERVER }}
+          username:  ${{ secrets.FTP_USERNAME }}
+          password:  ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./portal/frontend/public/
+          server-dir: /public_html/karting/
+          include: |
+            demo.html
+
+      - name: Summary
+        run: echo "### ✅ karting/demo.html deployed!" >> $GITHUB_STEP_SUMMARY
