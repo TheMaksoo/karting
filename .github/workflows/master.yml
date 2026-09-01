@@ -63,7 +63,7 @@ jobs:
       run_all: ${{ github.event.inputs.run_all == 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.run_all != 'false' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -124,7 +124,7 @@ jobs:
       run:
         working-directory: portal/backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -185,7 +185,7 @@ jobs:
       run:
         working-directory: portal/frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -239,7 +239,7 @@ jobs:
       run:
         working-directory: data-importer/scripts
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -284,7 +284,7 @@ jobs:
       (needs.frontend.result == 'success' || needs.frontend.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -331,12 +331,12 @@ jobs:
       (needs.detect-changes.outputs.wiki == 'true' || needs.detect-changes.outputs.run_all == 'true')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Checkout Wiki
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         id: checkout-wiki
         continue-on-error: true
         with:
@@ -403,7 +403,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Deploy Summary
         run: |
